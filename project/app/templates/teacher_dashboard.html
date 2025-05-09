@@ -1,9 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>欢迎 {{ teacher.name }}（教师）</h2>
-    <p>权限等级：{{ teacher.access_level }} ｜ 下载配额：{{ teacher.thesis_quota }} 单位</p>
-
+  <h2>欢迎 {{ teacher.name }}（教师）</h2>
+  <p>权限等级：{{ teacher.access_level }} ｜ 下载配额：{{ teacher.thesis_quota }} 单位</p>
 
   <!-- 搜索论文 -->
   <section>
@@ -20,17 +19,20 @@
       <h3>搜索结果</h3>
       <ul>
         {% for thesis in theses %}
-        <li>
+          <li style="margin-bottom: 20px;">
             <strong>{{ thesis.title }}</strong><br>
             {{ thesis.abstract }}<br>
-            <em>权限要求：Scope={{ thesis.access_scope }} ｜ Type={{ thesis.access_type }} ｜ {% if thesis.is_free %}免费{% else %}需{{ thesis.price }}单位{% endif %}</em><br>
-          
-            <form method="post" action="{{ url_for('student.purchase_thesis') }}">
+            <em>
+              权限要求：
+              Scope={{ thesis.access_scope }} ｜ 
+              Type={{ thesis.access_type }} ｜ 
+              {% if thesis.is_free %}免费{% else %}需 {{ thesis.price }} 单位{% endif %}
+            </em><br>
+            <form method="post" action="{{ url_for('teacher.purchase_thesis') }}">
               <input type="hidden" name="title" value="{{ thesis.title }}">
               <button type="submit">购买并下载</button>
             </form>
           </li>
-          
         {% endfor %}
       </ul>
     </section>
@@ -46,5 +48,4 @@
       <button type="submit">上传</button>
     </form>
   </section>
-
 {% endblock %}
