@@ -68,6 +68,7 @@ def login():
     password = request.form.get('password', '').strip()
 
     convener = OConvener.query.filter_by(email=email).first()
+    session['user_org'] = "o-convener"
     if not convener:
         log_access(f"O-Convener 登录失败：用户不存在（{email}）")  # ✅ 记录行为
         return render_template('oconvener_login.html', error='用户不存在')

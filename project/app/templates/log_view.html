@@ -15,6 +15,14 @@
             text-align: center;
             color: red;
         }
+        form {
+            margin-top: 20px;
+            text-align: center;
+        }
+        input, select {
+            padding: 6px;
+            margin: 5px;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -47,13 +55,33 @@
         <a href="{{ url_for('admin.logout') }}">退出登录</a>
     </div>
 
+    <form method="get" action="{{ url_for('log.view_logs') }}">
+        <input type="text" name="user" placeholder="用户名" value="{{ request.args.get('user', '') }}">
+        <select name="role">
+            <option value="">角色</option>
+            <option value="student" {% if request.args.get('role') == 'student' %}selected{% endif %}>Student</option>
+            <option value="teacher" {% if request.args.get('role') == 'teacher' %}selected{% endif %}>Teacher</option>
+            <option value="convener" {% if request.args.get('role') == 'convener' %}selected{% endif %}>Convener</option>
+            <option value="eadmin" {% if request.args.get('role') == 'eadmin' %}selected{% endif %}>E-Admin</option>
+            <option value="senior" {% if request.args.get('role') == 'senior' %}selected{% endif %}>Senior-Admin</option>
+        </select>
+        <input type="text" name="organization" placeholder="组织" value="{{ request.args.get('organization', '') }}">
+        <input type="text" name="action" placeholder="行为描述关键字" value="{{ request.args.get('action', '') }}">
+        <input type="date" name="start_time" value="{{ request.args.get('start_time', '') }}">
+        <input type="date" name="end_time" value="{{ request.args.get('end_time', '') }}">
+        <button type="submit">筛选</button>
+    </form>
+
     <table>
         <thead>
             <tr>
                 <th>ID</th>
                 <th>用户</th>
+                <th>角色</th>
+                <th>组织</th>
                 <th>访问路径</th>
                 <th>行为描述</th>
+                <th>目标</th>
                 <th>时间</th>
                 <th>IP 地址</th>
             </tr>
@@ -63,14 +91,17 @@
             <tr>
                 <td>{{ log.id }}</td>
                 <td>{{ log.user }}</td>
+                <td>{{ log.role or '' }}</td>
+                <td>{{ log.organization or '' }}</td>
                 <td>{{ log.url }}</td>
                 <td>{{ log.action }}</td>
+                <td>{{ log.target or '' }}</td>
                 <td>{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                 <td>{{ log.ip }}</td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="6">暂无访问记录</td>
+                <td colspan="9">暂无访问记录</td>
             </tr>
             {% endfor %}
         </tbody>

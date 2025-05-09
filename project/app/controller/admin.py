@@ -24,12 +24,12 @@ def admin_login():
         admin = SeniorEAdmin.query.filter_by(email=email, _password=password).first()
     else:
         admin = None
-
+    session['user_org'] = "admin"
     if admin:
         session['admin_id'] = admin.id
         session['admin_role'] = role
         session['admin_name'] = admin.name
-
+        
         log_access(f"{role} 登录成功（ID: {admin.id}）")  # ✅ 记录登录成功
         return redirect(url_for('admin.dashboard'))
     else:

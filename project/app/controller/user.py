@@ -30,6 +30,7 @@ def login():
         session['user_id'] = user.id
         session['user_role'] = role
         session['user_name'] = user.name
+        session['user_org'] = user.organization
         if role == 'student':
             log_access(f"Student login successful (User ID: {user.id})")
             return redirect(url_for('student.dashboard'))
