@@ -1,37 +1,133 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h2>欢迎 {{ student.name }}（学生）</h2>
-    <p>权限等级：{{ student.access_level }} ｜ 下载配额：{{ student.thesis_quota }} 单位</p>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f8;
+    padding: 40px;
+  }
 
-  <!-- 搜索论文 -->
-  <section>
-    <h3>搜索论文</h3>
-    <form method="post" action="{{ url_for('student.search_thesis') }}">
-      <input type="text" name="keywords" placeholder="请输入关键词" required>
-      <button type="submit">搜索</button>
-    </form>
-  </section>
+  .alert {
+    background-color: #ffeeba;
+    border: 1px solid #f5c6cb;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    color: #856404;
+  }
 
-  <!-- 搜索结果显示 -->
-  {% if theses %}
-    <section>
-      <h3>搜索结果</h3>
-      <ul>
-        {% for thesis in theses %}
-        <li>
-            <strong>{{ thesis.title }}</strong><br>
-            {{ thesis.abstract }}<br>
-            <em>权限要求：Scope={{ thesis.access_scope }} ｜ Type={{ thesis.access_type }} ｜ {% if thesis.is_free %}免费{% else %}需{{ thesis.price }}单位{% endif %}</em><br>
-          
-            <form method="post" action="{{ url_for('student.purchase_thesis') }}">
-              <input type="hidden" name="title" value="{{ thesis.title }}">
-              <button type="submit">购买并下载</button>
-            </form>
-          </li>          
-        {% endfor %}
-      </ul>
-    </section>
+  h2, h3 {
+    color: #333;
+    margin-top: 20px;
+  }
+
+  section {
+    background-color: #fff;
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+  }
+
+  form {
+    margin-top: 15px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-size: 14px;
+  }
+
+  button {
+    padding: 10px 18px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #0056b3;
+  }
+
+  ul {
+    list-style-type: none;
+    padding-left: 0;
+  }
+
+  li {
+    background-color: #fafafa;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 15px;
+  }
+
+  em {
+    color: #666;
+    font-size: 14px;
+  }
+</style>
+
+<!-- 提示信息 -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="alert">{{ messages[-1] }}</div>
   {% endif %}
+{% endwith %}
 
+<!-- 学生信息 -->
+<h2>欢迎 {{ student.name }}（学生）</h2>
+<p>权限等级：{{ student.access_level }} ｜ 下载配额：{{ student.thesis_quota }} 单位</p>
+
+<!-- 搜索论文 -->
+<section>
+  <h3>搜索论文</h3>
+  <form method="post" action="{{ url_for('student.search_thesis') }}">
+    <input type="text" name="keywords" placeholder="请输入关键词" required>
+    <button type="submit">搜索</button>
+  </form>
+</section>
+
+<!-- 搜索结果 -->
+{% if theses %}
+<section>
+  <h3>搜索结果</h3>
+  <ul>
+    {% for thesis in theses %}
+    <li>
+      <strong>{{ thesis.title }}</strong><br>
+      <div style="margin: 8px 0;">{{ thesis.abstract }}</div>
+      <em>
+        权限要求：
+        Scope={{ thesis.access_scope }} ｜ 
+        Type={{ thesis.access_type }} ｜ 
+        {% if thesis.is_free %}免费{% else %}需 {{ thesis.price }} 单位{% endif %}
+      </em>
+      <form method="post" action="{{ url_for('student.purchase_thesis') }}">
+        <input type="hidden" name="title" value="{{ thesis.title }}">
+        <button type="submit" style="margin-top: 10px;">购买并下载</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<!-- 自动隐藏提示 -->
+<script>
+  setTimeout(function () {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(el => el.style.display = 'none');
+  }, 3000);
+</script>
 {% endblock %}
