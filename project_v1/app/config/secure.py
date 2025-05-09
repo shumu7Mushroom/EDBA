@@ -7,6 +7,18 @@
 # SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://kido:kido@bcrab.cn/kido?charset=utf8'
 # SQLALCHEMY_TRACK_MODIFICATION = True
 
+import os, sys
+
+print("Loading secure.py from:", __file__)
+UPLOAD_FOLDER = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        '..', '..', '..',
+        'uploads'
+    )
+)
+print("Configured UPLOAD_FOLDER =", UPLOAD_FOLDER)
+
 SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:@localhost:3306/edba_db?charset=utf8mb4'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 

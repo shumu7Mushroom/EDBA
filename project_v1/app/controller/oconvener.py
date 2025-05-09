@@ -9,6 +9,7 @@ from app.models.student import Student
 from app.models.teacher import Teacher
 from flask import redirect, url_for
 from app.models.thesis import Thesis
+from flask import send_from_directory
 
 oconvenerBP = Blueprint('oconvener', __name__)
 
@@ -146,12 +147,21 @@ def create_thesis():
     if request.method == 'POST':
         title = request.form.get('title')
         abstract = request.form.get('abstract')
-        pdf_path = request.form.get('pdf_path')  # assume input path for now
+        pdf_file = request.files.get('pdf_file')
         organization = session.get('user_name')  # using convener's org shortname
         access_scope = request.form.get('access_scope')  # all/specific/self
         access_type = request.form.get('access_type')    # view/download
         is_free = request.form.get('is_free') == 'true'
         price = int(request.form.get('price') or 0)
+
+        pdf_path = None
+        if pdf_file and pdf_file.filename:
+            filename = secure_filename(pdf_file.filename)
+            upload_folder = current_app.config['UPLOAD_FOLDER']  # ✅ 用 config 中定义的绝对路径
+            os.makedirs(upload_folder, exist_ok=True)
+            save_path = os.path.join(upload_folder, filename)
+            pdf_file.save(save_path)
+            pdf_path = filename  # ✅ 仅保存文件名
 
         thesis = Thesis(
             title=title,
@@ -182,6 +192,13 @@ def list_thesis():
     return render_template('list_thesis.html', title='我的论文', theses=theses)
 
 
+
+@oconvenerBP.route('/uploads/<filename>')
+def uploaded_file(filename):
+    import os
+    upload_folder = current_app.config.get('UPLOAD_FOLDER', 'uploads')
+    print("尝试访问文件路径：", os.path.join(upload_folder, filename))  # ✅ 打印真实路径
+    return send_from_directory(upload_folder, filename)
 
 
 
