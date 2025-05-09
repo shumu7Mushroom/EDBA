@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, session
 from app.models.student import Student
 from app.models.teacher import Teacher
-
+from flask import redirect, url_for
 userBP = Blueprint('user', __name__)
 
 @userBP.route('/login', methods=['GET', 'POST'])
@@ -28,6 +28,9 @@ def login():
         session['user_id'] = user.id
         session['user_role'] = role
         session['user_name'] = user.name
-        return render_template('success.html', title='Login Success', name=session['user_name'])
+        if role == 'student':
+            return redirect(url_for('student.dashboard'))
+        else:
+            return redirect(url_for('teacher.dashboard'))
 
     return render_template('login.html', title='Login', header='User Login', error='邮箱或密码错误')

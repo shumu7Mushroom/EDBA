@@ -9,6 +9,8 @@ from app.models.student import Student
 from app.models.teacher import Teacher
 from flask import redirect, url_for
 from app.models.thesis import Thesis
+from flask import send_from_directory
+from flask import flash
 
 oconvenerBP = Blueprint('oconvener', __name__)
 
@@ -26,7 +28,7 @@ def register():
     if not all([org_fullname, org_shortname, email, code, file]):
         return render_template('oconvener_register_fail.html', message="表单信息不完整")
 
-    if not (email.endswith('@uic.edu.hk') or email.endswith('@163.com')):
+    if not (email.endswith('@mail.uic.edu.cn') or email.endswith('@163.com')):
         return render_template('oconvener_register_fail.html', message="邮箱格式无效")
 
     if code != session.get('register_code', ''):
@@ -84,7 +86,7 @@ def send_code():
     from app import mail 
     email = request.form.get('email')
 
-    allowed_domains = ['@mail.uic.edu.hk', '@163.com']
+    allowed_domains = ['@mail.uic.edu.cn', '@163.com']
     if not email or not any(email.endswith(domain) for domain in allowed_domains):
         return jsonify({"status": "fail", "message": "Invalid email"}), 400
 
@@ -110,15 +112,16 @@ def dashboard():
     if 'user_id' not in session or session.get('user_role') != 'convener':
         return redirect(url_for('oconvener.login'))
 
-    students = Student.query.all()
-    teachers = Teacher.query.all()
-    # print(Student.query.all())
-    # print(Teacher.query.all())
+    org = session.get('user_name')  # 当前 O-Convener 的组织简称
+
+    students = Student.query.filter_by(organization=org).all()
+    teachers = Teacher.query.filter_by(organization=org).all()
 
     return render_template('oconvener_dashboard.html',
-                           name=session['user_name'],
+                           name=org,
                            students=students,
                            teachers=teachers)
+
 
 
 @oconvenerBP.route('/update_user/<user_type>/<int:user_id>', methods=['POST'])
@@ -146,12 +149,22 @@ def create_thesis():
     if request.method == 'POST':
         title = request.form.get('title')
         abstract = request.form.get('abstract')
-        pdf_path = request.form.get('pdf_path')  # assume input path for now
+        pdf_file = request.files.get('pdf_file')
         organization = session.get('user_name')  # using convener's org shortname
         access_scope = request.form.get('access_scope')  # all/specific/self
         access_type = request.form.get('access_type')    # view/download
         is_free = request.form.get('is_free') == 'true'
         price = int(request.form.get('price') or 0)
+        specific_org = request.form.get('specific_org') if access_scope == 'specific' else None
+
+        pdf_path = None
+        if pdf_file and pdf_file.filename:
+            filename = secure_filename(pdf_file.filename)
+            upload_folder = current_app.config['UPLOAD_FOLDER']
+            os.makedirs(upload_folder, exist_ok=True)
+            save_path = os.path.join(upload_folder, filename)
+            pdf_file.save(save_path)
+            pdf_path = filename
 
         thesis = Thesis(
             title=title,
@@ -161,7 +174,8 @@ def create_thesis():
             access_scope=access_scope,
             access_type=access_type,
             is_free=is_free,
-            price=price
+            price=price,
+            specific_org=specific_org  # ✅ 新增字段
         )
 
         with db.auto_commit():
@@ -170,6 +184,7 @@ def create_thesis():
         return redirect(url_for('oconvener.list_thesis'))
 
     return render_template('create_thesis.html', title='上传论文')
+
 
 
 @oconvenerBP.route('/thesis/list')
@@ -183,6 +198,37 @@ def list_thesis():
 
 
 
+@oconvenerBP.route('/uploads/<filename>')
+def uploaded_file(filename):
+    import os
+    upload_folder = current_app.config.get('UPLOAD_FOLDER', 'uploads')
+    print("尝试访问文件路径：", os.path.join(upload_folder, filename))  # ✅ 打印真实路径
+    return send_from_directory(upload_folder, filename)
+
+@oconvenerBP.route('/thesis/update/<int:thesis_id>', methods=['POST'])
+def update_thesis(thesis_id):
+    thesis = Thesis.query.get_or_404(thesis_id)
+
+    access_scope = request.form.get('access_scope')
+    access_type = request.form.get('access_type')
+    is_free = request.form.get('is_free') == 'true'
+    price = int(request.form.get('price', 0))
+
+    # 自动同步逻辑
+    if thesis.price == 0 and price > 0:
+        is_free = False  # 如果原价为0，现在设为>0，自动取消免费
+    if thesis.price > 0 and is_free:
+        price = 0  # 如果原价>0，但设为免费，自动将价格设为0
+
+    # 更新字段
+    thesis.access_scope = access_scope
+    thesis.access_type = access_type
+    thesis.is_free = is_free
+    thesis.price = price
+
+    db.session.commit()
+    flash('论文权限已更新', 'success')
+    return redirect(url_for('oconvener.list_thesis'))
 
 
 # @oconvenerBP.route('/api/test/students', methods=['GET'])

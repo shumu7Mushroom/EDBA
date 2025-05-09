@@ -14,6 +14,7 @@ class Thesis(Base):
     access_scope = Column(String(50), default='all')  # 'all', 'specific', 'self'
     access_type = Column(String(50), default='view')  # 'view', 'download'
     is_free = Column(Boolean, default=True)  # True = 免费，False = 按 price 收费
+    specific_org = db.Column(db.String(128), nullable=True)
 
     def to_dict(self):
         return {
@@ -25,5 +26,6 @@ class Thesis(Base):
             'organization': self.organization,
             'access_scope': self.access_scope,
             'access_type': self.access_type,
-            'is_free': self.is_free
+            'is_free': self.is_free,
+            'specific_org': self.specific_org 
         }
