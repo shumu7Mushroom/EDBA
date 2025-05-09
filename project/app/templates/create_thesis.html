@@ -108,7 +108,11 @@
                 <option value="specific">仅对特定组织开放</option>
                 <option value="self">仅限自身组织</option>
             </select>
-
+            <div id="specific-org-wrapper" style="display: none;">
+                <label for="specific_org">组织名称:</label>
+                <input type="text" name="specific_org" id="specific_org" placeholder="请输入组织名称">
+            </div>
+            
             <label for="access_type">访问类型:</label>
             <select name="access_type" id="access_type">
                 <option value="view">仅查看摘要</option>
@@ -128,5 +132,25 @@
         </form>
         <a href="{{ url_for('oconvener.dashboard') }}" class="back-btn">返回首页</a>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const accessScopeSelect = document.getElementById('access_scope');
+            const specificOrgWrapper = document.getElementById('specific-org-wrapper');
+        
+            function toggleSpecificOrgField() {
+                if (accessScopeSelect.value === 'specific') {
+                    specificOrgWrapper.style.display = 'block';
+                } else {
+                    specificOrgWrapper.style.display = 'none';
+                    document.getElementById('specific_org').value = '';  // 清空输入
+                }
+            }
+        
+            accessScopeSelect.addEventListener('change', toggleSpecificOrgField);
+            toggleSpecificOrgField(); // 页面加载时执行一次
+        });
+    </script>
+        
 </body>
 </html>

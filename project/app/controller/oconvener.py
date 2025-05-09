@@ -155,15 +155,16 @@ def create_thesis():
         access_type = request.form.get('access_type')    # view/download
         is_free = request.form.get('is_free') == 'true'
         price = int(request.form.get('price') or 0)
+        specific_org = request.form.get('specific_org') if access_scope == 'specific' else None
 
         pdf_path = None
         if pdf_file and pdf_file.filename:
             filename = secure_filename(pdf_file.filename)
-            upload_folder = current_app.config['UPLOAD_FOLDER']  # ✅ 用 config 中定义的绝对路径
+            upload_folder = current_app.config['UPLOAD_FOLDER']
             os.makedirs(upload_folder, exist_ok=True)
             save_path = os.path.join(upload_folder, filename)
             pdf_file.save(save_path)
-            pdf_path = filename  # ✅ 仅保存文件名
+            pdf_path = filename
 
         thesis = Thesis(
             title=title,
@@ -173,7 +174,8 @@ def create_thesis():
             access_scope=access_scope,
             access_type=access_type,
             is_free=is_free,
-            price=price
+            price=price,
+            specific_org=specific_org  # ✅ 新增字段
         )
 
         with db.auto_commit():
@@ -182,6 +184,7 @@ def create_thesis():
         return redirect(url_for('oconvener.list_thesis'))
 
     return render_template('create_thesis.html', title='上传论文')
+
 
 
 @oconvenerBP.route('/thesis/list')
@@ -206,10 +209,22 @@ def uploaded_file(filename):
 def update_thesis(thesis_id):
     thesis = Thesis.query.get_or_404(thesis_id)
 
-    thesis.access_scope = request.form.get('access_scope')
-    thesis.access_type = request.form.get('access_type')
-    thesis.is_free = True if request.form.get('is_free') == 'true' else False
-    thesis.price = int(request.form.get('price', 0))
+    access_scope = request.form.get('access_scope')
+    access_type = request.form.get('access_type')
+    is_free = request.form.get('is_free') == 'true'
+    price = int(request.form.get('price', 0))
+
+    # 自动同步逻辑
+    if thesis.price == 0 and price > 0:
+        is_free = False  # 如果原价为0，现在设为>0，自动取消免费
+    if thesis.price > 0 and is_free:
+        price = 0  # 如果原价>0，但设为免费，自动将价格设为0
+
+    # 更新字段
+    thesis.access_scope = access_scope
+    thesis.access_type = access_type
+    thesis.is_free = is_free
+    thesis.price = price
 
     db.session.commit()
     flash('论文权限已更新', 'success')
