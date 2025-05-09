@@ -27,7 +27,7 @@ def register():
     if not all([org_fullname, org_shortname, email, code, file]):
         return render_template('oconvener_register_fail.html', message="表单信息不完整")
 
-    if not (email.endswith('@uic.edu.hk') or email.endswith('@163.com')):
+    if not (email.endswith('@mail.uic.edu.cn') or email.endswith('@163.com')):
         return render_template('oconvener_register_fail.html', message="邮箱格式无效")
 
     if code != session.get('register_code', ''):
@@ -85,7 +85,7 @@ def send_code():
     from app import mail 
     email = request.form.get('email')
 
-    allowed_domains = ['@mail.uic.edu.hk', '@163.com']
+    allowed_domains = ['@mail.uic.edu.cn', '@163.com']
     if not email or not any(email.endswith(domain) for domain in allowed_domains):
         return jsonify({"status": "fail", "message": "Invalid email"}), 400
 
@@ -111,15 +111,16 @@ def dashboard():
     if 'user_id' not in session or session.get('user_role') != 'convener':
         return redirect(url_for('oconvener.login'))
 
-    students = Student.query.all()
-    teachers = Teacher.query.all()
-    # print(Student.query.all())
-    # print(Teacher.query.all())
+    org = session.get('user_name')  # 当前 O-Convener 的组织简称
+
+    students = Student.query.filter_by(organization=org).all()
+    teachers = Teacher.query.filter_by(organization=org).all()
 
     return render_template('oconvener_dashboard.html',
-                           name=session['user_name'],
+                           name=org,
                            students=students,
                            teachers=teachers)
+
 
 
 @oconvenerBP.route('/update_user/<user_type>/<int:user_id>', methods=['POST'])
