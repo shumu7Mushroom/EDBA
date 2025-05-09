@@ -54,7 +54,8 @@ def register():
 
     with db.auto_commit():
         db.session.add(new_convener)
-
+    # session.clear()
+    # session['user_role'] = "student"
     log_access(f"O-Convener 注册申请提交：{email}")  # ✅ 记录行为
     return render_template('oconvener_register_success.html', title='注册成功')
 

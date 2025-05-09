@@ -11,6 +11,8 @@ def login():
     if request.method == 'GET':
         return render_template('login.html', title='Login', header='User Login')
 
+    session.clear()  # ✅ 清除之前登录的 session 信息，防止身份冲突
+
     email = request.form.get('email', '').strip()
     password = request.form.get('password', '').strip()
     role = request.form.get('role')
