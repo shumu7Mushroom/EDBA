@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>{{ header }}</h2>
+        <form method="post" enctype="multipart/form-data">
+            <label>Org Full Name:</label>
+            <input type="text" name="org_fullname" required>
+
+            <label>Org Short Name:</label>
+            <input type="text" name="org_shortname" required>
+
+            <label>Email:</label>
+            <input type="email" name="email" required>
+
+            <label>Verification Code:</label>
+            <input type="text" name="code" required>
+
+            <label>Upload Proof File (PDF):</label>
+            <input type="file" name="proof" accept="application/pdf" required>
+            <div class="button-row">
+                <button type="submit">Register</button>
+                <button class="btn-secondary" type="button" onclick="sendCode()">Send Verification Code</button>
+            </div>    
+        </form>
+    </div>
+
+    <script>
+        function sendCode() {
+            const email = document.querySelector('input[name="email"]').value;
+            if (!email) {
+                alert('Please enter your email first');
+                return;
+            }
+
+            fetch('/oconvener/send_code', {
+                method: 'POST',
+                body: new URLSearchParams({ email }),
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            })
+            .then(res => res.json())
+            .then(data => alert(data.message))
+            .catch(() => alert('Failed to send code'));
+        }
+    </script>
+</body>
+</html>

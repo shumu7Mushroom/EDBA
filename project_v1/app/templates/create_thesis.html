@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h2>上传论文</h2>
+    <form method="post">
+        <label>标题:</label><br>
+        <input type="text" name="title" required><br><br>
+
+        <label>摘要:</label><br>
+        <textarea name="abstract" rows="5" cols="40" required></textarea><br><br>
+
+        <label>PDF 路径（测试用）:</label><br>
+        <input type="text" name="pdf_path"><br><br>
+
+        <label>访问范围:</label><br>
+        <select name="access_scope">
+            <option value="all">对所有组织开放</option>
+            <option value="specific">仅对特定组织开放</option>
+            <option value="self">仅限自身组织</option>
+        </select><br><br>
+
+        <label>访问类型:</label><br>
+        <select name="access_type">
+            <option value="view">仅查看摘要</option>
+            <option value="download">允许下载</option>
+        </select><br><br>
+
+        <label>是否免费:</label><br>
+        <select name="is_free">
+            <option value="true">免费</option>
+            <option value="false">收费</option>
+        </select><br><br>
+
+        <label>价格（积分）:</label><br>
+        <input type="number" name="price" value="0" min="0"><br><br>
+
+        <button type="submit">提交论文</button>
+    </form>
+</body>
+</html>

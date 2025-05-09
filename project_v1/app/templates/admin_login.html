@@ -1,0 +1,85 @@
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f6f8;
+        padding: 40px;
+    }
+
+    .admin-login-container {
+        max-width: 400px;
+        margin: 0 auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 25px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #444;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        background-color: #007bff;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    .error-message {
+        color: red;
+        text-align: center;
+        margin-top: 15px;
+    }
+</style>
+
+<div class="admin-login-container">
+    <h2>Admin Login</h2>
+    <form method="post">
+        <label for="email">Email:</label>
+        <input type="email" name="email" id="email" required>
+
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" required>
+
+        <label for="role">Role:</label>
+        <select name="role" id="role" required>
+            <option value="eadmin">E-Admin</option>
+            <option value="senior">Senior E-Admin</option>
+        </select>
+
+        <button type="submit">Login</button>
+
+        {% if error %}
+        <p class="error-message">{{ error }}</p>
+        {% endif %}
+    </form>
+</div>

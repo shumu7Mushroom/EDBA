@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h2>我的论文列表</h2>
+    <table border="1">
+        <tr>
+            <th>标题</th>
+            <th>访问范围</th>
+            <th>访问类型</th>
+            <th>是否免费</th>
+            <th>价格</th>
+            <th>PDF</th>
+        </tr>
+        {% for thesis in theses %}
+        <tr>
+            <td>{{ thesis.title }}</td>
+            <td>{{ thesis.access_scope }}</td>
+            <td>{{ thesis.access_type }}</td>
+            <td>{{ '是' if thesis.is_free else '否' }}</td>
+            <td>{{ thesis.price }}</td>
+            <td>{% if thesis.pdf_path %}<a href="{{ thesis.pdf_path }}">查看</a>{% else %}无{% endif %}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

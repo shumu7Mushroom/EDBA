@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>O-Convener Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            padding: 40px;
+        }
+
+        h2, h3 {
+            color: #333;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logout-link {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .logout-link:hover {
+            background-color: #c82333;
+        }
+
+        .action-buttons {
+            margin: 20px 0;
+        }
+
+        .action-buttons a button {
+            margin-right: 10px;
+            padding: 10px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 6px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        .action-buttons a button:hover {
+            background-color: #0056b3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin-bottom: 40px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        input[type="number"],
+        input[type="text"] {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .update-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .update-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <h2>Welcome, {{ name }}（O-Convener）</h2>
+        <a class="logout-link" href="{{ url_for('oconvener.login') }}">Logout</a>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ url_for('oconvener.create_thesis') }}">
+            <button>上传新论文</button>
+        </a>
+        <a href="{{ url_for('oconvener.list_thesis') }}">
+            <button>查看我的论文</button>
+        </a>
+    </div>
+
+    <h3>Manage Students</h3>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Access</th>
+            <th>Quota</th>
+            <th>Org</th>
+            <th>Action</th>
+        </tr>
+        {% for s in students %}
+        <tr>
+            <form method="post" action="{{ url_for('oconvener.update_user', user_type='student', user_id=s.id) }}">
+                <td>{{ s.name }}</td>
+                <td>{{ s.email }}</td>
+                <td><input type="number" name="access_level" value="{{ s.access_level }}" min="1" max="3" required></td>
+                <td><input type="number" name="thesis_quota" value="{{ s.thesis_quota }}" required></td>
+                <td><input type="text" name="organization" value="{{ s.organization }}"></td>
+                <td><button type="submit" class="update-btn">Update</button></td>
+            </form>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Manage Teachers</h3>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Access</th>
+            <th>Quota</th>
+            <th>Org</th>
+            <th>Action</th>
+        </tr>
+        {% for t in teachers %}
+        <tr>
+            <form method="post" action="{{ url_for('oconvener.update_user', user_type='teacher', user_id=t.id) }}">
+                <td>{{ t.name }}</td>
+                <td>{{ t.email }}</td>
+                <td><input type="number" name="access_level" value="{{ t.access_level }}" min="1" max="3" required></td>
+                <td><input type="number" name="thesis_quota" value="{{ t.thesis_quota }}" required></td>
+                <td><input type="text" name="organization" value="{{ t.organization }}"></td>
+                <td><button type="submit" class="update-btn">Update</button></td>
+            </form>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>
