@@ -95,18 +95,39 @@
         </tr>
         {% for thesis in theses %}
         <tr>
+        <form method="post" action="{{ url_for('oconvener.update_thesis', thesis_id=thesis.id) }}">
             <td>{{ thesis.title }}</td>
-            <td>{{ thesis.access_scope }}</td>
-            <td>{{ thesis.access_type }}</td>
-            <td>{{ '是' if thesis.is_free else '否' }}</td>
-            <td>{{ thesis.price }}</td>
+            <td>
+                <select name="access_scope">
+                    <option value="all" {{ 'selected' if thesis.access_scope == 'all' else '' }}>对所有组织开放</option>
+                    <option value="specific" {{ 'selected' if thesis.access_scope == 'specific' else '' }}>仅特定组织</option>
+                    <option value="self" {{ 'selected' if thesis.access_scope == 'self' else '' }}>仅自身组织</option>
+                </select>
+            </td>
+            <td>
+                <select name="access_type">
+                    <option value="view" {{ 'selected' if thesis.access_type == 'view' else '' }}>仅查看摘要</option>
+                    <option value="download" {{ 'selected' if thesis.access_type == 'download' else '' }}>允许下载</option>
+                </select>
+            </td>
+            <td>
+                <select name="is_free">
+                    <option value="true" {{ 'selected' if thesis.is_free else '' }}>是</option>
+                    <option value="false" {{ 'selected' if not thesis.is_free else '' }}>否</option>
+                </select>
+            </td>
+            <td>
+                <input type="number" name="price" value="{{ thesis.price }}" min="0">
+            </td>
             <td>
                 {% if thesis.pdf_path %}
-                    <a href="{{ url_for('oconvener.uploaded_file', filename=thesis.pdf_path) }}" target="_blank">查看</a>
+                    <a href="{{ url_for('oconvener.uploaded_file', filename=thesis.pdf_path) }}" target="_blank">查看</a><br>
                 {% else %}
-                  无
+                    无<br>
                 {% endif %}
-              </td>              
+                <button type="submit" style="margin-top:5px;">更新</button>
+            </td>
+        </form>
         </tr>
         {% endfor %}
     </table>

@@ -10,6 +10,7 @@ from app.models.teacher import Teacher
 from flask import redirect, url_for
 from app.models.thesis import Thesis
 from flask import send_from_directory
+from flask import flash
 
 oconvenerBP = Blueprint('oconvener', __name__)
 
@@ -201,6 +202,18 @@ def uploaded_file(filename):
     print("尝试访问文件路径：", os.path.join(upload_folder, filename))  # ✅ 打印真实路径
     return send_from_directory(upload_folder, filename)
 
+@oconvenerBP.route('/thesis/update/<int:thesis_id>', methods=['POST'])
+def update_thesis(thesis_id):
+    thesis = Thesis.query.get_or_404(thesis_id)
+
+    thesis.access_scope = request.form.get('access_scope')
+    thesis.access_type = request.form.get('access_type')
+    thesis.is_free = True if request.form.get('is_free') == 'true' else False
+    thesis.price = int(request.form.get('price', 0))
+
+    db.session.commit()
+    flash('论文权限已更新', 'success')
+    return redirect(url_for('oconvener.list_thesis'))
 
 
 # @oconvenerBP.route('/api/test/students', methods=['GET'])
