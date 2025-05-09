@@ -6,6 +6,7 @@ from sqlalchemy import or_
 from app.models.teacher import Teacher
 from app.models.thesis import Thesis
 from app.models.base import db
+from app.controller.log import log_access  # ✅ 添加日志记录函数
 
 teacherBP = Blueprint('teacher', __name__, url_prefix='/teacher')
 ALLOWED_EXTENSIONS = {'pdf'}
@@ -18,6 +19,7 @@ def get_teacher():
     with db.auto_commit():
         teacher = Teacher('Nina', 18, 'CST', 'nina@uic.edu.hk', '123456')
         db.session.add(teacher)
+    log_access("插入测试教师 Nina")  # ✅ 记录行为
     return 'hello teacher'
 
 def allowed_file(filename):
@@ -28,6 +30,7 @@ def dashboard():
     user_id = session.get('user_id')
     teacher = Teacher.query.get(user_id)
     download_title = session.pop('download_title', None)  # ✅ 获取并移除
+    log_access(f"教师访问dashboard（ID: {teacher.id}）")  # ✅ 记录行为
     return render_template('teacher_dashboard.html', teacher=teacher, theses=thesis_results, download_title=download_title)
 
 @teacherBP.route('/search', methods=['POST'])
@@ -68,6 +71,8 @@ def search_thesis():
 
     global thesis_results
     thesis_results = filtered
+
+    log_access(f"教师搜索论文关键词：{keywords}")  # ✅ 记录行为
 
     return render_template('teacher_dashboard.html', teacher=teacher, theses=thesis_results)
 
@@ -110,6 +115,7 @@ def upload_thesis():
             db.session.add(new_thesis)
 
         flash("论文上传成功")
+        log_access(f"教师上传论文：{title}")  # ✅ 记录行为
     except Exception as e:
         flash(f"上传失败：{str(e)}")
 
@@ -164,8 +170,7 @@ def purchase_thesis():
     else:
         flash("论文为免费，已成功下载")
 
+    log_access(f"教师下载论文：{title}（价格：{thesis.price}，实际扣除：{'免费' if thesis.is_free else thesis.price}）")  # ✅ 记录行为
+
     # 6. **直接返回文件流**，浏览器会弹出下载
     return send_file(pdf_path, as_attachment=True)
-
-
-

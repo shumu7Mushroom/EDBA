@@ -3,6 +3,7 @@ from app.models.E_admin import EAdmin
 from app.models.Senior_E_Admin import SeniorEAdmin
 from app.models.o_convener import OConvener
 from app.models.base import db
+from app.controller.log import log_access  # ✅ 添加日志记录函数
 
 adminBP = Blueprint('admin', __name__)
 print("adminBP 路由已加载")
@@ -28,9 +29,13 @@ def admin_login():
         session['admin_id'] = admin.id
         session['admin_role'] = role
         session['admin_name'] = admin.name
+
+        log_access(f"{role} 登录成功（ID: {admin.id}）")  # ✅ 记录登录成功
         return redirect(url_for('admin.dashboard'))
     else:
+        log_access(f"{role} 登录失败（email: {email}）")  # ✅ 记录登录失败
         return render_template('admin_login.html', error='Invalid credentials')
+
 
 # 管理后台界面
 @adminBP.route('/dashboard')
@@ -47,7 +52,9 @@ def dashboard():
     else:
         conv_list = []
 
+    log_access(f"访问管理员后台（角色: {role}）")  # ✅ 记录查看后台
     return render_template('admin_dashboard.html', conv_list=conv_list, role=role)
+
 
 @adminBP.route('/approve/<int:id>', methods=['POST'])
 def approve(id):
@@ -58,8 +65,10 @@ def approve(id):
 
     if role == 'eadmin':
         convener.status_text = 'reviewed'
+        log_access(f"E-Admin 审核通过注册申请（O-Convener ID: {id}）")
     elif role == 'senior':
         convener.status_text = 'approved'
+        log_access(f"Senior E-Admin 审核通过注册申请（O-Convener ID: {id}）")
 
     db.session.commit()
     return redirect(url_for('admin.dashboard'))
@@ -72,15 +81,17 @@ def reject(id):
     if not convener:
         return redirect(url_for('admin.dashboard'))
 
-    # ✅ E-Admin 拒绝直接标记为 rejected
     if role in ['eadmin', 'senior']:
         convener.status_text = 'rejected'
+        log_access(f"{role} 拒绝了 O-Convener 的申请（ID: {id}）")
 
     db.session.commit()
     return redirect(url_for('admin.dashboard'))
 
+
 # 退出
 @adminBP.route('/logout')
 def logout():
+    log_access("管理员退出登录")  # ✅ 记录登出
     session.clear()
     return redirect(url_for('admin.admin_login'))

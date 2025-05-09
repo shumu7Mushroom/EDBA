@@ -5,6 +5,8 @@ from app.models.base import db
 from sqlalchemy import or_
 import os
 from flask import current_app
+from app.controller.log import log_access  # ✅ 添加日志记录函数
+
 studentBP = Blueprint('student', __name__, url_prefix='/student')
 
 # 缓存搜索结果（如需改为 session 存储可后续改进）
@@ -15,12 +17,14 @@ def get_student():
     with db.auto_commit():
         student = Student('hejing', 20, 'UIC', 'hejing@mail.uic.edu.hk', '123456')
         db.session.add(student)
+    log_access("插入测试学生 hejing")  # ✅ 记录行为
     return 'hello student'
 
 @studentBP.route('/dashboard')
 def dashboard():
     user_id = session.get('user_id')
     student = Student.query.get(user_id)
+    log_access(f"学生访问dashboard（ID: {student.id}）")  # ✅ 记录行为
     return render_template('student_dashboard.html', student=student, theses=thesis_results)
 
 @studentBP.route('/search', methods=['POST'])
@@ -33,6 +37,8 @@ def search_thesis():
     if not keywords:
         flash("请输入关键词")
         return redirect(url_for('student.dashboard'))
+
+    log_access(f"学生搜索论文关键词：{keywords}")  # ✅ 记录行为
 
     # 搜索出所有匹配的论文
     all_theses = Thesis.query.filter(
@@ -118,7 +124,6 @@ def purchase_thesis():
     else:
         flash("论文为免费，已成功下载")
 
+    log_access(f"学生下载论文：{title}（价格：{thesis.price}，实际扣除：{'免费' if thesis.is_free else thesis.price}）")  # ✅ 记录行为
+
     return send_file(pdf_filename, as_attachment=True)
-
-
-

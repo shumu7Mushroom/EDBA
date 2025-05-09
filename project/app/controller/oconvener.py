@@ -11,6 +11,7 @@ from flask import redirect, url_for
 from app.models.thesis import Thesis
 from flask import send_from_directory
 from flask import flash
+from app.controller.log import log_access  # ✅ 添加日志记录函数
 
 oconvenerBP = Blueprint('oconvener', __name__)
 
@@ -54,6 +55,7 @@ def register():
     with db.auto_commit():
         db.session.add(new_convener)
 
+    log_access(f"O-Convener 注册申请提交：{email}")  # ✅ 记录行为
     return render_template('oconvener_register_success.html', title='注册成功')
 
 
@@ -67,18 +69,22 @@ def login():
 
     convener = OConvener.query.filter_by(email=email).first()
     if not convener:
+        log_access(f"O-Convener 登录失败：用户不存在（{email}）")  # ✅ 记录行为
         return render_template('oconvener_login.html', error='用户不存在')
 
     if convener.code != password:
+        log_access(f"O-Convener 登录失败：验证码错误（{email}）")  # ✅ 记录行为
         return render_template('oconvener_login.html', error='验证码错误')
 
     if convener.status_text != 'approved':
+        log_access(f"O-Convener 登录失败：未审核通过（{email}）")  # ✅ 记录行为
         return render_template('oconvener_login.html', error='尚未通过管理员审核，无法登录')
 
     # 登录成功
     session['user_id'] = convener.id
     session['user_role'] = 'convener'
     session['user_name'] = convener.org_shortname
+    log_access(f"O-Convener 登录成功：{convener.org_shortname}（{email}）")  # ✅ 记录行为
     return redirect(url_for('oconvener.dashboard'))
 
 @oconvenerBP.route('/send_code', methods=['POST'])
@@ -102,6 +108,7 @@ def send_code():
         print("准备发送邮件到：", email)
         print("使用发件人：", current_app.config.get("MAIL_USERNAME"))
         mail.send(msg)
+        log_access(f"发送注册验证码到：{email}")  # ✅ 记录行为
         return jsonify({"status": "success", "message": "Verification code sent!"})
     except Exception as e:
         print("邮件发送失败：", type(e), e)
@@ -117,11 +124,11 @@ def dashboard():
     students = Student.query.filter_by(organization=org).all()
     teachers = Teacher.query.filter_by(organization=org).all()
 
+    log_access(f"O-Convener 查看仪表盘：{org}")  # ✅ 记录行为
     return render_template('oconvener_dashboard.html',
                            name=org,
                            students=students,
                            teachers=teachers)
-
 
 
 @oconvenerBP.route('/update_user/<user_type>/<int:user_id>', methods=['POST'])
@@ -139,6 +146,7 @@ def update_user(user_type, user_id):
     user.thesis_quota = int(request.form.get('thesis_quota', 0))
 
     db.session.commit()
+    log_access(f"O-Convener 修改用户权限：{user_type} ID {user_id}")  # ✅ 记录行为
     return redirect(url_for('oconvener.dashboard'))
 
 @oconvenerBP.route('/thesis/create', methods=['GET', 'POST'])
@@ -181,6 +189,7 @@ def create_thesis():
         with db.auto_commit():
             db.session.add(thesis)
 
+        log_access(f"O-Convener 上传论文：{title}")  # ✅ 记录行为
         return redirect(url_for('oconvener.list_thesis'))
 
     return render_template('create_thesis.html', title='上传论文')
@@ -194,6 +203,7 @@ def list_thesis():
 
     convener_org = session.get('user_name')
     theses = Thesis.query.filter_by(organization=convener_org).all()
+    log_access(f"O-Convener 查看论文列表：{convener_org}")  # ✅ 记录行为
     return render_template('list_thesis.html', title='我的论文', theses=theses)
 
 
@@ -227,6 +237,7 @@ def update_thesis(thesis_id):
     thesis.price = price
 
     db.session.commit()
+    log_access(f"O-Convener 修改论文权限：{thesis.title}")  # ✅ 记录行为
     flash('论文权限已更新', 'success')
     return redirect(url_for('oconvener.list_thesis'))
 

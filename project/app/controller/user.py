@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, request, session
 from app.models.student import Student
 from app.models.teacher import Teacher
 from flask import redirect, url_for
+from app.controller.log import log_access
+
 userBP = Blueprint('user', __name__)
 
 @userBP.route('/login', methods=['GET', 'POST'])
@@ -29,8 +31,10 @@ def login():
         session['user_role'] = role
         session['user_name'] = user.name
         if role == 'student':
+            log_access(f"Student login successful (User ID: {user.id})")
             return redirect(url_for('student.dashboard'))
         else:
+            log_access(f"Teacher login successful (User ID: {user.id})")
             return redirect(url_for('teacher.dashboard'))
 
     return render_template('login.html', title='Login', header='User Login', error='邮箱或密码错误')
