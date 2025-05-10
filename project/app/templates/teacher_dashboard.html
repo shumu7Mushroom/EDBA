@@ -88,7 +88,12 @@
 {% endwith %}
 
 <!-- 个人信息 -->
-<h2>欢迎 {{ teacher.name }}（教师）</h2>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+  <h2>欢迎 {{ teacher.name }}（学生）</h2>
+  <a href="{{ url_for('user.logout') }}">
+    <button style="background-color: #dc3545;">退出登录</button>
+  </a>
+</div>
 <p>权限等级：{{ teacher.access_level }} ｜ 下载配额：{{ teacher.thesis_quota }} 单位</p>
 
 <!-- 搜索论文 -->

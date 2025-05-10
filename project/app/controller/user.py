@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, session
 from app.models.student import Student
 from app.models.teacher import Teacher
-from flask import redirect, url_for
+from flask import redirect, url_for, flash
 from app.controller.log import log_access
 
 userBP = Blueprint('user', __name__)
@@ -41,3 +41,9 @@ def login():
             return redirect(url_for('teacher.dashboard'))
 
     return render_template('login.html', title='Login', header='User Login', error='邮箱或密码错误')
+
+@userBP.route('/logout')
+def logout():
+    session.clear()
+    flash("您已成功退出登录")
+    return redirect(url_for('user.login'))
