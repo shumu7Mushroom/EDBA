@@ -117,11 +117,14 @@
         <a href="{{ url_for('oconvener.review_thesis') }}">
             <button>审核待审论文</button>
         </a>
+        <a href="{{ url_for('oconvener.upload_members') }}">
+            <button>上传成员</button>
+        </a>
     </div>
         <h3>服务接口配置</h3>
     <ul>
         <li><a href="{{ url_for('verify.api_config_form', service_type='identity') }}">身份认证接口</a></li>
-        <p><a href="{{ url_for('verify.student_verify') }}">🔍 学生认证 / 成绩查询</a></p>
+        <p><a href="{{ url_for('verify.student_query') }}">🔍 学生认证 / 成绩查询</a></p>
 
         <li><a href="{{ url_for('verify.api_config_form', service_type='score') }}">成绩查询接口</a></li>
     </ul>

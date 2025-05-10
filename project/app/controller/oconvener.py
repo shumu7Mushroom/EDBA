@@ -12,6 +12,7 @@ from app.models.thesis import Thesis
 from flask import send_from_directory
 from flask import flash
 from app.controller.log import log_access  # ✅ 添加日志记录函数
+import pandas as pd
 
 oconvenerBP = Blueprint('oconvener', __name__)
 
@@ -265,3 +266,114 @@ def review_thesis():
     # GET：获取所有未审核论文
     theses = Thesis.query.filter_by(is_check=False).all()
     return render_template('oconvener_review_thesis.html', theses=theses)
+
+@oconvenerBP.route('/members/upload', methods=['GET', 'POST'])
+def upload_members():
+    if 'user_id' not in session or session.get('user_role') != 'convener':
+        return redirect(url_for('oconvener.login'))
+
+    org = session.get('user_name')  # 当前 O-Convener 的组织名
+    results = {'success': [], 'fail': []}
+
+    if request.method == 'POST':
+        # === 单个成员添加逻辑 ===
+        if 'single_submit' in request.form:
+            try:
+                name = request.form['name'].strip()
+                email = request.form['email'].strip().lower()
+                access_level = int(request.form['access_level'])
+                quota = int(request.form['thesis_quota'])
+                user_type = request.form['type'].strip().lower()
+
+                if user_type == 'student':
+                    user = Student.query.filter_by(email=email).first()
+                    if not user:
+                        user = Student(name, 0, "", email, "123456", org, access_level, quota)
+                    else:
+                        user.access_level = access_level
+                        user.thesis_quota = quota
+                        user.organization = org
+                    db.session.add(user)
+
+                elif user_type == 'teacher':
+                    user = Teacher.query.filter_by(email=email).first()
+                    if not user:
+                        user = Teacher(name, 0, "", email, "123456", org, access_level, quota)
+                    else:
+                        user.access_level = access_level
+                        user.thesis_quota = quota
+                        user.organization = org
+                    db.session.add(user)
+
+                else:
+                    raise ValueError("类型错误")
+
+                with db.auto_commit():
+                    pass
+                flash("单个成员添加成功")
+                log_access(f"O-Convener 添加成员 {email}")
+
+            except Exception as e:
+                flash(f"添加失败：{str(e)}")
+
+            return redirect(url_for('oconvener.upload_members'))
+
+        # === 批量 Excel 上传逻辑 ===
+        file = request.files.get('excel_file')
+        if not file or not file.filename.endswith('.xlsx'):
+            flash("请上传有效的 Excel (.xlsx) 文件")
+            return redirect(url_for('oconvener.upload_members'))
+
+        try:
+            df = pd.read_excel(file)
+            required_cols = {'name', 'email', 'access_level', 'thesis_quota', 'type'}
+            if not required_cols.issubset(df.columns):
+                flash("Excel 表头缺少必要字段")
+                return redirect(url_for('oconvener.upload_members'))
+
+            for _, row in df.iterrows():
+                try:
+                    name = str(row['name']).strip()
+                    email = str(row['email']).strip().lower()
+                    access_level = int(row['access_level'])
+                    quota = int(row['thesis_quota'])
+                    user_type = str(row['type']).strip().lower()
+
+                    if user_type == 'student':
+                        user = Student.query.filter_by(email=email).first()
+                        if not user:
+                            user = Student(name, 0, "", email, "123456", org, access_level, quota)
+                        else:
+                            user.access_level = access_level
+                            user.thesis_quota = quota
+                            user.organization = org
+                        db.session.add(user)
+
+                    elif user_type == 'teacher':
+                        user = Teacher.query.filter_by(email=email).first()
+                        if not user:
+                            user = Teacher(name, 0, "", email, "123456", org, access_level, quota)
+                        else:
+                            user.access_level = access_level
+                            user.thesis_quota = quota
+                            user.organization = org
+                        db.session.add(user)
+
+                    else:
+                        raise ValueError("未知类型")
+
+                    results['success'].append(email)
+
+                except Exception as e:
+                    results['fail'].append(f"{row.get('email')} → {str(e)}")
+
+            with db.auto_commit():
+                pass
+
+            flash(f"上传完成：成功 {len(results['success'])} 条，失败 {len(results['fail'])} 条")
+            log_access(f"O-Convener 批量上传成员：成功 {len(results['success'])} 条，失败 {len(results['fail'])} 条")
+
+        except Exception as e:
+            flash(f"读取 Excel 失败：{str(e)}")
+
+    return render_template("oconvener_upload_members.html", results=results)
