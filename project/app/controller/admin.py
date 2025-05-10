@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, session, redirect, url_for
+from flask import Blueprint, render_template, request, session, redirect, url_for, current_app, send_from_directory
 from app.models.E_admin import EAdmin
 from app.models.Senior_E_Admin import SeniorEAdmin
 from app.models.o_convener import OConvener
@@ -95,3 +95,8 @@ def logout():
     log_access("管理员退出登录")  # ✅ 记录登出
     session.clear()
     return redirect(url_for('admin.admin_login'))
+
+@adminBP.route('/download_proof/<filename>')
+def download_proof(filename):
+    upload_folder = current_app.config.get('UPLOAD_FOLDER', 'uploads')
+    return send_from_directory(upload_folder, filename, as_attachment=True)

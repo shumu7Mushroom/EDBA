@@ -92,6 +92,7 @@
         <th>Org Name</th>
         <th>Email</th>
         <th>Status</th>
+        <th>Proof File</th>
         <th>Action</th>
     </tr>
     {% for conv in conv_list %}
@@ -100,6 +101,15 @@
         <td>{{ conv.org_fullname }}</td>
         <td>{{ conv.email }}</td>
         <td>{{ conv.status_text }}</td>
+        <td>
+            {% if conv.proof_path %}
+                <a href="{{ url_for('admin.download_proof', filename=conv.proof_path|basename) }}" target="_blank">
+                    {{ conv.proof_path|basename }}
+                </a>
+            {% else %}
+                无
+            {% endif %}
+        </td>
         <td>
             <form action="{{ url_for('admin.approve', id=conv.id) }}" method="post" style="display:inline;">
                 <button type="submit" class="action-btn approve-btn">Approve</button>

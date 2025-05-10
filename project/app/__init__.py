@@ -2,6 +2,7 @@ from flask import Flask
 from app.controller import book, student, teacher, user, admin, oconvener, log, verify, home
 from flask_mail import Mail
 from flask_migrate import Migrate
+import os
 
 mail = Mail()
 
@@ -28,6 +29,8 @@ def register_plugin(app):
     with app.app_context():
         db.create_all()
 
+def register_filters(app):
+    app.jinja_env.filters['basename'] = lambda path: os.path.basename(path)
 
 def create_app():
     app = Flask(__name__)
@@ -36,6 +39,8 @@ def create_app():
 
     # ✅ 添加 secret_key
     app.secret_key = 'a-very-secret-key'  # 可以随便写，正式项目应更安全
+
+    register_filters(app)
 
     # 注册蓝图与app对象相关联
     register_blueprints(app)
