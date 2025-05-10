@@ -3,7 +3,7 @@ from app.controller import book, student, teacher, user, admin, oconvener, log, 
 from flask_mail import Mail
 from flask_migrate import Migrate
 import os
-#####
+
 mail = Mail()
 
 # 定义注册蓝图方法
