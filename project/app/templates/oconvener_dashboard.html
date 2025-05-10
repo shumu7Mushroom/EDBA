@@ -65,6 +65,7 @@
             padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid #eee;
+            vertical-align: middle;
         }
 
         th {
@@ -80,6 +81,7 @@
         input[type="text"] {
             width: 100%;
             padding: 6px;
+            font-size: 14px;
             border: 1px solid #ccc;
             border-radius: 4px;
             box-sizing: border-box;
@@ -93,30 +95,41 @@
             color: white;
             cursor: pointer;
             font-size: 14px;
-        }
-
-        .update-btn:hover {
-            background-color: #218838;
-        }
-
-        td form {
-            display: inline;
-        }
-
-        .update-btn {
-            display: inline-block;
-            margin-right: 5px;
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            font-size: 14px;
-            color: white;
-            background-color: #28a745;
-            cursor: pointer;
+            margin-left: 6px;
         }
 
         .update-btn:hover {
             opacity: 0.85;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        .api-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 30px;
+            margin-left: 10px;
+        }
+
+        .api-link {
+            display: inline-block;
+            background-color: #17a2b8;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .api-link:hover {
+            background-color: #138496;
         }
 
     </style>
@@ -129,85 +142,89 @@
     </div>
 
     <div class="action-buttons">
-        <a href="{{ url_for('oconvener.create_thesis') }}">
-            <button>上传新论文</button>
-        </a>
-        <a href="{{ url_for('oconvener.list_thesis') }}">
-            <button>查看我的论文</button>
-        </a>
-        <a href="{{ url_for('oconvener.review_thesis') }}">
-            <button>审核待审论文</button>
-        </a>
-        <a href="{{ url_for('oconvener.upload_members') }}">
-            <button>上传成员</button>
-        </a>
+        <a href="{{ url_for('oconvener.create_thesis') }}"><button>上传新论文</button></a>
+        <a href="{{ url_for('oconvener.list_thesis') }}"><button>查看我的论文</button></a>
+        <a href="{{ url_for('oconvener.review_thesis') }}"><button>审核待审论文</button></a>
+        <a href="{{ url_for('oconvener.upload_members') }}"><button>上传成员</button></a>
     </div>
-        <h3>服务接口配置</h3>
-    <ul>
-        <li><a href="{{ url_for('verify.api_config_form', service_type='identity') }}">身份认证接口</a></li>
-        <p><a href="{{ url_for('verify.student_query') }}">🔍 学生认证 / 成绩查询</a></p>
 
-        <li><a href="{{ url_for('verify.api_config_form', service_type='score') }}">成绩查询接口</a></li>
-    </ul>
+    <h3>服务接口配置</h3>
+        <div class="api-links">
+        <a href="{{ url_for('verify.api_config_form', service_type='identity') }}" class="api-link">🛂 身份认证接口</a>
+        <a href="{{ url_for('verify.student_query') }}" class="api-link">🔍 学生认证 / 成绩查询</a>
+        <a href="{{ url_for('verify.api_config_form', service_type='score') }}" class="api-link">📊 成绩查询接口</a>
+    </div>
+
 
     <h3>Manage Students</h3>
     <table>
-    <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Access</th>
-        <th>Quota</th>
-        <th>Org</th>
-        <th>Action</th>
-    </tr>
-    {% for s in students %}
-    <tr>
-        <form method="post" action="{{ url_for('oconvener.update_user', user_type='student', user_id=s.id) }}">
-        <td>{{ s.name }}</td>
-        <td>{{ s.email }}</td>
-        <td><input type="number" name="access_level" value="{{ s.access_level }}" min="1" max="3" required></td>
-        <td><input type="number" name="thesis_quota" value="{{ s.thesis_quota }}" required></td>
-        <td><input type="text" name="organization" value="{{ s.organization }}"></td>
-        <td style="display: flex; gap: 6px;">
-            <button type="submit" class="update-btn">Update</button>
-        </form>
-        <form method="post" action="{{ url_for('oconvener.delete_user', user_type='student', user_id=s.id) }}" onsubmit="return confirm('确认删除该学生吗？')">
-            <button type="submit" class="update-btn" style="background-color: #dc3545;">Delete</button>
-        </td>
-        </form>
-    </tr>
-    {% endfor %}
+        <tr>
+            <th style="width: 15%;">Name</th>
+            <th style="width: 20%;">Email</th>
+            <th style="width: 10%;">Access</th>
+            <th style="width: 10%;">Quota</th>
+            <th style="width: 20%;">Org</th>
+            <th style="width: 25%;">Action</th>
+        </tr>
+        {% for s in students %}
+        <tr>
+            <td>{{ s.name }}</td>
+            <td>{{ s.email }}</td>
+            <td>
+                <form method="post" action="{{ url_for('oconvener.update_user', user_type='student', user_id=s.id) }}">
+                    <input type="number" name="access_level" value="{{ s.access_level }}" min="1" max="3" required>
+            </td>
+            <td>
+                    <input type="number" name="thesis_quota" value="{{ s.thesis_quota }}" required>
+            </td>
+            <td>
+                    <input type="text" name="organization" value="{{ s.organization }}">
+            </td>
+            <td class="action-cell">
+                    <button type="submit" class="update-btn">Update</button>
+                </form>
+                <form method="post" action="{{ url_for('oconvener.delete_user', user_type='student', user_id=s.id) }}" onsubmit="return confirm('确认删除该学生吗？')" style="display:inline;">
+                    <button type="submit" class="update-btn delete-btn">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
     </table>
 
     <h3>Manage Teachers</h3>
     <table>
-    <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Access</th>
-        <th>Quota</th>
-        <th>Org</th>
-        <th>Action</th>
-    </tr>
-    {% for t in teachers %}
-    <tr>
-        <form method="post" action="{{ url_for('oconvener.update_user', user_type='teacher', user_id=t.id) }}">
-        <td>{{ t.name }}</td>
-        <td>{{ t.email }}</td>
-        <td><input type="number" name="access_level" value="{{ t.access_level }}" min="1" max="3" required></td>
-        <td><input type="number" name="thesis_quota" value="{{ t.thesis_quota }}" required></td>
-        <td><input type="text" name="organization" value="{{ t.organization }}"></td>
-        <td style="display: flex; gap: 6px;">
-            <button type="submit" class="update-btn">Update</button>
-        </form>
-        <form method="post" action="{{ url_for('oconvener.delete_user', user_type='teacher', user_id=t.id) }}" onsubmit="return confirm('确认删除该教师吗？')">
-            <button type="submit" class="update-btn" style="background-color: #dc3545;">Delete</button>
-        </td>
-        </form>
-    </tr>
-    {% endfor %}
+        <tr>
+            <th style="width: 15%;">Name</th>
+            <th style="width: 20%;">Email</th>
+            <th style="width: 10%;">Access</th>
+            <th style="width: 10%;">Quota</th>
+            <th style="width: 20%;">Org</th>
+            <th style="width: 25%;">Action</th>
+        </tr>
+        {% for t in teachers %}
+        <tr>
+            <td>{{ t.name }}</td>
+            <td>{{ t.email }}</td>
+            <td>
+                <form method="post" action="{{ url_for('oconvener.update_user', user_type='teacher', user_id=t.id) }}">
+                    <input type="number" name="access_level" value="{{ t.access_level }}" min="1" max="3" required>
+            </td>
+            <td>
+                    <input type="number" name="thesis_quota" value="{{ t.thesis_quota }}" required>
+            </td>
+            <td>
+                    <input type="text" name="organization" value="{{ t.organization }}">
+            </td>
+            <td class="action-cell">
+                    <button type="submit" class="update-btn">Update</button>
+                </form>
+                <form method="post" action="{{ url_for('oconvener.delete_user', user_type='teacher', user_id=t.id) }}" onsubmit="return confirm('确认删除该教师吗？')" style="display:inline;">
+                    <button type="submit" class="update-btn delete-btn">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
     </table>
-
 
 </body>
 </html>
