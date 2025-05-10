@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  .welcome-container {
+    max-width: 600px;
+    margin: 80px auto;
+    padding: 40px;
+    text-align: center;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+
+  .welcome-container h1 {
+    font-size: 32px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+
+  .welcome-container p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 30px;
+  }
+
+  .login-buttons a {
+    display: inline-block;
+    margin: 10px;
+    padding: 12px 24px;
+    font-size: 16px;
+    color: white;
+    background-color: #007bff;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+  }
+
+  .login-buttons a:hover {
+    background-color: #0056b3;
+  }
+</style>
+
+<div class="welcome-container">
+  <h1>欢迎来到我们的 E-DBA 系统</h1>
+  <p>这是一个用于管理学生、教师和组织论文的学术平台。</p>
+
+  <div class="login-buttons">
+    <a href="{{ url_for('user.login') }}">学生 / 教师 登录</a>
+    <a href="{{ url_for('oconvener.login') }}">O-Convener 登录</a>
+    <a href="{{ url_for('admin.admin_login') }}">Admin 登录</a>
+  </div>
+</div>
+{% endblock %}
