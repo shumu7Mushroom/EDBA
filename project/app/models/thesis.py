@@ -16,6 +16,7 @@ class Thesis(Base):
     is_free = Column(Boolean, default=True)  # True = 免费，False = 按 price 收费
     specific_org = db.Column(db.String(128), nullable=True)
     uploader = Column(String(128), nullable=True) 
+    is_check = Column(Boolean, default = False)
 
     def to_dict(self):
         return {
@@ -29,5 +30,6 @@ class Thesis(Base):
             'access_type': self.access_type,
             'is_free': self.is_free,
             'specific_org': self.specific_org, 
-            'uploader': self.uploader
+            'uploader': self.uploader,
+            'is_check': self.is_check
         }

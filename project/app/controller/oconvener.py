@@ -185,7 +185,8 @@ def create_thesis():
             access_type=access_type,
             is_free=is_free,
             price=price,
-            specific_org=specific_org  # ✅ 新增字段
+            specific_org=specific_org,
+            is_check=True
         )
 
         with db.auto_commit():
@@ -243,22 +244,24 @@ def update_thesis(thesis_id):
     flash('论文权限已更新', 'success')
     return redirect(url_for('oconvener.list_thesis'))
 
+@oconvenerBP.route('/thesis/review', methods=['GET', 'POST'])
+def review_thesis():
+    if 'user_id' not in session or session.get('user_role') != 'convener':
+        return redirect(url_for('oconvener.login'))
 
-# @oconvenerBP.route('/api/test/students', methods=['GET'])
-# def test_students():
-#     from app.models.student import Student
-#     students = Student.query.all()
-#     return {
-#         "count": len(students),
-#         "students": [
-#             {
-#                 "id": s.id,
-#                 "name": s.name,
-#                 "email": s.email,
-#                 "organization": getattr(s, "organization", ""),
-#                 "access_level": getattr(s, "access_level", ""),
-#                 "thesis_quota": getattr(s, "thesis_quota", "")
-#             }
-#             for s in students
-#         ]
-#     }
+    if request.method == 'POST':
+        selected_ids = request.form.getlist('thesis_id')
+        if selected_ids:
+            Thesis.query.filter(Thesis.id.in_(selected_ids)).update(
+                {Thesis.is_check: True}, synchronize_session=False
+            )
+            with db.auto_commit():
+                pass
+            flash(f"成功审核通过 {len(selected_ids)} 篇论文")
+        else:
+            flash("未选择任何论文")
+        return redirect(url_for('oconvener.review_thesis'))
+
+    # GET：获取所有未审核论文
+    theses = Thesis.query.filter_by(is_check=False).all()
+    return render_template('oconvener_review_thesis.html', theses=theses)

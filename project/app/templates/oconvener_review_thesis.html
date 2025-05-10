@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>审核待通过论文</h2>
+
+<a href="{{ url_for('oconvener.dashboard') }}">
+  <button type="button" style="margin-bottom: 20px;">返回 Dashboard</button>
+</a>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul>
+      {% for message in messages %}
+        <li style="color: green;">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+{% if theses %}
+<form method="post">
+  <table border="1" cellpadding="8">
+    <tr>
+      <th>选择</th>
+      <th>标题</th>
+      <th>摘要</th>
+      <th>上传者</th>
+      <th>组织</th>
+      <th>权限</th>
+    </tr>
+    {% for t in theses %}
+    <tr>
+      <td><input type="checkbox" name="thesis_id" value="{{ t.id }}"></td>
+      <td>{{ t.title }}</td>
+      <td>{{ t.abstract[:100] }}...</td>
+      <td>{{ t.uploader or '未知' }}</td>
+      <td>{{ t.organization }}</td>
+      <td>{{ t.access_scope }} / {{ t.access_type }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <br>
+  <button type="submit">审核通过所选论文</button>
+</form>
+{% else %}
+<p>暂无待审核论文。</p>
+{% endif %}
+
+{% endblock %}

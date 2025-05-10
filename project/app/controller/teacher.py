@@ -45,6 +45,7 @@ def search_thesis():
 
     # 获取全部匹配论文
     all_theses = Thesis.query.filter(
+        Thesis.is_check == True,
         or_(
             Thesis.title.ilike(f'%{keywords}%'),
             Thesis.abstract.ilike(f'%{keywords}%')
@@ -79,12 +80,19 @@ def search_thesis():
 
 @teacherBP.route('/upload', methods=['POST'])
 def upload_thesis():
+    user_id = session.get('user_id')
+    teacher = Teacher.query.get(user_id)
+
+    if not teacher or teacher.access_level < 3:
+        flash("您没有权限上传论文，上传功能仅限高级教师")
+        return redirect(url_for('teacher.dashboard'))
+
     title = request.form.get('title', '').strip()
     abstract = request.form.get('abstract', '').strip()
     file = request.files.get('pdf_file')
-
-    user_id = session.get('user_id')
-    teacher = Teacher.query.get(user_id)
+    print("request.files keys:", list(request.files.keys()))
+    print("file object:", file)
+    print("filename:", file.filename if file else "No file")
 
     if not title or not abstract or not file:
         flash("所有字段均为必填")
@@ -100,26 +108,28 @@ def upload_thesis():
     try:
         file.save(save_path)
 
-        # 保存论文信息到数据库
         new_thesis = Thesis(
             title=title,
             abstract=abstract,
-            pdf_path=save_path,
+            pdf_path=filename,  # 相对路径，后续会拼接为绝对路径
             price=0,
             organization=teacher.organization,
-            access_scope='all',
-            access_type='download',
-            is_free=True
+            access_scope='self',
+            access_type='view',
+            is_free=True,
+            uploader=teacher.email,  # 或者 teacher.name，根据你偏好,
+            is_check=False
         )
+
         with db.auto_commit():
             db.session.add(new_thesis)
 
         flash("论文上传成功")
-        log_access(f"教师上传论文：{title}")  # ✅ 记录行为
     except Exception as e:
         flash(f"上传失败：{str(e)}")
 
     return redirect(url_for('teacher.dashboard'))
+
 
 @teacherBP.route('/purchase', methods=['POST'])
 def purchase_thesis():

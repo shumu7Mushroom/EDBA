@@ -1,0 +1,2 @@
+# This file ensures the upload/ directory is present in the working tree.
+# The folder is ignored by Git via .gitignore and is intended for temporary or local-only files.

@@ -42,6 +42,7 @@ def search_thesis():
 
     # 搜索出所有匹配的论文
     all_theses = Thesis.query.filter(
+        Thesis.is_check == True,
         or_(
             Thesis.title.ilike(f'%{keywords}%'),
             Thesis.abstract.ilike(f'%{keywords}%')
