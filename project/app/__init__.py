@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 import os
 
 mail = Mail()
-
+#
 # 定义注册蓝图方法
 def register_blueprints(app):
     app.register_blueprint(book.bookBP,url_prefix='/book')
