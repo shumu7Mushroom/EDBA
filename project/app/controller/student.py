@@ -92,18 +92,10 @@ def purchase_thesis():
         flash("未找到该论文")
         return redirect(url_for('student.dashboard'))
 
-    # 获取并解析完整路径
     pdf_filename = thesis.pdf_path
     if not os.path.isabs(pdf_filename):
         pdf_filename = os.path.join(current_app.config['UPLOAD_FOLDER'], pdf_filename)
     pdf_filename = os.path.abspath(pdf_filename)
-
-    # 日志调试
-    print(f"学生 {student.name} 正在尝试购买论文：{thesis.title}")
-    print("当前配额：", student.thesis_quota)
-    print("论文价格：", thesis.price)
-    print("PDF 路径为：", pdf_filename)
-    print("路径存在：", os.path.exists(pdf_filename))
 
     if thesis.access_type != 'download':
         flash("您没有该论文的下载权限（仅限查看）")
@@ -121,10 +113,8 @@ def purchase_thesis():
             student.thesis_quota -= thesis.price
             with db.auto_commit():
                 db.session.add(student)
-            flash(f"已成功购买论文，扣除 {thesis.price} 配额")
+            print(f"[下载成功] {student.name} 下载了《{title}》，扣除 {thesis.price} 配额")
     else:
-        flash("论文为免费，已成功下载")
-
-    log_access(f"学生下载论文：{title}（价格：{thesis.price}，实际扣除：{'免费' if thesis.is_free else thesis.price}）")  # ✅ 记录行为
+        print(f"[下载成功] {student.name} 下载了免费论文《{title}》")
 
     return send_file(pdf_filename, as_attachment=True)

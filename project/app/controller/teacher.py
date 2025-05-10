@@ -172,15 +172,13 @@ def purchase_thesis():
         if teacher.thesis_quota < thesis.price:
             flash("下载配额不足，无法购买该论文")
             return redirect(url_for('teacher.dashboard'))
-        # 扣配额并提交
         teacher.thesis_quota -= thesis.price
         with db.auto_commit():
             db.session.add(teacher)
-        flash(f"已成功购买论文《{thesis.title}》，扣除 {thesis.price} 配额")
+        print(f"[下载成功] 教师 {teacher.name} 下载了《{title}》，扣除 {thesis.price} 配额")
     else:
-        flash("论文为免费，已成功下载")
+        print(f"[下载成功] 教师 {teacher.name} 下载了免费论文《{title}》")
 
-    log_access(f"教师下载论文：{title}（价格：{thesis.price}，实际扣除：{'免费' if thesis.is_free else thesis.price}）")  # ✅ 记录行为
+    log_access(f"教师下载论文：{title}（价格：{thesis.price}，实际扣除：{'免费' if thesis.is_free else thesis.price}）")
 
-    # 6. **直接返回文件流**，浏览器会弹出下载
     return send_file(pdf_path, as_attachment=True)
