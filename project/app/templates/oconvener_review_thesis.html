@@ -1,17 +1,99 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f8;
+    padding: 40px;
+  }
+
+  h2 {
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+  .btn {
+    padding: 10px 18px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .btn:hover {
+    background-color: #0056b3;
+  }
+
+  .back-btn {
+    margin-bottom: 20px;
+    background-color: #6c757d;
+  }
+
+  .back-btn:hover {
+    background-color: #5a6268;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+  }
+
+  th {
+    background-color: #007bff;
+    color: white;
+  }
+
+  tr:hover {
+    background-color: #f9f9f9;
+  }
+
+  .messages {
+    margin-bottom: 20px;
+    list-style: none;
+    padding: 0;
+  }
+
+  .messages li {
+    color: green;
+    font-weight: bold;
+  }
+
+  .submit-btn {
+    margin-top: 20px;
+    width: 100%;
+  }
+
+  .empty-message {
+    font-style: italic;
+    color: #666;
+    padding: 20px;
+  }
+</style>
+
 <h2>审核待通过论文</h2>
 
-<a href="{{ url_for('oconvener.dashboard') }}">
-  <button type="button" style="margin-bottom: 20px;">返回 Dashboard</button>
-</a>
+<a href="{{ url_for('oconvener.dashboard') }}" class="btn back-btn">返回 Dashboard</a>
 
 {% with messages = get_flashed_messages() %}
   {% if messages %}
-    <ul>
+    <ul class="messages">
       {% for message in messages %}
-        <li style="color: green;">{{ message }}</li>
+        <li>{{ message }}</li>
       {% endfor %}
     </ul>
   {% endif %}
@@ -19,7 +101,7 @@
 
 {% if theses %}
 <form method="post">
-  <table border="1" cellpadding="8">
+  <table>
     <tr>
       <th>选择</th>
       <th>标题</th>
@@ -39,11 +121,11 @@
     </tr>
     {% endfor %}
   </table>
-  <br>
-  <button type="submit">审核通过所选论文</button>
+
+  <button type="submit" class="btn submit-btn">审核通过所选论文</button>
 </form>
 {% else %}
-<p>暂无待审核论文。</p>
+  <p class="empty-message">暂无待审核论文。</p>
 {% endif %}
 
 {% endblock %}

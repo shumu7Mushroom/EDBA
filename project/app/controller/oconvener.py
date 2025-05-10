@@ -205,7 +205,7 @@ def list_thesis():
         return redirect(url_for('oconvener.login'))
 
     convener_org = session.get('user_name')
-    theses = Thesis.query.filter_by(organization=convener_org).all()
+    theses = Thesis.query.filter_by(organization=convener_org, is_check=True).all()
     log_access(f"O-Convener 查看论文列表：{convener_org}")  # ✅ 记录行为
     return render_template('list_thesis.html', title='我的论文', theses=theses)
 
