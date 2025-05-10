@@ -6,12 +6,31 @@
     }
 
     .admin-login-container {
+        position: relative; /* 关键：为返回按钮提供定位上下文 */
         max-width: 400px;
         margin: 0 auto;
         background: #fff;
         padding: 30px;
         border-radius: 10px;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .back-button {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background-color: #6c757d;
+        color: white;
+        padding: 6px 12px;
+        font-size: 14px;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .back-button:hover {
+        background-color: #5a6268;
     }
 
     h2 {
@@ -62,6 +81,9 @@
 </style>
 
 <div class="admin-login-container">
+    <!-- ✅ 返回按钮 -->
+    <a href="{{ url_for('main.index') }}" class="back-button">← 返回</a>
+
     <h2>Admin Login</h2>
     <form method="post">
         <label for="email">Email:</label>
