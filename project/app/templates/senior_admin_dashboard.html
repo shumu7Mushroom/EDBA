@@ -1,0 +1,126 @@
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f6f8;
+        padding: 40px;
+    }
+
+    h2 {
+        color: #333;
+    }
+
+    h3 {
+        margin-top: 30px;
+        color: #555;
+    }
+
+    .logout-link {
+        display: inline-block;
+        margin-top: 10px;
+        margin-bottom: 30px;
+        color: #fff;
+        background-color: #dc3545;
+        padding: 8px 16px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .logout-link:hover {
+        background-color: #c82333;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+    }
+
+    th {
+        background-color: #007bff;
+        color: white;
+    }
+
+    tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .action-btn {
+        padding: 6px 12px;
+        margin-right: 5px;
+        font-size: 14px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .approve-btn {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .approve-btn:hover {
+        background-color: #218838;
+    }
+
+    .reject-btn {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .reject-btn:hover {
+        background-color: #c82333;
+    }
+</style>
+
+<h2>Welcome, {{ session.admin_name }} ({{ session.admin_role|capitalize }})</h2>
+<a class="logout-link" href="{{ url_for('admin.logout') }}">Logout</a>
+
+<h3>Convener Applications</h3>
+
+{% if conv_list %}
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Org Name</th>
+        <th>Email</th>
+        <th>Status</th>
+        <th>Proof File</th>
+        <th>Action</th>
+    </tr>
+    {% for conv in conv_list %}
+    <tr>
+        <td>{{ conv.id }}</td>
+        <td>{{ conv.org_fullname }}</td>
+        <td>{{ conv.email }}</td>
+        <td>{{ conv.status_text }}</td>
+        <td>
+            {% if conv.proof_path %}
+                <a href="{{ url_for('admin.download_proof', filename=conv.proof_path|basename) }}" target="_blank">
+                    {{ conv.proof_path|basename }}
+                </a>
+            {% else %}
+                无
+            {% endif %}
+        </td>
+        <td>
+            <form action="{{ url_for('admin.approve', id=conv.id) }}" method="post" style="display:inline;">
+                <button type="submit" class="action-btn approve-btn">Approve</button>
+            </form>
+            <form action="{{ url_for('admin.reject', id=conv.id) }}" method="post" style="display:inline;">
+                <button type="submit" class="action-btn reject-btn">Reject</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No applications available.</p>
+{% endif %}

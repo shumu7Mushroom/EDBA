@@ -1,5 +1,5 @@
 from flask import Flask
-from app.controller import book, student, teacher, user, admin, oconvener, log, verify, home
+from app.controller import book, student, teacher, user, admin, oconvener, log, verify, home, senior_admin
 from flask_mail import Mail
 from flask_migrate import Migrate
 import os
@@ -13,6 +13,7 @@ def register_blueprints(app):
     app.register_blueprint(teacher.teacherBP,url_prefix='/teacher')
     app.register_blueprint(user.userBP,url_prefix='/user')
     app.register_blueprint(admin.adminBP,url_prefix='/admin')
+    app.register_blueprint(senior_admin.senioradminBP,url_prefix='/senioradmin')
     app.register_blueprint(oconvener.oconvenerBP, url_prefix='/oconvener')
     app.register_blueprint(log.logBP, url_prefix='/log')
     app.register_blueprint(verify.verifyBP, url_prefix='/verify')
