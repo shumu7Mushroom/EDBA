@@ -377,3 +377,26 @@ def upload_members():
             flash(f"读取 Excel 失败：{str(e)}")
 
     return render_template("oconvener_upload_members.html", results=results)
+
+@oconvenerBP.route('/delete_user/<user_type>/<int:user_id>', methods=['POST'])
+def delete_user(user_type, user_id):
+    if 'user_id' not in session or session.get('user_role') != 'convener':
+        return redirect(url_for('oconvener.login'))
+
+    if user_type == 'student':
+        user = Student.query.get(user_id)
+    elif user_type == 'teacher':
+        user = Teacher.query.get(user_id)
+    else:
+        flash("无效用户类型")
+        return redirect(url_for('oconvener.dashboard'))
+
+    if user:
+        db.session.delete(user)
+        db.session.commit()
+        flash(f"成功删除 {user_type}：{user.name}")
+        log_access(f"O-Convener 删除用户 {user_type}：{user.email}")
+    else:
+        flash("找不到该用户")
+
+    return redirect(url_for('oconvener.dashboard'))
