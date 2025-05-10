@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>学生认证 / 成绩查询</title>
+  <style>
+      body {font-family:sans-serif;margin:40px;}
+      pre  {background:#f5f5f5;padding:12px;border:1px solid #ddd;}
+  </style>
+</head>
+<body>
+  <h1>学生认证 / 成绩查询</h1>
+
+  {# ---------- flash ---------- #}
+  {% with msgs = get_flashed_messages() %}
+    {% if msgs %}
+      <ul style="color:red">
+        {% for m in msgs %}
+          <li>{{ m }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" action="{{ url_for('verify.student_query') }}"
+        enctype="multipart/form-data">
+
+      接口：
+      <select name="api_choice">
+          <option value="auto"
+                  {% if api_choice == 'auto' %}selected{% endif %}>
+              自动（依次尝试）
+          </option>
+          {% for c in configs %}
+              <option value="{{ c.id }}"
+                {% if c.id|string == api_choice %}selected{% endif %}>
+                  {{ c.service_type }} ({{ c.path }})
+              </option>
+          {% endfor %}
+      </select><br><br>
+
+      姓名：<input type="text" name="name"
+                 value="{{ name|default('') }}" required><br><br>
+
+      学号：<input type="text" name="id"
+                 value="{{ stu_id|default('') }}" required><br><br>
+
+      照片：<input type="file" name="photo"><br><br>
+
+      <button type="submit">查询</button>
+  </form>
+
+  {% if result %}
+    <h2>查询结果</h2>
+    <p><strong>来源：</strong>{{ source }}</p>
+    <pre>{{ result | tojson | safe }}</pre>
+  {% endif %}
+</body>
+</html>

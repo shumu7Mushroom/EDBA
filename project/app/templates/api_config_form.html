@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ service_type|upper }} 接口配置</title>
+    <style>
+        body{font-family:Arial;margin:40px;}
+        label{display:inline-block;width:120px;}
+        input[type=text]{width:60%;}
+        .msg{color:green;}
+    </style>
+</head>
+<body>
+    <h2>{{ service_type|upper }} 接口配置</h2>
+
+    {% if message %}<p class="msg">{{ message }}</p>{% endif %}
+
+    <form method="POST">
+        <p><label>Base URL：</label>
+           <input type="text" name="base_url" required
+                  value="{{ cfg.base_url if cfg else '' }}"></p>
+
+        <p><label>Path：</label>
+           <input type="text" name="path" required
+                  value="{{ cfg.path if cfg else '' }}"></p>
+
+        <p><label>Method：</label>
+           <select name="method">
+               {% for m in ['POST','GET'] %}
+                   <option value="{{ m }}"
+                       {% if cfg and cfg.method==m %}selected{% endif %}>{{ m }}</option>
+               {% endfor %}
+           </select></p>
+
+        <button type="submit">保存</button>
+    </form>
+
+    <p><a href="{{ url_for('oconvener.dashboard') }}">← 返回工作区</a></p>
+</body>
+</html>

@@ -4,3 +4,4 @@ from .teacher import Teacher
 from .o_convener import OConvener
 from .thesis import Thesis
 from .log import AccessLog
+from .api_config import APIConfig
