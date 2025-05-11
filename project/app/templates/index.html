@@ -2,42 +2,66 @@
 
 {% block content %}
 <style>
+  body {
+    background: linear-gradient(to right, #e0eafc, #cfdef3);
+    font-family: 'Segoe UI', sans-serif;
+  }
+
   .welcome-container {
-    max-width: 600px;
+    max-width: 700px;
     margin: 80px auto;
-    padding: 40px;
+    padding: 50px 40px;
     text-align: center;
-    background-color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
   }
 
   .welcome-container h1 {
-    font-size: 32px;
-    margin-bottom: 20px;
-    color: #333;
+    font-size: 36px;
+    margin-bottom: 25px;
+    color: #2c3e50;
   }
 
   .welcome-container p {
-    font-size: 16px;
-    color: #666;
-    margin-bottom: 30px;
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 35px;
   }
 
-  .login-buttons a {
+  .login-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  .login-buttons a,
+  .view-rule-btn {
     display: inline-block;
-    margin: 10px;
     padding: 12px 24px;
     font-size: 16px;
     color: white;
     background-color: #007bff;
+    border: none;
     border-radius: 8px;
     text-decoration: none;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.2s;
   }
 
-  .login-buttons a:hover {
+  .login-buttons a:hover,
+  .view-rule-btn:hover {
     background-color: #0056b3;
+    transform: translateY(-2px);
+  }
+
+  .view-rule-btn {
+    margin-top: 30px;
+    background-color: #28a745;
+  }
+
+  .view-rule-btn:hover {
+    background-color: #218838;
   }
 </style>
 
@@ -50,5 +74,7 @@
     <a href="{{ url_for('oconvener.login') }}">O-Convener 登录</a>
     <a href="{{ url_for('admin.admin_login') }}">Admin 登录</a>
   </div>
+
+  <a href="{{ url_for('main.view_rules') }}" class="view-rule-btn">📚 查看系统规则</a>
 </div>
 {% endblock %}

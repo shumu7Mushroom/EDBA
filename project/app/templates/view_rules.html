@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  body {
+    background-color: #e0e7f1;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+  }
+
+  .top-bar h2 {
+    color: #333;
+    margin: 0;
+  }
+
+  .logout-btn {
+    background-color: #dc3545;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .logout-btn:hover {
+    background-color: #c82333;
+  }
+
+  .shelf-container {
+    background: #fef8f2;
+    border-radius: 16px;
+    margin: 20px auto;
+    padding: 30px 40px;
+    max-width: 1100px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+  }
+
+  .bookshelf {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    justify-content: flex-start;
+    padding: 20px 0;
+  }
+
+  .book {
+    width: 150px;
+    height: 200px;
+    background-color: #f0e6dc;
+    border: 2px solid #c2b280;
+    border-radius: 10px;
+    box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .book:hover {
+    transform: translateY(-6px);
+    box-shadow: 4px 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .book-title {
+    font-weight: bold;
+    margin-top: 15px;
+    color: #333;
+  }
+
+  .book-desc {
+    font-size: 12px;
+    color: #666;
+    margin-top: 8px;
+  }
+
+  .no-rules {
+    text-align: center;
+    color: gray;
+    padding-top: 30px;
+  }
+</style>
+
+<div class="top-bar">
+  <h2>📖 系统规则展示</h2>
+  <a href="{{ url_for('main.index') }}" class="logout-btn">返回首页</a>
+</div>
+
+<div class="shelf-container">
+  <div class="bookshelf">
+    {% for rule in rules %}
+      <div class="book" data-url="{{ url_for('admin.download_rule', filename=rule.filename) }}">
+        <div class="book-title">{{ rule.title }}</div>
+        <div class="book-desc">{{ rule.filename }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if rules|length == 0 %}
+    <p class="no-rules">暂无规则可展示</p>
+  {% endif %}
+</div>
+
+<script>
+  document.querySelectorAll('.book').forEach(book => {
+    book.addEventListener('click', () => {
+      const url = book.getAttribute('data-url');
+      if (url) window.location.href = url;
+    });
+  });
+</script>
+{% endblock %}
