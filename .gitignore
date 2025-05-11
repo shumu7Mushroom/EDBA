@@ -176,3 +176,5 @@ cython_debug/
 documents/
 upload/
 test.py
+
+project/app/config/secure.py
