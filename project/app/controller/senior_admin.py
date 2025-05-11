@@ -4,6 +4,7 @@ from app.models.Senior_E_Admin import SeniorEAdmin
 from app.models.o_convener import OConvener
 from app.models.base import db
 from app.controller.log import log_access  # ✅ 添加日志记录函数
+from flask_mail import Message
 
 senioradminBP = Blueprint('senioradmin', __name__)
 
@@ -28,17 +29,49 @@ def dashboard():
 
 @senioradminBP.route('/approve/<int:id>', methods=['POST'])
 def approve(id):
+    from app import mail
+    import traceback
+
     role = session.get('admin_role')
+    if role != 'senior':
+        print("[权限拒绝] 当前角色不是 senior，实际为：", role)
+        return redirect(url_for('admin.admin_login'))
+
     convener = OConvener.query.get(id)
     if not convener:
+        print(f"[数据库错误] 未找到 ID 为 {id} 的 O-Convener 用户")
         return redirect(url_for('senioradmin.dashboard'))
 
-    if role == 'eadmin':
-        convener.status_text = 'reviewed'
-        log_access(f"E-Admin 审核通过注册申请（O-Convener ID: {id}）")
-    elif role == 'senior':
-        convener.status_text = 'approved'
-        log_access(f"Senior E-Admin 审核通过注册申请（O-Convener ID: {id}）")
+    convener.status_text = 'approved'
+    log_access(f"✅ Senior E-Admin 审核通过注册申请（O-Convener ID: {id}）")
+
+    try:
+        subject = "E-DBA 注册审核通过通知"
+        body = f"Dear {convener.org_fullname}，your O-Convener registration is approved，Welcome to E-DBA system！"
+        recipient = convener.email
+
+        print("🟡 开始准备发送邮件")
+        print("➡️ 收件人:", recipient)
+        print("➡️ 发件人:", current_app.config.get("MAIL_USERNAME"))
+        print("➡️ 主题:", subject)
+        print("➡️ 内容:", body)
+
+        msg = Message(
+            subject=subject,
+            recipients=[recipient],
+            body=body
+        )
+
+        with current_app.app_context():
+            mail.send(msg)
+
+        print("✅ 邮件发送成功")
+        log_access(f"✅ 发送注册成功邮件至：{recipient}")
+
+    except Exception as e:
+        print("❌ 邮件发送失败：")
+        traceback.print_exc()
+        log_access(f"❌ 邮件发送失败至 {convener.email}：{str(e)}")
 
     db.session.commit()
     return redirect(url_for('senioradmin.dashboard'))

@@ -52,19 +52,17 @@ def dashboard():
         return redirect(url_for('admin.admin_login'))
 
     role = session.get('admin_role')
+    conv_list = []
+    rules = []  # ✅ 防止未定义
 
     if role == 'eadmin':
         conv_list = OConvener.query.filter_by(status_text='pending').all()
         rules = Rule.query.all()
     elif role == 'senior':
         conv_list = OConvener.query.filter_by(status_text='reviewed').all()
-    else:
-        conv_list = []
-        rules = []
 
-    log_access(f"访问管理员后台（角色: {role}）")  # ✅ 记录查看后台
+    log_access(f"访问管理员后台（角色: {role}）")
     return render_template('admin_dashboard.html', conv_list=conv_list, role=role, rules=rules)
-
 
 @adminBP.route('/approve/<int:id>', methods=['POST'])
 def approve(id):

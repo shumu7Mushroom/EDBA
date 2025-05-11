@@ -81,7 +81,7 @@
 </style>
 
 <h2>Welcome, {{ session.admin_name }} ({{ session.admin_role|capitalize }})</h2>
-<a class="logout-link" href="{{ url_for('admin.logout') }}">Logout</a>
+<a class="logout-link" href="{{ url_for('senioradmin.logout') }}">Logout</a>
 
 <h3>Convener Applications</h3>
 
@@ -103,7 +103,7 @@
         <td>{{ conv.status_text }}</td>
         <td>
             {% if conv.proof_path %}
-                <a href="{{ url_for('admin.download_proof', filename=conv.proof_path|basename) }}" target="_blank">
+                <a href="{{ url_for('senioradmin.download_proof', filename=conv.proof_path|basename) }}" target="_blank">
                     {{ conv.proof_path|basename }}
                 </a>
             {% else %}
@@ -111,10 +111,10 @@
             {% endif %}
         </td>
         <td>
-            <form action="{{ url_for('admin.approve', id=conv.id) }}" method="post" style="display:inline;">
+            <form action="{{ url_for('senioradmin.approve', id=conv.id) }}" method="post" style="display:inline;">
                 <button type="submit" class="action-btn approve-btn">Approve</button>
             </form>
-            <form action="{{ url_for('admin.reject', id=conv.id) }}" method="post" style="display:inline;">
+            <form action="{{ url_for('senioradmin.reject', id=conv.id) }}" method="post" style="display:inline;">
                 <button type="submit" class="action-btn reject-btn">Reject</button>
             </form>
         </td>
