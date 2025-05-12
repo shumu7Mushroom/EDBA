@@ -45,7 +45,7 @@ def admin_login():
         elif role == 'senior':
             return redirect(url_for('senioradmin.dashboard'))
         elif role == 'tadmin':
-            return redirect(url_for('tadmin.tadmin_dashboard'))
+            return redirect(url_for('tadmin.dashboard'))
     else:
         log_access(f"{role} 登录失败（email: {email}）")  # ✅ 记录登录失败
         return render_template('admin_login.html', error='Invalid credentials')
