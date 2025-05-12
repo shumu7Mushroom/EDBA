@@ -7,6 +7,7 @@ from app.models.base import db
 from app.controller.log import log_access  # ✅ 添加日志记录函数
 import os
 from werkzeug.utils import secure_filename
+from app.models.T_admin import TAdmin
 
 adminBP = Blueprint('admin', __name__)
 print("adminBP 路由已加载")
@@ -25,9 +26,12 @@ def admin_login():
         admin = EAdmin.query.filter_by(email=email, _password=password).first()
     elif role == 'senior':
         admin = SeniorEAdmin.query.filter_by(email=email, _password=password).first()
+    elif role == 'tadmin':
+        admin = TAdmin.query.filter_by(email=email, _password=password).first()
     else:
         admin = None
     session['user_org'] = "admin"
+
     if admin:
         session['admin_id'] = admin.id
         session['admin_role'] = role
@@ -40,6 +44,8 @@ def admin_login():
             return redirect(url_for('admin.dashboard'))
         elif role == 'senior':
             return redirect(url_for('senioradmin.dashboard'))
+        elif role == 'tadmin':
+            return redirect(url_for('tadmin.tadmin_dashboard'))
     else:
         log_access(f"{role} 登录失败（email: {email}）")  # ✅ 记录登录失败
         return render_template('admin_login.html', error='Invalid credentials')
