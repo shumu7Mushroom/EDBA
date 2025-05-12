@@ -96,7 +96,7 @@
 <div class="shelf-container">
   <div class="bookshelf">
     {% for rule in rules %}
-      <div class="book" data-url="{{ url_for('admin.download_rule', filename=rule.filename) }}">
+      <div class="book" data-url="{{ url_for('tadmin.download_rule', filename=rule.filename) }}">
         <div class="book-title">{{ rule.title }}</div>
         <div class="book-desc">{{ rule.filename }}</div>
       </div>

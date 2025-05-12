@@ -163,35 +163,3 @@
 {% else %}
 <p>No applications available.</p>
 {% endif %}
-
-<h3>系统规则管理</h3>
-
-<!-- 上传规则表单 -->
-<form class="upload-form" method="POST" action="{{ url_for('admin.upload_rule') }}" enctype="multipart/form-data">
-  <input type="text" name="title" placeholder="规则标题" required>
-  <textarea name="description" placeholder="规则描述" rows="3"></textarea>
-  <input type="file" name="rule_file" accept=".pdf" required>
-  <button type="submit">上传规则</button>
-</form>
-
-<!-- 显示已有规则 -->
-<table>
-  <tr>
-    <th>标题</th>
-    <th>说明</th>
-    <th>文件</th>
-    <th>操作</th>
-  </tr>
-  {% for rule in rules %}
-  <tr>
-    <td>{{ rule.title }}</td>
-    <td>{{ rule.description }}</td>
-    <td><a href="{{ url_for('admin.download_rule', filename=rule.filename) }}">下载</a></td>
-    <td>
-      <form class="inline-form" method="post" action="{{ url_for('admin.delete_rule', rule_id=rule.id) }}" onsubmit="return confirm('确定删除该规则？');">
-        <button type="submit" class="delete-btn">删除</button>
-      </form>
-    </td>
-  </tr>
-  {% endfor %}
-</table>

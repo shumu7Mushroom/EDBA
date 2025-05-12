@@ -115,45 +115,45 @@ def download_proof(filename):
     upload_folder = current_app.config.get('UPLOAD_FOLDER', 'uploads')
     return send_from_directory(upload_folder, filename, as_attachment=True)
 
-@adminBP.route('/rule/upload', methods=['POST'])
-def upload_rule():
-    if 'admin_id' not in session or session.get('admin_role') != 'eadmin':
-        return redirect(url_for('admin.admin_login'))
+# @adminBP.route('/rule/upload', methods=['POST'])
+# def upload_rule():
+#     if 'admin_id' not in session or session.get('admin_role') != 'eadmin':
+#         return redirect(url_for('admin.admin_login'))
 
-    title = request.form.get('title')
-    description = request.form.get('description', '')
-    file = request.files.get('rule_file')
+#     title = request.form.get('title')
+#     description = request.form.get('description', '')
+#     file = request.files.get('rule_file')
 
-    if not file or not file.filename.endswith('.pdf'):
-        flash("请上传 PDF 文件")
-        return redirect(url_for('admin.dashboard'))
+#     if not file or not file.filename.endswith('.pdf'):
+#         flash("请上传 PDF 文件")
+#         return redirect(url_for('admin.dashboard'))
 
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-    file.save(filepath)
+#     filename = secure_filename(file.filename)
+#     filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+#     file.save(filepath)
 
-    new_rule = Rule(title=title, filename=filename, description=description)
-    with db.auto_commit():
-        db.session.add(new_rule)
+#     new_rule = Rule(title=title, filename=filename, description=description)
+#     with db.auto_commit():
+#         db.session.add(new_rule)
 
-    flash("规则上传成功")
-    return redirect(url_for('admin.dashboard'))
-
-
-@adminBP.route('/rule/download/<filename>')
-def download_rule(filename):
-    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+#     flash("规则上传成功")
+#     return redirect(url_for('admin.dashboard'))
 
 
-@adminBP.route('/rule/delete/<int:rule_id>', methods=['POST'])
-def delete_rule(rule_id):
-    rule = Rule.query.get(rule_id)
-    if rule:
-        # 删除文件
-        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], rule.filename)
-        if os.path.exists(filepath):
-            os.remove(filepath)
-        with db.auto_commit():
-            db.session.delete(rule)
-        flash("规则已删除")
-    return redirect(url_for('admin.dashboard'))
+# @adminBP.route('/rule/download/<filename>')
+# def download_rule(filename):
+#     return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+
+
+# @adminBP.route('/rule/delete/<int:rule_id>', methods=['POST'])
+# def delete_rule(rule_id):
+#     rule = Rule.query.get(rule_id)
+#     if rule:
+#         # 删除文件
+#         filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], rule.filename)
+#         if os.path.exists(filepath):
+#             os.remove(filepath)
+#         with db.auto_commit():
+#             db.session.delete(rule)
+#         flash("规则已删除")
+#     return redirect(url_for('admin.dashboard'))
