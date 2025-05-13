@@ -177,4 +177,6 @@ documents/
 upload/
 test.py
 
+/uploads
+
 project/app/config/secure.py
