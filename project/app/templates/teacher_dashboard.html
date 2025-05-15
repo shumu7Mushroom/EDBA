@@ -108,6 +108,11 @@
     <button style="background-color: #28a745;">课程信息管理</button>
   </a>
   {% endif %}
+  {% if teacher.access_level >= 3 %}
+  <a href="{{ url_for('verify.score_query') }}">
+    <button style="background-color: #6f42c1;">学生GPA查询</button>
+  </a>
+  {% endif %}
 </div>
 
 <!-- 搜索论文 -->

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>批量 GPA 查询结果</title>
+  <style>
+    body {font-family:sans-serif;margin:40px;}
+    table {border-collapse:collapse;width:100%;margin-top:20px;}
+    th, td {border:1px solid #ddd;padding:8px;text-align:left;}
+    th {background-color:#f2f2f2;}
+    tr:nth-child(even) {background-color:#f9f9f9;}
+    .success {color:green;}
+    .fail {color:red;}
+    .missing {color:orange;}
+    .summary {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #f0f7ff;
+      border-radius: 5px;
+    }
+    .export-btn {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: #28a745;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    .export-btn:hover {
+      background-color: #218838;
+    }
+    .back-btn {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: #6c757d;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+    .back-btn:hover {
+      background-color: #5a6268;
+    }
+  </style>
+</head>
+<body>
+  <h1>批量 GPA 查询结果</h1>
+  
+  <div class="summary">
+    <h3>汇总信息</h3>
+    <p>总记录数: {{ results|length }}</p>
+    {% set success_count = results|selectattr('status', 'equalto', 'y')|list|length %}
+    {% set fail_count = results|selectattr('status', 'equalto', 'fail')|list|length %}
+    {% set missing_count = results|selectattr('status', 'equalto', 'missing')|list|length %}
+    <p>成功: <span class="success">{{ success_count }}</span> | 
+       失败: <span class="fail">{{ fail_count }}</span> | 
+       信息不完整: <span class="missing">{{ missing_count }}</span></p>
+  </div>
+  
+  <div>
+    <a href="{{ url_for('verify.score_query') }}" class="back-btn">返回单条查询</a>
+    <a href="{{ url_for('verify.score_batch_export') }}" class="export-btn">导出为Excel</a>
+  </div>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>姓名</th>
+        <th>学号</th>
+        <th>状态</th>
+        <th>GPA</th>
+        <th>专业</th>
+        <th>详情</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in results %}
+      <tr>
+        <td>{{ r.name }}</td>
+        <td>{{ r.id }}</td>
+        <td class="{{ r.status }}">
+          {% if r.status == 'y' %}
+            成功
+          {% elif r.status == 'fail' %}
+            失败
+          {% elif r.status == 'missing' %}
+            信息不完整
+          {% else %}
+            {{ r.status }}
+          {% endif %}
+        </td>
+        <td>{{ r.gpa if r.gpa else '-' }}</td>
+        <td>{{ r.major if r.major else '-' }}</td>
+        <td>
+          {% if r.courses %}
+            {{ r.courses|length }} 门课程
+          {% else %}
+            -
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>
