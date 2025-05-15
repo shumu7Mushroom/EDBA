@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f8;
+    padding: 40px;
+  }
+
+  .alert {
+    background-color: #ffeeba;
+    border: 1px solid #f5c6cb;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    color: #856404;
+  }
+
+  h2, h3 {
+    color: #333;
+    margin-top: 20px;
+  }
+
+  section {
+    background-color: #fff;
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+  }
+
+  form {
+    margin-top: 15px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+
+  input[type="text"],
+  input[type="number"],
+  textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-size: 14px;
+  }
+
+  textarea {
+    height: 120px;
+    resize: vertical;
+  }
+
+  button, .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+    margin-right: 10px;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: #0069d9;
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background-color: #c82333;
+  }
+
+  .btn-success {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .btn-success:hover {
+    background-color: #218838;
+  }
+
+  .form-actions {
+    margin-top: 20px;
+    display: flex;
+  }
+</style>
+
+<!-- 提示信息 -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="alert">{{ messages[-1] }}</div>
+  {% endif %}
+{% endwith %}
+
+<h2>{% if course %}编辑课程{% else %}添加新课程{% endif %}</h2>
+
+<section>
+  <form method="post" action="{% if course %}{{ url_for('course.edit_course', course_id=course.id) }}{% else %}{{ url_for('course.add_course') }}{% endif %}">
+    {% if course %}
+    <!-- 编辑模式不允许更改课程代码 -->
+    <label for="code">课程代码：</label>
+    <input type="text" id="code" name="code" value="{{ course.code }}" readonly>
+    {% else %}
+    <label for="code">课程代码：</label>
+    <input type="text" id="code" name="code" placeholder="例如：CST1001" required>
+    {% endif %}
+    
+    <label for="name">课程名称：</label>
+    <input type="text" id="name" name="name" placeholder="例如：计算机科学导论" value="{{ course.name if course else '' }}" required>
+    
+    <label for="description">课程描述：</label>
+    <textarea id="description" name="description" placeholder="请输入课程介绍、目标等信息...">{{ course.description if course else '' }}</textarea>
+    
+    <label for="credits">学分：</label>
+    <input type="number" id="credits" name="credits" min="1" max="10" value="{{ course.credits if course else 3 }}">
+    
+    <label for="instructor">授课教师：</label>
+    <input type="text" id="instructor" name="instructor" placeholder="例如：张教授" value="{{ course.instructor if course else '' }}">
+    
+    <div class="form-actions">
+      <button type="submit" class="btn btn-success">{% if course %}保存修改{% else %}创建课程{% endif %}</button>
+      <a href="{{ url_for('course.list_courses') }}" class="btn btn-primary">取消</a>
+    </div>
+  </form>
+</section>
+
+<!-- 自动隐藏提示 -->
+<script>
+  setTimeout(function () {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(el => el.style.display = 'none');
+  }, 3000);
+</script>
+{% endblock %}

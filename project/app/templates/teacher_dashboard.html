@@ -89,12 +89,26 @@
 
 <!-- 个人信息 -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-  <h2>欢迎 {{ teacher.name }}（学生）</h2>
+  <h2>欢迎 {{ teacher.name }}（教师）</h2>
   <a href="{{ url_for('user.logout') }}">
     <button style="background-color: #dc3545;">退出登录</button>
   </a>
 </div>
 <p>权限等级：{{ teacher.access_level }} ｜ 下载配额：{{ teacher.thesis_quota }} 单位</p>
+
+<!-- 功能按钮区 -->
+<div style="display: flex; gap: 15px; margin-bottom: 20px;">
+  {% if teacher.access_level >= 1%}
+  <a href="{{ url_for('course.view_courses') }}">
+    <button style="background-color: #17a2b8;">查看课程信息</button>
+  </a>
+  {% endif %}
+  {% if teacher.access_level >= 2 %}
+  <a href="{{ url_for('course.list_courses') }}">
+    <button style="background-color: #28a745;">课程信息管理</button>
+  </a>
+  {% endif %}
+</div>
 
 <!-- 搜索论文 -->
 <section>

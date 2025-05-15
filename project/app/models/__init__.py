@@ -6,3 +6,4 @@ from .thesis import Thesis
 from .log import AccessLog
 from .api_config import APIConfig
 from .T_admin import TAdmin
+from .course import Course

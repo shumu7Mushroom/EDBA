@@ -94,6 +94,20 @@
 </div>
 <p>权限等级：{{ student.access_level }} ｜ 下载配额：{{ student.thesis_quota }} 单位</p>
 
+<!-- 功能按钮区 -->
+<div style="display: flex; gap: 15px; margin-bottom: 20px;">
+  {% if student.access_level >= 1%}
+  <a href="{{ url_for('course.view_courses') }}">
+    <button style="background-color: #17a2b8;">查看课程信息</button>
+  </a>
+  {% endif %}
+  {% if student.access_level >= 2 %}
+  <a href="{{ url_for('course.list_courses') }}">
+    <button style="background-color: #28a745;">课程信息管理</button>
+  </a>
+  {% endif %}
+</div>
+
 <!-- 搜索论文 -->
 <section>
   <h3>搜索论文</h3>

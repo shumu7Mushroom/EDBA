@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f8;
+    padding: 40px;
+  }
+
+  .alert {
+    background-color: #ffeeba;
+    border: 1px solid #f5c6cb;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    color: #856404;
+  }
+
+  h2, h3 {
+    color: #333;
+    margin-top: 20px;
+  }
+
+  section {
+    background-color: #fff;
+    padding: 20px 30px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+
+  th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+  }
+
+  tr:hover {
+    background-color: #f9f9f9;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  button, .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+  }
+
+  .btn-primary {
+    background-color: #007bff;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: #0069d9;
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background-color: #c82333;
+  }
+
+  .btn-success {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .btn-success:hover {
+    background-color: #218838;
+  }
+
+  .header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+</style>
+
+<!-- 提示信息 -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="alert">{{ messages[-1] }}</div>
+  {% endif %}
+{% endwith %}
+
+<!-- 标题和按钮 -->
+<div class="header-actions">
+  <h2>课程信息管理</h2>
+  {% if can_edit %}
+  <a href="{{ url_for('course.add_course') }}" class="btn btn-success">+ 添加新课程</a>
+  {% endif %}
+</div>
+
+<!-- 课程列表 -->
+<section>
+  <table>
+    <thead>
+      <tr>
+        <th>课程代码</th>
+        <th>课程名称</th>
+        <th>学分</th>
+        <th>授课教师</th>
+        <th>所属组织</th>
+        {% if can_edit %}
+        <th>操作</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% if courses %}
+        {% for course in courses %}
+        <tr>
+          <td>{{ course.code }}</td>
+          <td>{{ course.name }}</td>
+          <td>{{ course.credits }}</td>
+          <td>{{ course.instructor }}</td>
+          <td>{{ course.organization }}</td>
+          {% if can_edit %}
+          <td class="action-buttons">
+            <a href="{{ url_for('course.edit_course', course_id=course.id) }}" class="btn btn-primary">编辑</a>
+            <form method="post" action="{{ url_for('course.delete_course', course_id=course.id) }}" onsubmit="return confirm('确认删除该课程吗？');" style="display:inline;">
+              <button type="submit" class="btn btn-danger">删除</button>
+            </form>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="{% if can_edit %}6{% else %}5{% endif %}" style="text-align: center;">暂无课程信息</td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</section>
+
+<!-- 返回按钮 -->
+<div>
+  {% if user_role == 'student' %}
+  <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary">返回主页</a>
+  {% elif user_role == 'teacher' %}
+  <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-primary">返回主页</a>
+  {% endif %}
+</div>
+
+<!-- 自动隐藏提示 -->
+<script>
+  setTimeout(function () {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(el => el.style.display = 'none');
+  }, 3000);
+</script>
+{% endblock %}
