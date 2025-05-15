@@ -87,6 +87,7 @@ def login():
     session['user_id'] = convener.id
     session['user_role'] = 'convener'
     session['user_name'] = convener.org_shortname
+    session['user_org'] = convener.org_fullname
     log_access(f"O-Convener 登录成功：{convener.org_shortname}（{email}）")  # ✅ 记录行为
     return redirect(url_for('oconvener.dashboard'))
 

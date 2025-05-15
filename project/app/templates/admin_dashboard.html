@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="zh">
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -118,10 +120,12 @@
         background-color: #0056b3;
     }
 </style>
-
+<body>
 <h2>Welcome, {{ session.admin_name }} ({{ session.admin_role|capitalize }})</h2>
 <a class="logout-link" href="{{ url_for('admin.logout') }}">Logout</a>
-
+<div class="action-buttons">
+        <a href="{{ url_for('log.view_logs') }}"><button>查看日志</button></a>
+    </div>
 <h3>Convener Applications</h3>
 
 {% if conv_list %}
@@ -163,3 +167,6 @@
 {% else %}
 <p>No applications available.</p>
 {% endif %}
+
+</body>
+</html>

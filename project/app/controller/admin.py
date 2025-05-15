@@ -15,6 +15,7 @@ print("adminBP 路由已加载")
 # 登录界面
 @adminBP.route('/login', methods=['GET', 'POST'])
 def admin_login():
+    session.clear()  # ✅ 清除之前的 session
     if request.method == 'GET':
         return render_template('admin_login.html')
     
@@ -33,18 +34,23 @@ def admin_login():
     session['user_org'] = "admin"
 
     if admin:
+        
         session['admin_id'] = admin.id
         session['admin_role'] = role
         session['admin_name'] = admin.name
+        
 
         log_access(f"{role} 登录成功（ID: {admin.id}）")
 
         # 👇 分开跳转
         if role == 'eadmin':
+            session['user_role'] = 'eadmin'
             return redirect(url_for('admin.dashboard'))
         elif role == 'senior':
+            session['user_role'] = 'senior'
             return redirect(url_for('senioradmin.dashboard'))
         elif role == 'tadmin':
+            session['user_role'] = 'tadmin'
             return redirect(url_for('tadmin.dashboard'))
     else:
         log_access(f"{role} 登录失败（email: {email}）")  # ✅ 记录登录失败

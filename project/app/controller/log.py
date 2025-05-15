@@ -18,9 +18,13 @@ def index():
 
 @logBP.route('/view')
 def view_logs():
-    """仅限 E-Admin/Senior 查看日志 + 支持多条件筛选"""
-    if not session.get('admin_id') or session.get('admin_role') not in ['eadmin', 'senior']:
-        return render_template('log_view.html', logs=[], error="权限不足，仅管理员可查看此页面。")
+    """E-Admin / Senior 可多条件筛选，O-Convener 只能看本组织日志"""
+    user_role = session.get('user_role')
+    user_org = session.get('user_org')
+
+    # 如果没有登录，或角色未知，则拒绝
+    if not user_role or not user_org:
+        return render_template('log_view.html', logs=[], error="未登录或身份异常，请重新登录。")
 
     # 获取筛选条件
     user = request.args.get('user', '').strip()
@@ -30,14 +34,13 @@ def view_logs():
     start_time = request.args.get('start_time', '').strip()
     end_time = request.args.get('end_time', '').strip()
 
-    # 构建过滤条件
+    # 构建基础过滤条件
     filters = []
+
     if user:
         filters.append(AccessLog.user.ilike(f"%{user}%"))
     if role:
         filters.append(AccessLog.role == role)
-    if org:
-        filters.append(AccessLog.organization.ilike(f"%{org}%"))
     if action:
         filters.append(AccessLog.action.ilike(f"%{action}%"))
     if start_time:
@@ -51,10 +54,22 @@ def view_logs():
         except:
             pass
 
+    # 权限控制逻辑
+    if user_role == 'convener':
+        # 强制只能查看本组织日志，忽略用户输入的 org 参数
+        filters.append(AccessLog.organization == user_org)
+    else:
+        # 管理员才允许按 org 过滤
+        if org:
+            filters.append(AccessLog.organization.ilike(f"%{org}%"))
+    print("当前用户身份:", user_role, "组织:", user_org)
+    print("过滤条件：", filters)
+
     # 执行查询
     logs = AccessLog.query.filter(and_(*filters)).order_by(AccessLog.timestamp.desc()).all()
 
     return render_template('log_view.html', logs=logs)
+
 
 
 
@@ -64,11 +79,9 @@ def view_logs():
 def log_access(action_desc: str, target: str = None):
     """通用记录访问日志，可额外标记操作对象"""
     user = (
-        session.get('admin_name') or
-        session.get('user_name') or
-        '匿名'
+        session.get('user_name') or session.get('admin_name') or '匿名'
     )
-    role = session.get('admin_role') or session.get('user_role') or 'unknown'
+    role =  session.get('user_role') or session.get('admin_role') or 'unknown'
     organization = session.get('user_org') or session.get('user_name') or '未知'
 
     log = AccessLog(
