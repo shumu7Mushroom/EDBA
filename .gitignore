@@ -180,3 +180,5 @@ test.py
 uploads/
 
 project/app/config/secure.py
+
+project/tests

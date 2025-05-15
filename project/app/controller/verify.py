@@ -348,8 +348,7 @@ def score_batch():
         sid = str(row.get('id', '')).strip()
         if not name or not sid:
             results.append({**row, 'status': 'missing'})
-            continue
-
+            continue        
         payload = {'name': name, 'id': sid}
         ok = False
         last_data = None
@@ -358,7 +357,20 @@ def score_batch():
             data = _call_api(cfg, payload)
             last_data = data
             
-            if data.get('status') in ('y', 'success'):
+            # 检查是否为有效响应（匹配单个查询的逻辑）
+            if data.get('status') in ('y', 'success') or 'gpa' in data:
+                # 如果返回了GPA数据但没有status字段，添加成功标志
+                if 'gpa' in data and 'status' not in data:
+                    data['status'] = 'success'
+                    # 确保必要的字段存在
+                    if 'id' not in data:
+                        data['id'] = sid
+                    if 'name' not in data:
+                        data['name'] = name
+                    if 'major' not in data and 'enroll_year' in data:
+                        data['major'] = f"{data.get('enroll_year', '')}-{data.get('graduation_year', '')}级学生"
+                
+                # 合并行数据和API返回数据，并标记为成功
                 results.append({**row, **data, 'status': 'y'})
                 success_count += 1
                 ok = True
@@ -384,11 +396,40 @@ def score_batch():
 def score_batch_export():
     data = session.get('batch_score')
     if not data:
-        return '暂无数据可导出', 400
-    df = pd.DataFrame(data)
+        flash('暂无数据可导出')
+        return redirect(url_for('verify.score_query'))
+    
+    # 处理导出数据
+    export_data = []
+    for item in data:
+        # 复制一份数据，避免修改原始数据
+        export_item = item.copy()
+        
+        # 处理专业字段
+        if 'major' not in export_item and 'enroll_year' in export_item:
+            export_item['major'] = f"{export_item.get('enroll_year', '')}-{export_item.get('graduation_year', '')}级学生"
+        
+        # 添加状态描述
+        if export_item.get('status') == 'y':
+            export_item['status_desc'] = '成功'
+        elif export_item.get('status') == 'fail':
+            export_item['status_desc'] = '失败'
+        elif export_item.get('status') == 'missing':
+            export_item['status_desc'] = '信息不完整'
+        else:
+            export_item['status_desc'] = export_item.get('status', '未知')
+        
+        export_data.append(export_item)
+    
+    # 创建DataFrame并导出
+    df = pd.DataFrame(export_data)
     buf = io.BytesIO()
     with pd.ExcelWriter(buf, engine='xlsxwriter') as w:
-        df.to_excel(w, index=False, sheet_name='result')
+        df.to_excel(w, index=False, sheet_name='学生GPA查询结果')
     buf.seek(0)
-    return send_file(buf, download_name='score_batch.xlsx',
+    
+    # 记录日志
+    log_access("导出批量GPA查询结果", f"共{len(data)}条记录")
+    
+    return send_file(buf, download_name='学生GPA查询结果.xlsx',
                     as_attachment=True)

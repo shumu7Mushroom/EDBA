@@ -78,12 +78,14 @@
       {% for r in results %}
       <tr>
         <td>{{ r.name }}</td>
-        <td>{{ r.id }}</td>
-        <td class="{{ r.status }}">
+        <td>{{ r.id }}</td>        <td class="{{ r.status }}">
           {% if r.status == 'y' %}
             成功
           {% elif r.status == 'fail' %}
             失败
+            {% if r.error_message %}
+            <br><small>({{ r.error_message }})</small>
+            {% endif %}
           {% elif r.status == 'missing' %}
             信息不完整
           {% else %}
@@ -91,7 +93,15 @@
           {% endif %}
         </td>
         <td>{{ r.gpa if r.gpa else '-' }}</td>
-        <td>{{ r.major if r.major else '-' }}</td>
+        <td>
+          {% if r.major %}
+            {{ r.major }}
+          {% elif r.enroll_year %}
+            {{ r.enroll_year }}-{{ r.graduation_year }}级学生
+          {% else %}
+            -
+          {% endif %}
+        </td>
         <td>
           {% if r.courses %}
             {{ r.courses|length }} 门课程
