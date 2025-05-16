@@ -1,108 +1,126 @@
+{% extends 'base.html' %}
+
+{% block content %}
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f6f8;
-        padding: 40px;
-    }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f4f6f8;
+    padding: 40px;
+    margin: 0;
+  }
 
-    .admin-login-container {
-        position: relative; /* 关键：为返回按钮提供定位上下文 */
-        max-width: 400px;
-        margin: 0 auto;
-        background: #fff;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    }
+  .admin-login-container {
+    position: relative;
+    max-width: 400px;
+    margin: 60px auto;
+    background: #fff;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
 
-    .back-button {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        background-color: #6c757d;
-        color: white;
-        padding: 6px 12px;
-        font-size: 14px;
-        border: none;
-        border-radius: 5px;
-        text-decoration: none;
-        cursor: pointer;
-    }
+  .back-button {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background-color: #6c757d;
+    color: white;
+    padding: 6px 12px;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
 
-    .back-button:hover {
-        background-color: #5a6268;
-    }
+  .back-button:hover {
+    background-color: #5a6268;
+  }
 
-    h2 {
-        text-align: center;
-        color: #333;
-        margin-bottom: 25px;
-    }
+  h2 {
+    text-align: center;
+    font-size: 24px;
+    color: #2c3e50;
+    margin-bottom: 25px;
+  }
 
-    label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: bold;
-        color: #444;
-    }
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #444;
+  }
 
-    input[type="email"],
-    input[type="password"],
-    select {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 20px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-        box-sizing: border-box;
-    }
+  input[type="email"],
+  input[type="password"],
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-size: 15px;
+    transition: border-color 0.3s;
+  }
 
-    button {
-        width: 100%;
-        padding: 12px;
-        border: none;
-        border-radius: 6px;
-        background-color: #007bff;
-        color: white;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-    }
+  input:focus,
+  select:focus {
+    outline: none;
+    border-color: #007bff;
+  }
 
-    button:hover {
-        background-color: #0056b3;
-    }
+  button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 500;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
 
-    .error-message {
-        color: red;
-        text-align: center;
-        margin-top: 15px;
-    }
+  button:hover {
+    background: linear-gradient(135deg, #3a8edb, #00c5dc);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  }
+
+  .error-message {
+    color: red;
+    text-align: center;
+    margin-top: 15px;
+  }
 </style>
 
 <div class="admin-login-container">
-    <!-- ✅ 返回按钮 -->
-    <a href="{{ url_for('main.index') }}" class="back-button">← 返回</a>
+  <a href="{{ url_for('main.index') }}" class="back-button">← Back</a>
 
-    <h2>Admin Login</h2>
-    <form method="post">
-        <label for="email">Email:</label>
-        <input type="email" name="email" id="email" required>
+  <h2>Admin Login</h2>
+  <form method="post">
+    <label for="email">Email Address:</label>
+    <input type="email" name="email" id="email" required>
 
-        <label for="password">Password:</label>
-        <input type="password" name="password" id="password" required>
+    <label for="password">Password:</label>
+    <input type="password" name="password" id="password" required>
 
-        <label for="role">Role:</label>
-        <select name="role" id="role" required>
-            <option value="eadmin">E-Admin</option>
-            <option value="senior">Senior E-Admin</option>
-            <option value="tadmin">T-Admin</option>
-        </select>
+    <label for="role">Select Role:</label>
+    <select name="role" id="role" required>
+      <option value="eadmin">E-Admin</option>
+      <option value="senior">Senior E-Admin</option>
+      <option value="tadmin">T-Admin</option>
+    </select>
 
-        <button type="submit">Login</button>
+    <button type="submit">Login</button>
 
-        {% if error %}
-        <p class="error-message">{{ error }}</p>
-        {% endif %}
-    </form>
+    {% if error %}
+      <p class="error-message">{{ error }}</p>
+    {% endif %}
+  </form>
 </div>
+{% endblock %}

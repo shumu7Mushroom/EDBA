@@ -5,20 +5,21 @@
     <title>O-Convener Login</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background-color: #f4f6f8;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 40px;
+            margin: 0;
         }
 
         .login-container {
             position: relative;
             background-color: #fff;
-            padding: 30px 40px;
-            border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             width: 100%;
             max-width: 400px;
         }
@@ -35,6 +36,7 @@
             border-radius: 5px;
             text-decoration: none;
             cursor: pointer;
+            transition: background-color 0.2s ease;
         }
 
         .back-button:hover {
@@ -43,53 +45,67 @@
 
         h2 {
             text-align: center;
-            color: #333;
+            color: #2c3e50;
+            font-size: 24px;
             margin-bottom: 25px;
         }
 
         label {
             display: block;
             margin-bottom: 8px;
-            font-weight: bold;
+            font-weight: 600;
             color: #444;
         }
 
         input[type="email"],
         input[type="password"] {
             width: 100%;
-            padding: 10px;
+            padding: 10px 12px;
             margin-bottom: 20px;
-            border-radius: 5px;
+            border-radius: 6px;
             border: 1px solid #ccc;
             box-sizing: border-box;
+            font-size: 15px;
+            transition: border-color 0.3s;
         }
 
-        button {
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .login-btn,
+        .register-btn {
             width: 100%;
             padding: 12px;
             border: none;
             border-radius: 6px;
             font-size: 16px;
+            font-weight: 500;
+            color: white;
             cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .login-btn {
-            background-color: #007bff;
-            color: white;
-            margin-bottom: 10px;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            margin-bottom: 12px;
         }
 
         .login-btn:hover {
-            background-color: #0056b3;
+            background: linear-gradient(135deg, #3a8edb, #00c5dc);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
         }
 
         .register-btn {
-            background-color: #6c757d;
-            color: white;
+            background: linear-gradient(135deg, #6c757d, #868e96);
         }
 
         .register-btn:hover {
-            background-color: #5a6268;
+            background: linear-gradient(135deg, #5a6268, #747b83);
+            transform: translateY(-1px);
         }
 
         .error-message {
@@ -101,17 +117,16 @@
 </head>
 <body>
     <div class="login-container">
-        <!-- ✅ 返回首页按钮 -->
-        <a href="{{ url_for('main.index') }}" class="back-button">← 返回</a>
+        <a href="{{ url_for('main.index') }}" class="back-button">← Back</a>
 
-        <h2>O-Convener 登录</h2>
+        <h2>O-Convener Login</h2>
 
         {% if error %}
         <p class="error-message">{{ error }}</p>
         {% endif %}
 
         <form method="post">
-            <label for="email">Email:</label>
+            <label for="email">Email Address:</label>
             <input type="email" name="email" id="email" required>
 
             <label for="password">Verification Code:</label>
@@ -121,7 +136,7 @@
         </form>
 
         <form action="{{ url_for('oconvener.register') }}">
-            <button type="submit" class="register-btn">还没有账号？点此注册</button>
+            <button type="submit" class="register-btn">Don't have an account? Register here</button>
         </form>
     </div>
 </body>

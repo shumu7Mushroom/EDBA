@@ -6,130 +6,121 @@
 
 {% block content %}
   <style>
+    body {
+      background-color: #f4f6f8;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+    }
+
     .login-container {
-        position: relative;
-        max-width: 400px;
-        margin: 40px auto;
-        padding: 30px;
-        background: #ffffff;
-        border-radius: 10px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      position: relative;
+      max-width: 400px;
+      margin: 60px auto;
+      padding: 40px 30px;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     }
 
     .back-button {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        background-color: #6c757d;
-        color: white;
-        padding: 6px 12px;
-        font-size: 14px;
-        border: none;
-        border-radius: 5px;
-        text-decoration: none;
-        cursor: pointer;
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background-color: #6c757d;
+      color: white;
+      padding: 6px 12px;
+      font-size: 14px;
+      border: none;
+      border-radius: 5px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
     }
 
     .back-button:hover {
-        background-color: #5a6268;
+      background-color: #5a6268;
     }
 
-    .login-container h1 {
-        text-align: center;
-        margin-bottom: 20px;
-        color: #333;
+    .login-container h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      font-size: 24px;
+      color: #2c3e50;
     }
 
     .login-container label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: bold;
-        color: #444;
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #444;
     }
 
     .login-container input[type="email"],
     .login-container input[type="password"],
     .login-container select {
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 20px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-        box-sizing: border-box;
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      font-size: 15px;
+      transition: border-color 0.3s;
+    }
+
+    .login-container input:focus,
+    .login-container select:focus {
+      outline: none;
+      border-color: #007bff;
     }
 
     .login-container button {
-        width: 100%;
-        padding: 12px;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        background-color: #007bff;
-        color: white;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s;
     }
 
     .login-container button:hover {
-        background-color: #0056b3;
-    }
-
-    .register-btn {
-        display: block;
-        text-align: center;
-        margin-top: 15px;
-        padding: 10px;
-        background-color: #6c757d;
-        border-radius: 6px;
-        color: white;
-        text-decoration: none;
-        transition: background-color 0.3s ease;
-    }
-
-    .register-btn:hover {
-        background-color: #5a6268;
+      background: linear-gradient(135deg, #3a8edb, #00c5dc);
+      transform: translateY(-1px);
     }
 
     .error-message {
-        color: red;
-        text-align: center;
-        margin-top: 10px;
-    }
-
-    h2 {
-        text-align: center;
-        color: #333;
-        margin-bottom: 25px;
-    }
-
-    body {
-        background-color: #f4f6f8;  /* ✅ 背景颜色 */
+      color: red;
+      text-align: center;
+      margin-top: 10px;
     }
   </style>
 
   <div class="login-container">
-    <!-- ✅ 返回首页按钮 -->
-    <a href="{{ url_for('main.index') }}" class="back-button">← 返回</a>
+    <!-- 🔙 Back Button -->
+    <a href="{{ url_for('main.index') }}" class="back-button">← Back</a>
 
     <h2>Student / Teacher Login</h2>
 
     <form method="post">
-      <label for="email">Email:</label>
+      <label for="email">Email Address:</label>
       <input type="email" name="email" id="email" required>
 
-      <label for="password">Password / Code:</label>
+      <label for="password">Password / Access Code:</label>
       <input type="password" name="password" id="password" required>
 
-      <label for="role">Role:</label>
+      <label for="role">Select Role:</label>
       <select name="role" id="role" required>
-          <option value="student">Student</option>
-          <option value="teacher">Teacher</option>
+        <option value="student">Student</option>
+        <option value="teacher">Teacher</option>
       </select>
 
       <button type="submit">Login</button>
 
       {% if error %}
-      <p class="error-message">{{ error }}</p>
+        <p class="error-message">{{ error }}</p>
       {% endif %}
     </form>
   </div>
