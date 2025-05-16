@@ -28,10 +28,26 @@ def allowed_file(filename):
 @teacherBP.route('/dashboard', methods=['GET'])
 def dashboard():
     user_id = session.get('user_id')
-    teacher = Teacher.query.get(user_id)
-    download_title = session.pop('download_title', None)  # ✅ 获取并移除
-    log_access(f"教师访问dashboard（ID: {teacher.id}）")  # ✅ 记录行为
-    return render_template('teacher_dashboard.html', teacher=teacher, theses=thesis_results, download_title=download_title)
+
+    db.session.expire_all()  # 清除 SQLAlchemy 缓存
+    teacher = Teacher.query.filter_by(id=user_id).first()  # 避免用 .get
+
+    if not teacher:
+        flash("用户不存在，请重新登录")
+        return redirect(url_for('user.login'))
+
+    download_title = session.pop('download_title', None)
+    download_path = session.pop('download_path', None)
+    if download_path and os.path.exists(download_path):
+        return send_file(download_path, as_attachment=True)
+
+    return render_template(
+        'teacher_dashboard.html',
+        teacher=teacher,
+        theses=thesis_results,
+        download_title=download_title
+    )
+
 
 @teacherBP.route('/search', methods=['POST'])
 def search_thesis():
@@ -130,34 +146,29 @@ def upload_thesis():
 
     return redirect(url_for('teacher.dashboard'))
 
-
 @teacherBP.route('/purchase', methods=['POST'])
 def purchase_thesis():
     title = request.form.get('title')
     user_id = session.get('user_id')
 
-    # 1. 登录 & 用户检查
     if not user_id:
         flash("用户未登录，请重新登录")
         return redirect(url_for('user.login'))
 
-    teacher = Teacher.query.get(user_id)
+    teacher = db.session.get(Teacher, user_id)
     if not teacher:
         flash("找不到该用户，请重新登录")
         return redirect(url_for('user.login'))
 
-    # 2. 论文存在性检查
     thesis = Thesis.query.filter_by(title=title).first()
     if not thesis:
         flash("未找到该论文")
         return redirect(url_for('teacher.dashboard'))
 
-    # 3. 权限检查
     if thesis.access_type != 'download':
         flash("您没有该论文的下载权限（仅限查看）")
         return redirect(url_for('teacher.dashboard'))
 
-    # 4. 路径拼接 & 存在性检查
     pdf_path = thesis.pdf_path
     if not os.path.isabs(pdf_path):
         pdf_path = os.path.join(current_app.config['UPLOAD_FOLDER'], pdf_path)
@@ -167,7 +178,6 @@ def purchase_thesis():
         flash("论文 PDF 文件不存在或路径错误")
         return redirect(url_for('teacher.dashboard'))
 
-    # 5. 配额检查与扣除（非免费时）
     if not thesis.is_free:
         if teacher.thesis_quota < thesis.price:
             flash("下载配额不足，无法购买该论文")
@@ -175,10 +185,28 @@ def purchase_thesis():
         teacher.thesis_quota -= thesis.price
         with db.auto_commit():
             db.session.add(teacher)
-        print(f"[下载成功] 教师 {teacher.name} 下载了《{title}》，扣除 {thesis.price} 配额")
+        log_access(f"教师 {teacher.name} 下载《{title}》，扣除 {thesis.price} 单位")
     else:
-        print(f"[下载成功] 教师 {teacher.name} 下载了免费论文《{title}》")
+        log_access(f"教师 {teacher.name} 下载免费论文《{title}》")
 
-    log_access(f"教师下载论文：{title}（价格：{thesis.price}，实际扣除：{'免费' if thesis.is_free else thesis.price}）")
+    session['download_path'] = pdf_path
+    session['download_title'] = title
 
-    return send_file(pdf_path, as_attachment=True)
+    return redirect(url_for('teacher.dashboard'))
+
+@teacherBP.route('/refresh', methods=['GET'])
+def refresh_data():
+    user_id = session.get('user_id')
+    if not user_id:
+        flash("请先登录")
+        return redirect(url_for('user.login'))
+
+    db.session.expire_all()
+    teacher = Teacher.query.filter_by(id=user_id).first()
+
+    if not teacher:
+        flash("用户不存在")
+        return redirect(url_for('user.login'))
+
+    flash("信息已刷新")
+    return redirect(url_for('teacher.dashboard'))

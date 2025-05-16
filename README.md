@@ -30,6 +30,8 @@ MAIL_PASSWORD = ''
 MAIL_DEFAULT_SENDER = ''
 ```
 
+Then run
+
 ```bash
 python teamwork.py
 ```

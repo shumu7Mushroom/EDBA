@@ -90,10 +90,17 @@
 <!-- 个人信息 -->
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
   <h2>欢迎 {{ teacher.name }}（教师）</h2>
-  <a href="{{ url_for('user.logout') }}">
-    <button style="background-color: #dc3545;">退出登录</button>
-  </a>
+
+  <div style="display: flex; gap: 10px;">
+    <a href="{{ url_for('teacher.refresh_data') }}">
+      <button style="background-color: #ffc107;">刷新数据</button>
+    </a>
+    <a href="{{ url_for('user.logout') }}">
+      <button style="background-color: #dc3545;">退出登录</button>
+    </a>
+  </div>
 </div>
+
 <p>权限等级：{{ teacher.access_level }} ｜ 下载配额：{{ teacher.thesis_quota }} 单位</p>
 
 <!-- 功能按钮区 -->
