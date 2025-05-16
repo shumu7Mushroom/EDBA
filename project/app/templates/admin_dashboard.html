@@ -168,5 +168,35 @@
 <p>No applications available.</p>
 {% endif %}
 
+<h3>Policies</h3>
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Description</th>
+    <th>File</th>
+    <th>Movement</th>
+  </tr>
+  {% for rule in rules %}
+  <tr>
+    <td>{{ rule.title }}</td>
+    <td>{{ rule.description }}</td>
+    <td>{{ rule.filename }}</td>
+    <td>
+      <!-- ✅ 查看 -->
+      <a href="{{ url_for('admin.show_rule', filename=rule.filename) }}" target="_blank">
+        <button type="button">see</button>
+      </a>
+
+      <!-- ✅ 下载 -->
+      <a href="{{ url_for('admin.download_rule', filename=rule.filename) }}">
+        <button type="button">download</button>
+      </a>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+
 </body>
 </html>
