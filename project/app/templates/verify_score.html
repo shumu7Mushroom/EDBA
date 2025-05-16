@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>学生 GPA 查询</title>
+  <title>Student GPA Query</title>
   <style>
       body {font-family:sans-serif;margin:40px;}
       pre  {background:#f5f5f5;padding:12px;border:1px solid #ddd;}
@@ -40,7 +40,7 @@
   </style>
 </head>
 <body>
-  <h1>学生 GPA 查询</h1>
+  <h1>Student GPA Query</h1>
 
   {# ---------- flash ---------- #}
   {% with msgs = get_flashed_messages() %}
@@ -54,11 +54,11 @@
   {% endwith %}
 
   <form method="post" action="{{ url_for('verify.score_query') }}">
-      接口：
+      API:
       <select name="api_choice">
           <option value="auto"
                   {% if api_choice == 'auto' %}selected{% endif %}>
-              自动（依次尝试）
+              Auto (try all)
           </option>
           {% for c in configs %}
               <option value="{{ c.id }}"
@@ -68,39 +68,39 @@
           {% endfor %}
       </select><br><br>
 
-      姓名：<input type="text" name="name"
+      Name: <input type="text" name="name"
                  value="{{ name|default('') }}" required><br><br>
 
-      学号：<input type="text" name="id"
+      Student ID: <input type="text" name="id"
                  value="{{ stu_id|default('') }}" required><br><br>
 
-      <button type="submit">查询 GPA</button>
+      <button type="submit">Query GPA</button>
   </form>
 
   {% if result %}
     <div class="score-container">
-      <h3>查询结果</h3>
-      <p><strong>来源：</strong>{{ source }}</p>
+      <h3>Query Result</h3>
+      <p><strong>Source:</strong> {{ source }}</p>
         {% if result.status in ['y', 'success'] %}
         <div class="score-summary">
-          <p><strong>学生：</strong>{{ result.name }} ({{ result.id }})</p>
-          <p><strong>专业：</strong>{{ result.major }}</p>
-          <p><strong>GPA：</strong>{{ result.gpa }}</p>
+          <p><strong>Student:</strong> {{ result.name }} ({{ result.id }})</p>
+          <p><strong>Major:</strong> {{ result.major }}</p>
+          <p><strong>GPA:</strong> {{ result.gpa }}</p>
           {% if result.rank %}
-          <p><strong>排名：</strong>{{ result.rank }}</p>
+          <p><strong>Rank:</strong> {{ result.rank }}</p>
           {% endif %}
         </div>
         
         {% if result.courses %}
-        <h4>课程详情</h4>
+        <h4>Course Details</h4>
         <table class="score-table">
           <thead>
             <tr>
-              <th>课程代码</th>
-              <th>课程名称</th>
-              <th>学分</th>
-              <th>成绩</th>
-              <th>等级</th>
+              <th>Course Code</th>
+              <th>Course Name</th>
+              <th>Credits</th>
+              <th>Score</th>
+              <th>Grade</th>
             </tr>
           </thead>
           <tbody>
@@ -118,25 +118,25 @@
         {% endif %}
       {% elif result.status == 'error' %}
         <div style="background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin-top: 15px;">
-          <p style="color: #721c24;"><strong>错误：</strong>{{ result.message }}</p>
+          <p style="color: #721c24;"><strong>Error:</strong> {{ result.message }}</p>
           
-          <h4>调试信息：</h4>
+          <h4>Debug Info:</h4>
           <ul>
             {% if result.url %}
-            <li><strong>API URL：</strong>{{ result.url }}</li>
+            <li><strong>API URL:</strong> {{ result.url }}</li>
             {% endif %}
             
             {% if result.payload %}
-            <li><strong>请求参数：</strong>{{ result.payload }}</li>
+            <li><strong>Request Payload:</strong> {{ result.payload }}</li>
             {% endif %}
             
             {% if result.content %}
-            <li><strong>响应内容：</strong>{{ result.content }}</li>
+            <li><strong>Response Content:</strong> {{ result.content }}</li>
             {% endif %}
           </ul>
           
-          <p>请联系管理员检查API配置和连接状态。</p>
-          <p style="margin-top: 10px;"><em>提示：尝试使用测试服务器(/api/score)而不是生产服务器路径。</em></p>
+          <p>Please contact the administrator to check API configuration and connection status.</p>
+          <p style="margin-top: 10px;"><em>Tip: Try using the test server (/api/score) instead of the production server path.</em></p>
         </div>
       {% else %}
         <pre>{{ result | tojson | safe }}</pre>
@@ -145,11 +145,11 @@
   {% endif %}
 
   <div class="batch-upload">
-    <h3>批量查询</h3>
+    <h3>Batch Query</h3>
     <form method="post" action="{{ url_for('verify.score_batch') }}" enctype="multipart/form-data">
-      <p>上传 Excel 文件，包含列: name, id</p>
+      <p>Upload Excel file with columns: name, id</p>
       <input type="file" name="file" accept=".xlsx" required><br><br>
-      <button type="submit">批量查询</button>
+      <button type="submit">Batch Query</button>
     </form>
   </div>
 </body>

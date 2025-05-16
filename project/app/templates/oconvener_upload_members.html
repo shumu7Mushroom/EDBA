@@ -91,11 +91,11 @@
   }
 </style>
 
-<h2>批量上传成员名单</h2>
+<h2>Batch Upload Members</h2>
 <form method="post" enctype="multipart/form-data">
-  <label>选择 Excel 文件 (.xlsx)：</label>
+  <label>Select Excel file (.xlsx):</label>
   <input type="file" name="excel_file" accept=".xlsx" required>
-  <button type="submit">上传</button>
+  <button type="submit">Upload</button>
 </form>
 
 {% with messages = get_flashed_messages() %}
@@ -105,7 +105,7 @@
 {% endwith %}
 
 {% if results.success %}
-  <h4>✅ 成功导入的成员：</h4>
+  <h4>✅ Successfully Imported Members:</h4>
   <ul>
     {% for email in results.success %}
       <li>{{ email }}</li>
@@ -114,7 +114,7 @@
 {% endif %}
 
 {% if results.fail %}
-  <h4 style="color: red;">❌ 导入失败的成员：</h4>
+  <h4 style="color: red;">❌ Failed to Import Members:</h4>
   <ul>
     {% for msg in results.fail %}
       <li>{{ msg }}</li>
@@ -124,35 +124,35 @@
 
 <hr>
 
-<h2>手动添加单个成员</h2>
+<h2>Manually Add a Member</h2>
 <form method="post">
   <input type="hidden" name="single_submit" value="1">
 
-  <label>姓名：</label>
+  <label>Name:</label>
   <input type="text" name="name" required>
 
-  <label>邮箱：</label>
+  <label>Email:</label>
   <input type="email" name="email" required>
 
-  <label>成员类型：</label>
+  <label>Member Type:</label>
   <select name="type" required>
-    <option value="student">学生</option>
-    <option value="teacher">教师</option>
+    <option value="student">Student</option>
+    <option value="teacher">Teacher</option>
   </select>
 
-  <label>权限等级（1-3）：</label>
+  <label>Access Level (1-3):</label>
   <input type="number" name="access_level" min="1" max="3" required>
 
-  <label>论文下载配额：</label>
+  <label>Thesis Download Quota:</label>
   <input type="number" name="thesis_quota" min="0" required>
 
-  <button type="submit">添加成员</button>
+  <button type="submit">Add Member</button>
 </form>
 
 <hr>
 
 <a href="{{ url_for('oconvener.dashboard') }}">
-  <button class="back-btn">返回 Dashboard</button>
+  <button class="back-btn">Back to Dashboard</button>
 </a>
 
 {% endblock %}

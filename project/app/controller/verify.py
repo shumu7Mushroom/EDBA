@@ -52,7 +52,7 @@ def _call_api(cfg, payload, files=None):
             # 如果不是200 OK，返回错误信息
             return {
                 "status": "error",
-                "message": f"API返回错误: {r.status_code} {r.reason}",
+                "message": f"API returned error: {r.status_code} {r.reason}",
                 "url": url,
                 "payload": payload
             }
@@ -64,7 +64,7 @@ def _call_api(cfg, payload, files=None):
             # 如果JSON解析失败，返回错误信息
             return {
                 "status": "error",
-                "message": f"无法解析API返回的JSON数据: {str(e)}",
+                "message": f"Failed to parse API JSON response: {str(e)}",
                 "content": r.text[:200]  # 只返回前200个字符，避免过长
             }
             
@@ -72,7 +72,7 @@ def _call_api(cfg, payload, files=None):
         # 处理请求异常（连接错误、超时等）
         return {
             "status": "error",
-            "message": f"请求失败: {str(e)}",
+            "message": f"Request failed: {str(e)}",
             "url": url
         }
 
@@ -85,7 +85,7 @@ def _call_api(cfg, payload, files=None):
 @verifyBP.route('/config/<service_type>', methods=['GET', 'POST'])
 def api_config_form(service_type):
     if not _must_convener():
-        return '只有 O‑Convener 可以配置接口', 403
+        return 'Only O‑Convener can configure APIs', 403
 
     inst_id = session['user_id']
     cfg = APIConfig.query.filter_by(institution_id=inst_id,
@@ -103,7 +103,7 @@ def api_config_form(service_type):
                             base_url=base_url, path=path, method=method)
             db.session.add(cfg)
         db.session.commit()
-        flash('保存成功！')
+        flash('Saved successfully!')
 
     return render_template('api_config_form.html',
                            cfg=cfg, service_type=service_type)
@@ -129,7 +129,7 @@ def student_query():
     api_choice = request.form.get('api_choice', 'auto')
 
     if not name or not sid:
-        flash('姓名 / 学号 不能为空')
+        flash('Name / ID cannot be empty')
         # 直接回渲染页面而非 redirect，避免丢失输入
         return render_template('verify_identity.html',
                                configs=configs,
@@ -189,12 +189,12 @@ def student_query():
 def student_batch():
     file = request.files.get('file')
     if not file:
-        return '请上传 Excel 文件', 400
+        return 'Please upload an Excel file', 400
     df = pd.read_excel(file)
 
     cfgs = _configs('identity')
     if not cfgs:
-        return '未配置任何认证接口', 400
+        return 'No authentication interface configured', 400
 
     results = []
     for _, row in df.iterrows():
@@ -226,7 +226,7 @@ def student_batch():
 def student_batch_export():
     data = session.get('batch_identity')
     if not data:
-        return '暂无数据可导出', 400
+        return 'No data to export', 400
     df = pd.DataFrame(data)
     buf = io.BytesIO()
     with pd.ExcelWriter(buf, engine='xlsxwriter') as w:
@@ -256,7 +256,7 @@ def score_query():
     api_choice = request.form.get('api_choice', 'auto')
 
     if not name or not sid:
-        flash('姓名 / 学号 不能为空')
+        flash('Name / ID cannot be empty')
         # 直接回渲染页面而非 redirect，避免丢失输入
         return render_template('verify_score.html',
                                configs=configs,
@@ -285,10 +285,10 @@ def score_query():
                     if 'name' not in data:
                         data['name'] = name
                     if 'major' not in data and 'enroll_year' in data:
-                        data['major'] = f"{data.get('enroll_year', '')}-{data.get('graduation_year', '')}级学生"
+                        data['major'] = f"{data.get('enroll_year', '')}-{data.get('graduation_year', '')} student"
                 
                 # 记录成功查询的日志
-                log_access(f"查询学生GPA", f"学生: {name}({sid})")
+                log_access(f"Query student GPA", f"Student: {name}({sid})")
                 return render_template(
                     'verify_score.html',
                     configs=configs,
@@ -323,22 +323,22 @@ def score_query():
 def score_batch():
     file = request.files.get('file')
     if not file:
-        flash('请上传 Excel 文件')
+        flash('Please upload an Excel file')
         return redirect(url_for('verify.score_query'))
         
     try:
         df = pd.read_excel(file)
     except Exception as e:
-        flash(f'Excel文件读取失败: {str(e)}')
+        flash(f'Failed to read Excel file: {str(e)}')
         return redirect(url_for('verify.score_query'))
 
     cfgs = _configs('score')
     if not cfgs:
-        flash('未配置任何成绩查询接口，请先配置接口')
+        flash('No GPA query API configured, please configure first')
         return redirect(url_for('verify.score_query'))
 
     # 记录批量查询日志
-    log_access(f"批量查询学生GPA", f"共{len(df)}条记录")
+    log_access(f"Batch query student GPA", f"Total {len(df)} records")
 
     results = []
     success_count = 0
@@ -368,7 +368,7 @@ def score_batch():
                     if 'name' not in data:
                         data['name'] = name
                     if 'major' not in data and 'enroll_year' in data:
-                        data['major'] = f"{data.get('enroll_year', '')}-{data.get('graduation_year', '')}级学生"
+                        data['major'] = f"{data.get('enroll_year', '')}-{data.get('graduation_year', '')} student"
                 
                 # 合并行数据和API返回数据，并标记为成功
                 results.append({**row, **data, 'status': 'y'})
@@ -385,7 +385,7 @@ def score_batch():
             results.append(error_result)
 
     # 添加批量操作结果的日志
-    log_access("批量GPA查询完成", f"成功: {success_count}/{len(df)}")
+    log_access("Batch GPA query finished", f"Success: {success_count}/{len(df)}")
     
     session['batch_score'] = results
     return render_template('verify_score_batch_result.html',
@@ -396,7 +396,7 @@ def score_batch():
 def score_batch_export():
     data = session.get('batch_score')
     if not data:
-        flash('暂无数据可导出')
+        flash('No data to export')
         return redirect(url_for('verify.score_query'))
     
     # 处理导出数据
@@ -407,17 +407,17 @@ def score_batch_export():
         
         # 处理专业字段
         if 'major' not in export_item and 'enroll_year' in export_item:
-            export_item['major'] = f"{export_item.get('enroll_year', '')}-{export_item.get('graduation_year', '')}级学生"
+            export_item['major'] = f"{export_item.get('enroll_year', '')}-{export_item.get('graduation_year', '')} student"
         
         # 添加状态描述
         if export_item.get('status') == 'y':
-            export_item['status_desc'] = '成功'
+            export_item['status_desc'] = 'Success'
         elif export_item.get('status') == 'fail':
-            export_item['status_desc'] = '失败'
+            export_item['status_desc'] = 'Failed'
         elif export_item.get('status') == 'missing':
-            export_item['status_desc'] = '信息不完整'
+            export_item['status_desc'] = 'Incomplete information'
         else:
-            export_item['status_desc'] = export_item.get('status', '未知')
+            export_item['status_desc'] = export_item.get('status', 'Unknown')
         
         export_data.append(export_item)
     
@@ -425,11 +425,11 @@ def score_batch_export():
     df = pd.DataFrame(export_data)
     buf = io.BytesIO()
     with pd.ExcelWriter(buf, engine='xlsxwriter') as w:
-        df.to_excel(w, index=False, sheet_name='学生GPA查询结果')
+        df.to_excel(w, index=False, sheet_name='GPA Query Result')
     buf.seek(0)
     
     # 记录日志
-    log_access("导出批量GPA查询结果", f"共{len(data)}条记录")
+    log_access("Export batch GPA query result", f"Total {len(data)} records")
     
-    return send_file(buf, download_name='学生GPA查询结果.xlsx',
+    return send_file(buf, download_name='GPA_Query_Result.xlsx',
                     as_attachment=True)

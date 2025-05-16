@@ -25,7 +25,7 @@ def upload_rule():
     file = request.files.get('rule_file')
 
     if not file or not file.filename.endswith('.pdf'):
-        flash("请上传 PDF 文件")
+        flash("Please upload a PDF file")
         return redirect(url_for('tadmin.dashboard'))
 
     filename = secure_filename(file.filename)
@@ -36,8 +36,8 @@ def upload_rule():
     with db.auto_commit():
         db.session.add(new_rule)
 
-    log_access(f"T-Admin 上传规则文件：{title}")
-    flash("规则上传成功")
+    log_access(f"T-Admin uploaded rule file: {title}")
+    flash("Rule uploaded successfully")
     return redirect(url_for('tadmin.dashboard'))
 
 @tadminBP.route('/rule/download/<filename>')
@@ -56,7 +56,7 @@ def delete_rule(rule_id):
             os.remove(filepath)
         with db.auto_commit():
             db.session.delete(rule)
-        log_access(f"T-Admin 删除规则文件：{rule.title}")
-        flash("规则已删除")
+        log_access(f"T-Admin deleted rule file: {rule.title}")
+        flash("Rule deleted")
 
     return redirect(url_for('tadmin.dashboard'))

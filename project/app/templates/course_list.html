@@ -109,24 +109,24 @@
 
 <!-- 标题和按钮 -->
 <div class="header-actions">
-  <h2>课程信息管理</h2>
+  <h2>Course Management</h2>
   {% if can_edit %}
-  <a href="{{ url_for('course.add_course') }}" class="btn btn-success">+ 添加新课程</a>
+  <a href="{{ url_for('course.add_course') }}" class="btn btn-success">+ Add New Course</a>
   {% endif %}
 </div>
 
-<!-- 课程列表 -->
+<!-- Course List -->
 <section>
   <table>
     <thead>
       <tr>
-        <th>课程代码</th>
-        <th>课程名称</th>
-        <th>学分</th>
-        <th>授课教师</th>
-        <th>所属组织</th>
+        <th>Course Code</th>
+        <th>Course Name</th>
+        <th>Credits</th>
+        <th>Instructor</th>
+        <th>Organization</th>
         {% if can_edit %}
-        <th>操作</th>
+        <th>Actions</th>
         {% endif %}
       </tr>
     </thead>
@@ -141,9 +141,9 @@
           <td>{{ course.organization }}</td>
           {% if can_edit %}
           <td class="action-buttons">
-            <a href="{{ url_for('course.edit_course', course_id=course.id) }}" class="btn btn-primary">编辑</a>
-            <form method="post" action="{{ url_for('course.delete_course', course_id=course.id) }}" onsubmit="return confirm('确认删除该课程吗？');" style="display:inline;">
-              <button type="submit" class="btn btn-danger">删除</button>
+            <a href="{{ url_for('course.edit_course', course_id=course.id) }}" class="btn btn-primary">Edit</a>
+            <form method="post" action="{{ url_for('course.delete_course', course_id=course.id) }}" onsubmit="return confirm('Are you sure you want to delete this course?');" style="display:inline;">
+              <button type="submit" class="btn btn-danger">Delete</button>
             </form>
           </td>
           {% endif %}
@@ -151,19 +151,19 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="{% if can_edit %}6{% else %}5{% endif %}" style="text-align: center;">暂无课程信息</td>
+          <td colspan="{% if can_edit %}6{% else %}5{% endif %}" style="text-align: center;">No course information</td>
         </tr>
       {% endif %}
     </tbody>
   </table>
 </section>
 
-<!-- 返回按钮 -->
+<!-- Back Button -->
 <div>
   {% if user_role == 'student' %}
-  <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary">返回主页</a>
+  <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary">Back to Home</a>
   {% elif user_role == 'teacher' %}
-  <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-primary">返回主页</a>
+  <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-primary">Back to Home</a>
   {% endif %}
 </div>
 

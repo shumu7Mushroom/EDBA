@@ -33,7 +33,7 @@ def dashboard():
     teacher = Teacher.query.filter_by(id=user_id).first()  # 避免用 .get
 
     if not teacher:
-        flash("用户不存在，请重新登录")
+        flash("User does not exist, please login again")
         return redirect(url_for('user.login'))
 
     download_title = session.pop('download_title', None)
@@ -56,7 +56,7 @@ def search_thesis():
     teacher = Teacher.query.get(user_id)
 
     if not keywords:
-        flash("请输入关键词")
+        flash("Please enter keywords")
         return redirect(url_for('teacher.dashboard'))
 
     # 获取全部匹配论文
@@ -100,7 +100,7 @@ def upload_thesis():
     teacher = Teacher.query.get(user_id)
 
     if not teacher or teacher.access_level < 3:
-        flash("您没有权限上传论文，上传功能仅限高级教师")
+        flash("You do not have permission to upload thesis, only senior teachers can upload")
         return redirect(url_for('teacher.dashboard'))
 
     title = request.form.get('title', '').strip()
@@ -111,11 +111,11 @@ def upload_thesis():
     print("filename:", file.filename if file else "No file")
 
     if not title or not abstract or not file:
-        flash("所有字段均为必填")
+        flash("All fields are required")
         return redirect(url_for('teacher.dashboard'))
 
     if not allowed_file(file.filename):
-        flash("只允许上传 PDF 文件")
+        flash("Only PDF files are allowed")
         return redirect(url_for('teacher.dashboard'))
 
     filename = secure_filename(file.filename)
@@ -140,9 +140,9 @@ def upload_thesis():
         with db.auto_commit():
             db.session.add(new_thesis)
 
-        flash("论文上传成功")
+        flash("Thesis uploaded successfully")
     except Exception as e:
-        flash(f"上传失败：{str(e)}")
+        flash(f"Upload failed: {str(e)}")
 
     return redirect(url_for('teacher.dashboard'))
 
@@ -152,21 +152,21 @@ def purchase_thesis():
     user_id = session.get('user_id')
 
     if not user_id:
-        flash("用户未登录，请重新登录")
+        flash("User not logged in, please login again")
         return redirect(url_for('user.login'))
 
     teacher = db.session.get(Teacher, user_id)
     if not teacher:
-        flash("找不到该用户，请重新登录")
+        flash("User not found, please login again")
         return redirect(url_for('user.login'))
 
     thesis = Thesis.query.filter_by(title=title).first()
     if not thesis:
-        flash("未找到该论文")
+        flash("Thesis not found")
         return redirect(url_for('teacher.dashboard'))
 
     if thesis.access_type != 'download':
-        flash("您没有该论文的下载权限（仅限查看）")
+        flash("You do not have download permission for this thesis (view only)")
         return redirect(url_for('teacher.dashboard'))
 
     pdf_path = thesis.pdf_path
@@ -175,12 +175,12 @@ def purchase_thesis():
     pdf_path = os.path.abspath(pdf_path)
 
     if not os.path.exists(pdf_path):
-        flash("论文 PDF 文件不存在或路径错误")
+        flash("Thesis PDF file does not exist or path is incorrect")
         return redirect(url_for('teacher.dashboard'))
 
     if not thesis.is_free:
         if teacher.thesis_quota < thesis.price:
-            flash("下载配额不足，无法购买该论文")
+            flash("Insufficient quota to purchase this thesis")
             return redirect(url_for('teacher.dashboard'))
         teacher.thesis_quota -= thesis.price
         with db.auto_commit():
@@ -205,10 +205,10 @@ def refresh_data():
     teacher = Teacher.query.filter_by(id=user_id).first()
 
     if not teacher:
-        flash("用户不存在")
+        flash("User does not exist, please login again")
         return redirect(url_for('user.login'))
 
-    flash("信息已刷新")
+    flash("Information refreshed")
     return redirect(url_for('teacher.dashboard'))
 
 @teacherBP.route('/view/<filename>')
@@ -218,5 +218,5 @@ def view_pdf(filename):
     if os.path.exists(file_path):
         return send_file(file_path)
     else:
-        flash("文件不存在")
+        flash("File does not exist")
         return redirect(url_for('teacher.dashboard'))
