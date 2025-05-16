@@ -10,7 +10,7 @@ from app.models.teacher import Teacher
 from flask import redirect, url_for
 from app.models.thesis import Thesis
 from flask import send_from_directory
-from flask import flash
+from flask import flash, abort
 from app.controller.log import log_access  # ✅ 添加日志记录函数
 import pandas as pd
 
@@ -401,3 +401,23 @@ def delete_user(user_type, user_id):
         flash("找不到该用户")
 
     return redirect(url_for('oconvener.dashboard'))
+
+@oconvenerBP.route('/pdf/view/<filename>')
+def view_pdf(filename):
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+    file_path = os.path.join(upload_folder, filename)
+
+    if os.path.exists(file_path):
+        return send_from_directory(upload_folder, filename)
+    else:
+        abort(404)
+
+@oconvenerBP.route('/pdf/download/<filename>')
+def download_pdf(filename):
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+    file_path = os.path.join(upload_folder, filename)
+
+    if os.path.exists(file_path):
+        return send_from_directory(upload_folder, filename, as_attachment=True)
+    else:
+        abort(404)

@@ -121,7 +121,8 @@
             </td>
             <td>
                 {% if thesis.pdf_path %}
-                    <a href="{{ url_for('oconvener.uploaded_file', filename=thesis.pdf_path) }}" target="_blank">查看</a><br>
+                    <a class="view-link" href="{{ url_for('oconvener.view_pdf', filename=thesis.pdf_path) }}" target="_blank">查看</a><br>
+                    <a class="view-link" href="{{ url_for('oconvener.download_pdf', filename=thesis.pdf_path) }}">下载</a><br>
                 {% else %}
                     无<br>
                 {% endif %}
