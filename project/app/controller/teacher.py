@@ -210,3 +210,13 @@ def refresh_data():
 
     flash("信息已刷新")
     return redirect(url_for('teacher.dashboard'))
+
+@teacherBP.route('/view/<filename>')
+def view_pdf(filename):
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+    file_path = os.path.join(upload_folder, filename)
+    if os.path.exists(file_path):
+        return send_file(file_path)
+    else:
+        flash("文件不存在")
+        return redirect(url_for('teacher.dashboard'))

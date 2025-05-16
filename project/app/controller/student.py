@@ -118,3 +118,24 @@ def purchase_thesis():
         print(f"[下载成功] {student.name} 下载了免费论文《{title}》")
 
     return send_file(pdf_filename, as_attachment=True)
+
+@studentBP.route('/view', methods=['GET'])
+def view_thesis():
+    title = request.args.get('title')
+    thesis = Thesis.query.filter_by(title=title).first()
+
+    if not thesis:
+        flash("论文不存在")
+        return redirect(url_for('student.dashboard'))
+
+    pdf_path = thesis.pdf_path
+    if not os.path.isabs(pdf_path):
+        pdf_path = os.path.join(current_app.config['UPLOAD_FOLDER'], pdf_path)
+    abs_path = os.path.abspath(pdf_path)
+
+    if not os.path.exists(abs_path):
+        flash("论文文件不存在")
+        return redirect(url_for('student.dashboard'))
+
+    # ✅ 以 inline 模式打开 PDF
+    return send_file(abs_path, mimetype='application/pdf', as_attachment=False)
