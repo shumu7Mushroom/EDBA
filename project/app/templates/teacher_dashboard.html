@@ -3,7 +3,7 @@
 {% block content %}
 <style>
   body {
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', sans-serif;
     background-color: #f4f6f8;
     padding: 40px;
   }
@@ -15,18 +15,19 @@
     margin-bottom: 20px;
     border-radius: 6px;
     color: #856404;
+    text-align: center;
   }
 
   h2, h3 {
-    color: #333;
+    color: #2c3e50;
     margin-top: 20px;
   }
 
   section {
     background-color: #fff;
-    padding: 20px 30px;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    padding: 25px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     margin-bottom: 30px;
   }
 
@@ -38,27 +39,72 @@
   textarea,
   input[type="file"] {
     width: 100%;
-    padding: 10px;
+    padding: 10px 12px;
     margin-bottom: 15px;
-    border-radius: 5px;
+    border-radius: 6px;
     border: 1px solid #ccc;
-    box-sizing: border-box;
     font-size: 14px;
+    box-sizing: border-box;
   }
 
   button {
     padding: 10px 18px;
-    background-color: #007bff;
-    color: white;
     border: none;
     border-radius: 6px;
     font-size: 14px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    color: white;
+    transition: all 0.3s ease;
   }
 
-  button:hover {
-    background-color: #0056b3;
+  .btn-primary {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #3a8edb, #00c5dc);
+    transform: translateY(-1px);
+  }
+
+  .btn-danger {
+    background-color: #dc3545;
+  }
+
+  .btn-danger:hover {
+    background-color: #c82333;
+  }
+
+  .btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+  }
+
+  .btn-warning:hover {
+    background-color: #e0a800;
+  }
+
+  .btn-info {
+    background-color: #17a2b8;
+  }
+
+  .btn-info:hover {
+    background-color: #138496;
+  }
+
+  .btn-success {
+    background-color: #28a745;
+  }
+
+  .btn-success:hover {
+    background-color: #218838;
+  }
+
+  .btn-secondary {
+    background-color: #6c757d;
+  }
+
+  .btn-secondary:hover {
+    background-color: #5a6268;
   }
 
   ul {
@@ -70,7 +116,7 @@
     background-color: #fafafa;
     padding: 15px;
     border: 1px solid #eee;
-    border-radius: 8px;
+    border-radius: 10px;
     margin-bottom: 15px;
   }
 
@@ -78,105 +124,114 @@
     color: #666;
     font-size: 14px;
   }
+
+  .flex-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .button-group {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+  }
 </style>
 
-<!-- 提示信息 -->
+<!-- Flash Message -->
 {% with messages = get_flashed_messages() %}
   {% if messages %}
     <div class="alert">{{ messages[-1] }}</div>
   {% endif %}
 {% endwith %}
 
-<!-- 个人信息 -->
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-  <h2>欢迎 {{ teacher.name }}（教师）</h2>
-
-  <div style="display: flex; gap: 10px;">
+<!-- Teacher Info -->
+<div class="flex-header">
+  <h2>Welcome, {{ teacher.name }} (Teacher)</h2>
+  <div class="button-group">
     <a href="{{ url_for('teacher.refresh_data') }}">
-      <button style="background-color: #ffc107;">刷新数据</button>
+      <button class="btn-warning">Refresh Data</button>
     </a>
     <a href="{{ url_for('user.logout') }}">
-      <button style="background-color: #dc3545;">退出登录</button>
+      <button class="btn-danger">Log Out</button>
     </a>
   </div>
 </div>
 
-<p>权限等级：{{ teacher.access_level }} ｜ 下载配额：{{ teacher.thesis_quota }} 单位</p>
+<p>Access Level: {{ teacher.access_level }} ｜ Download Quota: {{ teacher.thesis_quota }} units</p>
 
-<!-- 功能按钮区 -->
-<div style="display: flex; gap: 15px; margin-bottom: 20px;">
-  {% if teacher.access_level >= 1%}
+<!-- Action Buttons -->
+<div class="button-group">
+  {% if teacher.access_level >= 1 %}
   <a href="{{ url_for('course.view_courses') }}">
-    <button style="background-color: #17a2b8;">查看课程信息</button>
+    <button class="btn-info">View Courses</button>
   </a>
   {% endif %}
   {% if teacher.access_level >= 2 %}
   <a href="{{ url_for('course.list_courses') }}">
-    <button style="background-color: #28a745;">课程信息管理</button>
+    <button class="btn-success">Manage Courses</button>
   </a>
   {% endif %}
   {% if teacher.access_level >= 3 %}
   <a href="{{ url_for('verify.score_query') }}">
-    <button style="background-color: #6f42c1;">学生GPA查询</button>
+    <button class="btn-secondary">Student GPA Query</button>
   </a>
   {% endif %}
 </div>
 
-<!-- 搜索论文 -->
+<!-- Search Thesis -->
 <section>
-  <h3>搜索论文</h3>
+  <h3>Search Thesis</h3>
   <form method="post" action="{{ url_for('teacher.search_thesis') }}">
-    <input type="text" name="keywords" placeholder="请输入关键词" required>
-    <button type="submit">搜索</button>
+    <input type="text" name="keywords" placeholder="Enter keywords" required>
+    <button type="submit" class="btn-primary">Search</button>
   </form>
 </section>
 
-<!-- 搜索结果 -->
+<!-- Search Results -->
 {% if theses %}
 <section>
-  <h3>搜索结果</h3>
+  <h3>Search Results</h3>
   <ul>
     {% for thesis in theses %}
     <li>
       <strong>{{ thesis.title }}</strong><br>
       <div style="margin: 8px 0;">{{ thesis.abstract }}</div>
       <em>
-        权限要求：
-        Scope={{ thesis.access_scope }} ｜ 
-        Type={{ thesis.access_type }} ｜ 
-        {% if thesis.is_free %}免费{% else %}需 {{ thesis.price }} 单位{% endif %}
+        Access Required:
+        Scope = {{ thesis.access_scope }} ｜ 
+        Type = {{ thesis.access_type }} ｜ 
+        {% if thesis.is_free %}Free{% else %}Requires {{ thesis.price }} units{% endif %}
       </em>
       <form method="post" action="{{ url_for('teacher.purchase_thesis') }}">
         <input type="hidden" name="title" value="{{ thesis.title }}">
-        <button type="submit" style="margin-top: 10px;">购买并下载</button>
+        <button type="submit" class="btn-primary" style="margin-top: 10px;">Buy & Download</button>
       </form>
-
       <a href="{{ url_for('teacher.view_pdf', filename=thesis.pdf_path) }}" target="_blank">
-        <button type="button" style="margin-top: 10px; background-color: #6c757d;">在线展示</button>
+        <button type="button" class="btn-secondary" style="margin-top: 10px;">Preview Online</button>
       </a>
-
     </li>
     {% endfor %}
   </ul>
 </section>
 {% endif %}
 
-<!-- 上传论文 -->
+<!-- Upload Thesis -->
 <section>
-  <h3>上传论文</h3>
+  <h3>Upload Thesis</h3>
   <form method="post" action="{{ url_for('teacher.upload_thesis') }}" enctype="multipart/form-data">
-    <input type="text" name="title" placeholder="论文标题" required>
-    <textarea name="abstract" placeholder="摘要" rows="4" required></textarea>
+    <input type="text" name="title" placeholder="Thesis Title" required>
+    <textarea name="abstract" placeholder="Abstract" rows="4" required></textarea>
     <input type="file" name="pdf_file" accept="application/pdf" required>
-    <button type="submit">上传</button>
+    <button type="submit" class="btn-success">Upload</button>
   </form>
 </section>
 
-<!-- 自动隐藏提示信息 -->
+<!-- Auto-hide Flash -->
 <script>
   setTimeout(function () {
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.alert').forEach(el => el.style.display = 'none');
   }, 3000);
 </script>
 {% endblock %}

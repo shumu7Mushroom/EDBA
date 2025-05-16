@@ -1,180 +1,222 @@
 <!DOCTYPE html>
-<html lang="zh">
-<style>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <style>
     body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f6f8;
-        padding: 40px;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f8;
+      padding: 40px;
     }
 
     h2, h3 {
-        color: #333;
-        margin-bottom: 20px;
+      color: #333;
+      margin-bottom: 20px;
     }
 
     .logout-link {
-        display: inline-block;
-        margin: 10px 0 30px 0;
-        color: #fff;
-        background-color: #dc3545;
-        padding: 8px 16px;
-        border-radius: 5px;
-        text-decoration: none;
-        font-size: 14px;
+      display: inline-block;
+      margin: 10px 0 30px 0;
+      color: #fff;
+      background-color: #dc3545;
+      padding: 8px 16px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-size: 14px;
     }
 
     .logout-link:hover {
-        background-color: #c82333;
+      background-color: #c82333;
+    }
+
+    .action-buttons {
+      margin-bottom: 30px;
+    }
+
+    .action-buttons button {
+      background-color: #007bff;
+      color: white;
+      padding: 8px 16px;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .action-buttons button:hover {
+      background-color: #0056b3;
     }
 
     table {
-        width: 100%;
-        border-collapse: collapse;
-        background: #fff;
-        margin-bottom: 40px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      margin-bottom: 40px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     th, td {
-        padding: 12px 15px;
-        text-align: left;
-        border-bottom: 1px solid #eee;
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
     }
 
     th {
-        background-color: #007bff;
-        color: white;
-        font-weight: bold;
+      background-color: #007bff;
+      color: white;
+      font-weight: bold;
     }
 
     tr:hover {
-        background-color: #f9f9f9;
+      background-color: #f9f9f9;
     }
 
     .action-btn {
-        padding: 6px 12px;
-        margin-right: 5px;
-        font-size: 14px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        color: white;
+      padding: 6px 12px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      color: white;
+      margin-right: 5px;
     }
 
     .approve-btn {
-        background-color: #28a745;
+      background-color: #28a745;
     }
 
     .approve-btn:hover {
-        background-color: #218838;
+      background-color: #218838;
     }
 
     .reject-btn {
-        background-color: #dc3545;
+      background-color: #dc3545;
     }
 
     .reject-btn:hover {
-        background-color: #c82333;
+      background-color: #c82333;
     }
 
     .delete-btn {
-        background-color: #6c757d;
-        color: white;
-        padding: 6px 12px;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
+      background-color: #6c757d;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
     }
 
     .delete-btn:hover {
-        background-color: #5a6268;
+      background-color: #5a6268;
+    }
+
+    button[type="button"] {
+      padding: 6px 12px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      background-color: #17a2b8;
+      color: white;
+      margin-right: 5px;
+      cursor: pointer;
+    }
+
+    button[type="button"]:hover {
+      background-color: #138496;
     }
 
     form.inline-form {
-        display: inline;
+      display: inline;
     }
 
     form.upload-form input,
     form.upload-form textarea,
     form.upload-form button {
-        display: block;
-        width: 100%;
-        max-width: 400px;
-        margin-bottom: 12px;
-        padding: 10px;
-        font-size: 14px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        box-sizing: border-box;
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 12px;
+      padding: 10px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
     }
 
     form.upload-form button {
-        background-color: #007bff;
-        color: white;
-        border: none;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
     }
 
     form.upload-form button:hover {
-        background-color: #0056b3;
+      background-color: #0056b3;
     }
-</style>
+  </style>
+</head>
 <body>
+
 <h2>Welcome, {{ session.admin_name }} ({{ session.admin_role|capitalize }})</h2>
 <a class="logout-link" href="{{ url_for('admin.logout') }}">Logout</a>
+
 <div class="action-buttons">
-        <a href="{{ url_for('log.view_logs') }}"><button>查看日志</button></a>
-    </div>
-<h3>Convener Applications</h3>
+  <a href="{{ url_for('log.view_logs') }}">
+    <button>View Logs</button>
+  </a>
+</div>
+
+<h3>O-Convener Applications</h3>
 
 {% if conv_list %}
 <table>
-    <tr>
-        <th>ID</th>
-        <th>Org Name</th>
-        <th>Email</th>
-        <th>Status</th>
-        <th>Proof File</th>
-        <th>Action</th>
-    </tr>
-    {% for conv in conv_list %}
-    <tr>
-        <td>{{ conv.id }}</td>
-        <td>{{ conv.org_fullname }}</td>
-        <td>{{ conv.email }}</td>
-        <td>{{ conv.status_text }}</td>
-        <td>
-            {% if conv.proof_path %}
-                <a href="{{ url_for('admin.download_proof', filename=conv.proof_path|basename) }}" target="_blank">
-                    {{ conv.proof_path|basename }}
-                </a>
-            {% else %}
-                无
-            {% endif %}
-        </td>
-        <td>
-            <form class="inline-form" action="{{ url_for('admin.approve', id=conv.id) }}" method="post">
-                <button type="submit" class="action-btn approve-btn">Approve</button>
-            </form>
-            <form class="inline-form" action="{{ url_for('admin.reject', id=conv.id) }}" method="post">
-                <button type="submit" class="action-btn reject-btn">Reject</button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
+  <tr>
+    <th>ID</th>
+    <th>Organization Name</th>
+    <th>Email</th>
+    <th>Status</th>
+    <th>Proof File</th>
+    <th>Action</th>
+  </tr>
+  {% for conv in conv_list %}
+  <tr>
+    <td>{{ conv.id }}</td>
+    <td>{{ conv.org_fullname }}</td>
+    <td>{{ conv.email }}</td>
+    <td>{{ conv.status_text }}</td>
+    <td>
+      {% if conv.proof_path %}
+        <a href="{{ url_for('admin.download_proof', filename=conv.proof_path|basename) }}" target="_blank">
+          {{ conv.proof_path|basename }}
+        </a>
+      {% else %}
+        None
+      {% endif %}
+    </td>
+    <td>
+      <form class="inline-form" action="{{ url_for('admin.approve', id=conv.id) }}" method="post">
+        <button type="submit" class="action-btn approve-btn">Approve</button>
+      </form>
+      <form class="inline-form" action="{{ url_for('admin.reject', id=conv.id) }}" method="post">
+        <button type="submit" class="action-btn reject-btn">Reject</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
 </table>
 {% else %}
 <p>No applications available.</p>
 {% endif %}
 
-<h3>Policies</h3>
+<h3>System Rules</h3>
 <table>
   <tr>
     <th>Title</th>
     <th>Description</th>
-    <th>File</th>
-    <th>Movement</th>
+    <th>Filename</th>
+    <th>Actions</th>
   </tr>
   {% for rule in rules %}
   <tr>
@@ -182,21 +224,16 @@
     <td>{{ rule.description }}</td>
     <td>{{ rule.filename }}</td>
     <td>
-      <!-- ✅ 查看 -->
       <a href="{{ url_for('admin.show_rule', filename=rule.filename) }}" target="_blank">
-        <button type="button">see</button>
+        <button type="button">Preview</button>
       </a>
-
-      <!-- ✅ 下载 -->
       <a href="{{ url_for('admin.download_rule', filename=rule.filename) }}">
-        <button type="button">download</button>
+        <button type="button">Download</button>
       </a>
-      </form>
     </td>
   </tr>
   {% endfor %}
 </table>
-
 
 </body>
 </html>
