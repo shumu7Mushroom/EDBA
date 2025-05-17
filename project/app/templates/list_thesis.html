@@ -78,19 +78,19 @@
 </head>
 <body>
     <div class="top-bar">
-        <a class="logout-btn" href="{{ url_for('oconvener.dashboard') }}">退出</a>
+        <a class="logout-btn" href="{{ url_for('oconvener.dashboard') }}">Back to Dashboard</a>
     </div>    
 
-    <h2>我的论文列表</h2>
+    <h2>My Thesis List</h2>
 
     {% if theses %}
     <table>
         <tr>
-            <th>标题</th>
-            <th>访问范围</th>
-            <th>访问类型</th>
-            <th>是否免费</th>
-            <th>价格（积分）</th>
+            <th>Title</th>
+            <th>Access Scope</th>
+            <th>Access Type</th>
+            <th>Is Free</th>
+            <th>Price (Points)</th>
             <th>PDF</th>
         </tr>
         {% for thesis in theses %}
@@ -99,21 +99,21 @@
             <td>{{ thesis.title }}</td>
             <td>
                 <select name="access_scope">
-                    <option value="all" {{ 'selected' if thesis.access_scope == 'all' else '' }}>对所有组织开放</option>
-                    <option value="specific" {{ 'selected' if thesis.access_scope == 'specific' else '' }}>仅特定组织</option>
-                    <option value="self" {{ 'selected' if thesis.access_scope == 'self' else '' }}>仅自身组织</option>
+                    <option value="all" {{ 'selected' if thesis.access_scope == 'all' else '' }}>Open to All Organizations</option>
+                    <option value="specific" {{ 'selected' if thesis.access_scope == 'specific' else '' }}>Specific Organizations Only</option>
+                    <option value="self" {{ 'selected' if thesis.access_scope == 'self' else '' }}>Own Organization Only</option>
                 </select>
             </td>
             <td>
                 <select name="access_type">
-                    <option value="view" {{ 'selected' if thesis.access_type == 'view' else '' }}>仅查看摘要</option>
-                    <option value="download" {{ 'selected' if thesis.access_type == 'download' else '' }}>允许下载</option>
+                    <option value="view" {{ 'selected' if thesis.access_type == 'view' else '' }}>View Abstract Only</option>
+                    <option value="download" {{ 'selected' if thesis.access_type == 'download' else '' }}>Allow Download</option>
                 </select>
             </td>
             <td>
                 <select name="is_free">
-                    <option value="true" {{ 'selected' if thesis.is_free else '' }}>是</option>
-                    <option value="false" {{ 'selected' if not thesis.is_free else '' }}>否</option>
+                    <option value="true" {{ 'selected' if thesis.is_free else '' }}>Yes</option>
+                    <option value="false" {{ 'selected' if not thesis.is_free else '' }}>No</option>
                 </select>
             </td>
             <td>
@@ -121,19 +121,19 @@
             </td>
             <td>
                 {% if thesis.pdf_path %}
-                    <a class="view-link" href="{{ url_for('oconvener.view_pdf', filename=thesis.pdf_path) }}" target="_blank">查看</a><br>
-                    <a class="view-link" href="{{ url_for('oconvener.download_pdf', filename=thesis.pdf_path) }}">下载</a><br>
+                    <a class="view-link" href="{{ url_for('oconvener.view_pdf', filename=thesis.pdf_path) }}" target="_blank">View</a><br>
+                    <a class="view-link" href="{{ url_for('oconvener.download_pdf', filename=thesis.pdf_path) }}">Download</a><br>
                 {% else %}
-                    无<br>
+                    None<br>
                 {% endif %}
-                <button type="submit" style="margin-top:5px;">更新</button>
+                <button type="submit" style="margin-top:5px;">Update</button>
             </td>
         </form>
         </tr>
         {% endfor %}
     </table>
     {% else %}
-    <div class="no-data">暂无论文记录</div>
+    <div class="no-data">No thesis records</div>
     {% endif %}
 
 </body>

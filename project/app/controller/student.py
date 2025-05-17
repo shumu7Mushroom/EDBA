@@ -35,7 +35,7 @@ def search_thesis():
     student = Student.query.get(user_id)
 
     if not keywords:
-        flash("请输入关键词")
+        flash("Please enter keywords")
         return redirect(url_for('student.dashboard'))
 
     log_access(f"学生搜索论文关键词：{keywords}")  # ✅ 记录行为
@@ -79,17 +79,17 @@ def purchase_thesis():
     user_id = session.get('user_id')
 
     if not user_id:
-        flash("用户未登录，请重新登录")
+        flash("User not logged in, please login again")
         return redirect(url_for('user.login'))
 
     student = Student.query.get(user_id)
     if not student:
-        flash("找不到该用户，请重新登录")
+        flash("User not found, please login again")
         return redirect(url_for('user.login'))
 
     thesis = Thesis.query.filter_by(title=title).first()
     if not thesis:
-        flash("未找到该论文")
+        flash("Thesis not found")
         return redirect(url_for('student.dashboard'))
 
     pdf_filename = thesis.pdf_path
@@ -98,16 +98,16 @@ def purchase_thesis():
     pdf_filename = os.path.abspath(pdf_filename)
 
     if thesis.access_type != 'download':
-        flash("您没有该论文的下载权限（仅限查看）")
+        flash("You do not have download permission for this thesis (view only)")
         return redirect(url_for('student.dashboard'))
 
     if not os.path.exists(pdf_filename):
-        flash("论文 PDF 文件不存在或路径错误")
+        flash("Thesis PDF file does not exist or path is incorrect")
         return redirect(url_for('student.dashboard'))
 
     if not thesis.is_free:
         if student.thesis_quota < thesis.price:
-            flash("配额不足，无法购买该论文")
+            flash("Insufficient quota to purchase this thesis")
             return redirect(url_for('student.dashboard'))
         else:
             student.thesis_quota -= thesis.price
@@ -125,7 +125,7 @@ def view_thesis():
     thesis = Thesis.query.filter_by(title=title).first()
 
     if not thesis:
-        flash("论文不存在")
+        flash("Thesis does not exist")
         return redirect(url_for('student.dashboard'))
 
     pdf_path = thesis.pdf_path
@@ -134,7 +134,7 @@ def view_thesis():
     abs_path = os.path.abspath(pdf_path)
 
     if not os.path.exists(abs_path):
-        flash("论文文件不存在")
+        flash("Thesis file does not exist")
         return redirect(url_for('student.dashboard'))
 
     # ✅ 以 inline 模式打开 PDF

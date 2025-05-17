@@ -23,7 +23,7 @@ def dashboard():
     else:
         conv_list = []
 
-    log_access(f"访问管理员后台（角色: {role}）")  # ✅ 记录查看后台
+    log_access(f"Access admin dashboard (role: {role})")  # Log dashboard access
     return render_template('senior_admin_dashboard.html', conv_list=conv_list, role=role)
 
 
@@ -34,27 +34,27 @@ def approve(id):
 
     role = session.get('admin_role')
     if role != 'senior':
-        print("[权限拒绝] 当前角色不是 senior，实际为：", role)
+        print("[Permission Denied] Current role is not senior, actual role:", role)
         return redirect(url_for('admin.admin_login'))
 
     convener = OConvener.query.get(id)
     if not convener:
-        print(f"[数据库错误] 未找到 ID 为 {id} 的 O-Convener 用户")
+        print(f"[Database Error] O-Convener user with ID {id} not found")
         return redirect(url_for('senioradmin.dashboard'))
 
     convener.status_text = 'approved'
-    log_access(f"✅ Senior E-Admin 审核通过注册申请（O-Convener ID: {id}）")
+    log_access(f"Senior E-Admin approved registration (O-Convener ID: {id})")
 
     try:
-        subject = "E-DBA 注册审核通过通知"
-        body = f"Dear {convener.org_fullname}，your O-Convener registration is approved，Welcome to E-DBA system！"
+        subject = "E-DBA Registration Approved Notification"
+        body = f"Dear {convener.org_fullname}, your O-Convener registration is approved, Welcome to E-DBA system!"
         recipient = convener.email
 
-        print("🟡 开始准备发送邮件")
-        print("➡️ 收件人:", recipient)
-        print("➡️ 发件人:", current_app.config.get("MAIL_USERNAME"))
-        print("➡️ 主题:", subject)
-        print("➡️ 内容:", body)
+        print("Start sending email")
+        print("To:", recipient)
+        print("From:", current_app.config.get("MAIL_USERNAME"))
+        print("Subject:", subject)
+        print("Body:", body)
 
         msg = Message(
             subject=subject,
@@ -65,13 +65,13 @@ def approve(id):
         with current_app.app_context():
             mail.send(msg)
 
-        print("✅ 邮件发送成功")
-        log_access(f"✅ 发送注册成功邮件至：{recipient}")
+        print("Email sent successfully")
+        log_access(f"Sent registration success email to: {recipient}")
 
     except Exception as e:
-        print("❌ 邮件发送失败：")
+        print("Email sending failed:")
         traceback.print_exc()
-        log_access(f"❌ 邮件发送失败至 {convener.email}：{str(e)}")
+        log_access(f"Email sending failed to {convener.email}: {str(e)}")
 
     db.session.commit()
     return redirect(url_for('senioradmin.dashboard'))
@@ -86,7 +86,7 @@ def reject(id):
 
     if role in ['eadmin', 'senior']:
         convener.status_text = 'rejected'
-        log_access(f"{role} 拒绝了 O-Convener 的申请（ID: {id}）")
+        log_access(f"{role} rejected O-Convener application (ID: {id})")
 
     db.session.commit()
     return redirect(url_for('senioradmin.dashboard'))
@@ -95,7 +95,7 @@ def reject(id):
 # 退出
 @senioradminBP.route('/logout')
 def logout():
-    log_access("管理员退出登录")  # ✅ 记录登出
+    log_access("Admin logout")  # Log logout
     session.clear()
     return redirect(url_for('admin.admin_login'))
 

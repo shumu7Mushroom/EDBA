@@ -7,20 +7,20 @@ from app.controller.log import log_access
 from sqlalchemy import and_
 
 courseBP = Blueprint('course', __name__, url_prefix='/course')
-print("courseBP 路由已加载")
+print("courseBP route loaded")
 
 @courseBP.route('/list')
 def list_courses():
-    """列出课程信息，根据用户权限来决定是否可编辑"""
+    """List course information, determine edit permission by user access level"""
     user_role = session.get('user_role')
     user_id = session.get('user_id')
     user_org = session.get('user_org')
     
     if not user_role or not user_id:
-        flash("请先登录")
+        flash("Please login first")
         return redirect(url_for('user.login'))
     
-    # 获取用户及其访问权限
+    # Get user and access level
     user = None
     if user_role == 'student':
         user = Student.query.get(user_id)
@@ -28,16 +28,15 @@ def list_courses():
         user = Teacher.query.get(user_id)
     
     if not user:
-        flash("用户信息异常")
+        flash("User info error")
         return redirect(url_for('user.login'))
     
-    # 获取课程列表，默认显示自己组织的课程
+    # List courses for the user's organization
     courses = Course.query.filter_by(organization=user_org).all()
     
-    # 记录访问
-    log_access(f"用户访问课程列表（{user_role} ID: {user_id}）")
+    # Log access
+    log_access(f"User accessed course list ({user_role} ID: {user_id})")
     
-    # 根据用户权限，决定是否可以编辑
     can_edit = user.access_level >= 2
     
     return render_template('course_list.html', 
@@ -48,16 +47,15 @@ def list_courses():
 
 @courseBP.route('/add', methods=['GET', 'POST'])
 def add_course():
-    """添加课程信息，仅access_level >= 2的用户可用"""
+    """Add course info, only for users with access_level >= 2"""
     user_role = session.get('user_role')
     user_id = session.get('user_id')
     user_org = session.get('user_org')
     
     if not user_role or not user_id:
-        flash("请先登录")
+        flash("Please login first")
         return redirect(url_for('user.login'))
     
-    # 检查权限
     user = None
     if user_role == 'student':
         user = Student.query.get(user_id)
@@ -65,31 +63,27 @@ def add_course():
         user = Teacher.query.get(user_id)
     
     if not user or user.access_level < 2:
-        flash("您没有添加课程的权限")
+        flash("You do not have permission to add courses")
         return redirect(url_for('course.list_courses'))
     
     if request.method == 'GET':
         return render_template('course_form.html', course=None)
     
-    # 处理POST请求
     code = request.form.get('code', '').strip()
     name = request.form.get('name', '').strip()
     description = request.form.get('description', '').strip()
     credits = int(request.form.get('credits', 3))
     instructor = request.form.get('instructor', '').strip()
     
-    # 验证输入
     if not code or not name:
-        flash("课程代码和名称为必填项")
+        flash("Course code and name are required")
         return render_template('course_form.html', course=None)
     
-    # 检查是否重复
     existing = Course.query.filter_by(code=code).first()
     if existing:
-        flash(f"课程代码 {code} 已存在")
+        flash(f"Course code {code} already exists")
         return render_template('course_form.html', course=None)
     
-    # 创建新课程
     new_course = Course(
         code=code,
         name=name,
@@ -102,26 +96,25 @@ def add_course():
     try:
         db.session.add(new_course)
         db.session.commit()
-        log_access(f"用户添加了新课程 {code}: {name}")
-        flash("课程添加成功")
+        log_access(f"User added new course {code}: {name}")
+        flash("Course added successfully")
         return redirect(url_for('course.list_courses'))
     except Exception as e:
         db.session.rollback()
-        flash(f"添加失败：{str(e)}")
+        flash(f"Add failed: {str(e)}")
         return render_template('course_form.html', course=None)
 
 @courseBP.route('/edit/<int:course_id>', methods=['GET', 'POST'])
 def edit_course(course_id):
-    """编辑课程信息，仅access_level >= 2的用户可用"""
+    """Edit course info, only for users with access_level >= 2"""
     user_role = session.get('user_role')
     user_id = session.get('user_id')
     user_org = session.get('user_org')
     
     if not user_role or not user_id:
-        flash("请先登录")
+        flash("Please login first")
         return redirect(url_for('user.login'))
     
-    # 检查权限
     user = None
     if user_role == 'student':
         user = Student.query.get(user_id)
@@ -129,32 +122,27 @@ def edit_course(course_id):
         user = Teacher.query.get(user_id)
     
     if not user or user.access_level < 2:
-        flash("您没有编辑课程的权限")
+        flash("You do not have permission to edit courses")
         return redirect(url_for('course.list_courses'))
     
-    # 获取课程
     course = Course.query.get_or_404(course_id)
     
-    # 检查组织权限（只能编辑自己组织的课程）
     if course.organization != user_org:
-        flash("您只能编辑本组织的课程")
+        flash("You can only edit courses in your organization")
         return redirect(url_for('course.list_courses'))
     
     if request.method == 'GET':
         return render_template('course_form.html', course=course)
     
-    # 处理POST请求
     name = request.form.get('name', '').strip()
     description = request.form.get('description', '').strip()
     credits = int(request.form.get('credits', 3))
     instructor = request.form.get('instructor', '').strip()
     
-    # 验证输入
     if not name:
-        flash("课程名称为必填项")
+        flash("Course name is required")
         return render_template('course_form.html', course=course)
     
-    # 更新课程
     course.name = name
     course.description = description
     course.credits = credits
@@ -162,26 +150,25 @@ def edit_course(course_id):
     
     try:
         db.session.commit()
-        log_access(f"用户编辑了课程 {course.code}: {name}")
-        flash("课程更新成功")
+        log_access(f"User edited course {course.code}: {name}")
+        flash("Course updated successfully")
         return redirect(url_for('course.list_courses'))
     except Exception as e:
         db.session.rollback()
-        flash(f"更新失败：{str(e)}")
+        flash(f"Update failed: {str(e)}")
         return render_template('course_form.html', course=course)
 
 @courseBP.route('/delete/<int:course_id>', methods=['POST'])
 def delete_course(course_id):
-    """删除课程，仅access_level >= 2的用户可用"""
+    """Delete course, only for users with access_level >= 2"""
     user_role = session.get('user_role')
     user_id = session.get('user_id')
     user_org = session.get('user_org')
     
     if not user_role or not user_id:
-        flash("请先登录")
+        flash("Please login first")
         return redirect(url_for('user.login'))
     
-    # 检查权限
     user = None
     if user_role == 'student':
         user = Student.query.get(user_id)
@@ -189,15 +176,13 @@ def delete_course(course_id):
         user = Teacher.query.get(user_id)
     
     if not user or user.access_level < 2:
-        flash("您没有删除课程的权限")
+        flash("You do not have permission to delete courses")
         return redirect(url_for('course.list_courses'))
     
-    # 获取课程
     course = Course.query.get_or_404(course_id)
     
-    # 检查组织权限
     if course.organization != user_org:
-        flash("您只能删除本组织的课程")
+        flash("You can only delete courses in your organization")
         return redirect(url_for('course.list_courses'))
     
     try:
@@ -205,26 +190,25 @@ def delete_course(course_id):
         course_name = course.name
         db.session.delete(course)
         db.session.commit()
-        log_access(f"用户删除了课程 {course_code}: {course_name}")
-        flash("课程删除成功")
+        log_access(f"User deleted course {course_code}: {course_name}")
+        flash("Course deleted successfully")
     except Exception as e:
         db.session.rollback()
-        flash(f"删除失败：{str(e)}")
+        flash(f"Delete failed: {str(e)}")
     
     return redirect(url_for('course.list_courses'))
 
 @courseBP.route('/view')
 def view_courses():
-    """只读查看课程信息，为access_level = 1的用户提供"""
+    """Read-only view of course info, for users with access_level >= 1"""
     user_role = session.get('user_role')
     user_id = session.get('user_id')
     user_org = session.get('user_org')
     
     if not user_role or not user_id:
-        flash("请先登录")
+        flash("Please login first")
         return redirect(url_for('user.login'))
     
-    # 获取用户信息
     user = None
     if user_role == 'student':
         user = Student.query.get(user_id)
@@ -232,23 +216,18 @@ def view_courses():
         user = Teacher.query.get(user_id)
     
     if not user:
-        flash("用户信息异常")
+        flash("User info error")
         return redirect(url_for('user.login'))
     
-    # 检查权限，允许任何权限级>=1别的用户查看课程
-    if user.access_level < 1:  # 只要求最低权限
-        flash("您没有查看课程的权限")
+    if user.access_level < 1:
+        flash("You do not have permission to view courses")
         if user_role == 'student':
             return redirect(url_for('student.dashboard'))
         else:
             return redirect(url_for('teacher.dashboard'))
     
-    # 获取课程列表，默认显示自己组织的课程
     courses = Course.query.filter_by(organization=user_org).all()
-    
-    # 记录访问
-    log_access(f"用户只读查看课程列表（{user_role} ID: {user_id}）")
-    
+    log_access(f"User read-only viewed course list ({user_role} ID: {user_id})")
     return render_template('course_view.html', 
                           courses=courses, 
                           user=user,

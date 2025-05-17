@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>批量 GPA 查询结果</title>
+  <title>Batch GPA Query Result</title>
   <style>
     body {font-family:sans-serif;margin:40px;}
     table {border-collapse:collapse;width:100%;margin-top:20px;}
@@ -45,49 +45,50 @@
   </style>
 </head>
 <body>
-  <h1>批量 GPA 查询结果</h1>
+  <h1>Batch GPA Query Result</h1>
   
   <div class="summary">
-    <h3>汇总信息</h3>
-    <p>总记录数: {{ results|length }}</p>
+    <h3>Summary</h3>
+    <p>Total records: {{ results|length }}</p>
     {% set success_count = results|selectattr('status', 'equalto', 'y')|list|length %}
     {% set fail_count = results|selectattr('status', 'equalto', 'fail')|list|length %}
     {% set missing_count = results|selectattr('status', 'equalto', 'missing')|list|length %}
-    <p>成功: <span class="success">{{ success_count }}</span> | 
-       失败: <span class="fail">{{ fail_count }}</span> | 
-       信息不完整: <span class="missing">{{ missing_count }}</span></p>
+    <p>Success: <span class="success">{{ success_count }}</span> | 
+       Failed: <span class="fail">{{ fail_count }}</span> | 
+       Incomplete: <span class="missing">{{ missing_count }}</span></p>
   </div>
   
   <div>
-    <a href="{{ url_for('verify.score_query') }}" class="back-btn">返回单条查询</a>
-    <a href="{{ url_for('verify.score_batch_export') }}" class="export-btn">导出为Excel</a>
+    <a href="{{ url_for('verify.score_query') }}" class="back-btn">Back to Single Query</a>
+    <a href="{{ url_for('verify.score_batch_export') }}" class="export-btn">Export as Excel</a>
   </div>
   
   <table>
     <thead>
       <tr>
-        <th>姓名</th>
-        <th>学号</th>
-        <th>状态</th>
+        <th>Name</th>
+        <th>Student ID</th>
+        <th>Status</th>
         <th>GPA</th>
-        <th>专业</th>
-        <th>详情</th>
+        <th>Major</th>
+        <th>Details</th>
       </tr>
     </thead>
     <tbody>
       {% for r in results %}
       <tr>
         <td>{{ r.name }}</td>
-        <td>{{ r.id }}</td>        <td class="{{ r.status }}">
+        <td>{{ r.id }}</td>
+        <td class="{{ r.status }}">
           {% if r.status == 'y' %}
-            成功
+            Success
           {% elif r.status == 'fail' %}
-            失败
+            Failed
             {% if r.error_message %}
             <br><small>({{ r.error_message }})</small>
             {% endif %}
           {% elif r.status == 'missing' %}
-            信息不完整
+            Incomplete information
           {% else %}
             {{ r.status }}
           {% endif %}
@@ -97,14 +98,14 @@
           {% if r.major %}
             {{ r.major }}
           {% elif r.enroll_year %}
-            {{ r.enroll_year }}-{{ r.graduation_year }}级学生
+            {{ r.enroll_year }}-{{ r.graduation_year }} student
           {% else %}
             -
           {% endif %}
         </td>
         <td>
           {% if r.courses %}
-            {{ r.courses|length }} 门课程
+            {{ r.courses|length }} courses
           {% else %}
             -
           {% endif %}

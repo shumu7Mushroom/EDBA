@@ -107,34 +107,34 @@
   {% endif %}
 {% endwith %}
 
-<h2>{% if course %}编辑课程{% else %}添加新课程{% endif %}</h2>
+<h2>{% if course %}Edit Course{% else %}Add New Course{% endif %}</h2>
 
 <section>
   <form method="post" action="{% if course %}{{ url_for('course.edit_course', course_id=course.id) }}{% else %}{{ url_for('course.add_course') }}{% endif %}">
     {% if course %}
-    <!-- 编辑模式不允许更改课程代码 -->
-    <label for="code">课程代码：</label>
+    <!-- Edit mode: code is readonly -->
+    <label for="code">Course Code:</label>
     <input type="text" id="code" name="code" value="{{ course.code }}" readonly>
     {% else %}
-    <label for="code">课程代码：</label>
-    <input type="text" id="code" name="code" placeholder="例如：CST1001" required>
+    <label for="code">Course Code:</label>
+    <input type="text" id="code" name="code" placeholder="e.g. CST1001" required>
     {% endif %}
     
-    <label for="name">课程名称：</label>
-    <input type="text" id="name" name="name" placeholder="例如：计算机科学导论" value="{{ course.name if course else '' }}" required>
+    <label for="name">Course Name:</label>
+    <input type="text" id="name" name="name" placeholder="e.g. Introduction to Computer Science" value="{{ course.name if course else '' }}" required>
     
-    <label for="description">课程描述：</label>
-    <textarea id="description" name="description" placeholder="请输入课程介绍、目标等信息...">{{ course.description if course else '' }}</textarea>
+    <label for="description">Course Description:</label>
+    <textarea id="description" name="description" placeholder="Please enter course introduction, objectives, etc...">{{ course.description if course else '' }}</textarea>
     
-    <label for="credits">学分：</label>
+    <label for="credits">Credits:</label>
     <input type="number" id="credits" name="credits" min="1" max="10" value="{{ course.credits if course else 3 }}">
     
-    <label for="instructor">授课教师：</label>
-    <input type="text" id="instructor" name="instructor" placeholder="例如：张教授" value="{{ course.instructor if course else '' }}">
+    <label for="instructor">Instructor:</label>
+    <input type="text" id="instructor" name="instructor" placeholder="e.g. Prof. Zhang" value="{{ course.instructor if course else '' }}">
     
     <div class="form-actions">
-      <button type="submit" class="btn btn-success">{% if course %}保存修改{% else %}创建课程{% endif %}</button>
-      <a href="{{ url_for('course.list_courses') }}" class="btn btn-primary">取消</a>
+      <button type="submit" class="btn btn-success">{% if course %}Save Changes{% else %}Create Course{% endif %}</button>
+      <a href="{{ url_for('course.list_courses') }}" class="btn btn-primary">Cancel</a>
     </div>
   </form>
 </section>

@@ -19,7 +19,7 @@ oconvenerBP = Blueprint('oconvener', __name__)
 @oconvenerBP.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'GET':
-        return render_template('oconvener_register.html', title='O-Convener 注册')
+        return render_template('oconvener_register.html', title='O-Convener Registration')
 
     org_fullname = request.form.get('org_fullname')
     org_shortname = request.form.get('org_shortname')
@@ -28,13 +28,13 @@ def register():
     file = request.files.get('proof')
 
     if not all([org_fullname, org_shortname, email, code, file]):
-        return render_template('oconvener_register_fail.html', message="表单信息不完整")
+        return render_template('oconvener_register_fail.html', message="Incomplete form information")
 
     if not (email.endswith('@mail.uic.edu.cn') or email.endswith('@163.com')):
-        return render_template('oconvener_register_fail.html', message="邮箱格式无效")
+        return render_template('oconvener_register_fail.html', message="Invalid email format")
 
     if code != session.get('register_code', ''):
-        return render_template('oconvener_register_fail.html', message="验证码错误")
+        return render_template('oconvener_register_fail.html', message="Verification code error")
 
     filename = secure_filename(file.filename)
     save_dir = current_app.config.get('UPLOAD_FOLDER', 'uploads')
@@ -57,14 +57,14 @@ def register():
         db.session.add(new_convener)
     # session.clear()
     # session['user_role'] = "student"
-    log_access(f"O-Convener 注册申请提交：{email}")  # ✅ 记录行为
-    return render_template('oconvener_register_success.html', title='注册成功')
+    log_access(f"O-Convener registration application submitted: {email}")  # Log action
+    return render_template('oconvener_register_success.html', title='Registration Successful')
 
 
 @oconvenerBP.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
-        return render_template('oconvener_login.html', title='O-Convener 登录')
+        return render_template('oconvener_login.html', title='O-Convener Login')
 
     email = request.form.get('email', '').strip()
     password = request.form.get('password', '').strip()
@@ -72,23 +72,23 @@ def login():
     convener = OConvener.query.filter_by(email=email).first()
     session['user_org'] = "o-convener"
     if not convener:
-        log_access(f"O-Convener 登录失败：用户不存在（{email}）")  # ✅ 记录行为
-        return render_template('oconvener_login.html', error='用户不存在')
+        log_access(f"O-Convener login failed: User does not exist ({email})")  # Log action
+        return render_template('oconvener_login.html', error='User does not exist')
 
     if convener.code != password:
-        log_access(f"O-Convener 登录失败：验证码错误（{email}）")  # ✅ 记录行为
-        return render_template('oconvener_login.html', error='验证码错误')
+        log_access(f"O-Convener login failed: Verification code error ({email})")  # Log action
+        return render_template('oconvener_login.html', error='Verification code error')
 
     if convener.status_text != 'approved':
-        log_access(f"O-Convener 登录失败：未审核通过（{email}）")  # ✅ 记录行为
-        return render_template('oconvener_login.html', error='尚未通过管理员审核，无法登录')
+        log_access(f"O-Convener login failed: Not approved ({email})")  # Log action
+        return render_template('oconvener_login.html', error='Not approved by admin, unable to login')
 
     # 登录成功
     session['user_id'] = convener.id
     session['user_role'] = 'convener'
     session['user_name'] = convener.org_shortname
     session['user_org'] = convener.org_fullname
-    log_access(f"O-Convener 登录成功：{convener.org_shortname}（{email}）")  # ✅ 记录行为
+    log_access(f"O-Convener login successful: {convener.org_shortname} ({email})")  # Log action
     return redirect(url_for('oconvener.dashboard'))
 
 @oconvenerBP.route('/send_code', methods=['POST'])
@@ -109,13 +109,13 @@ def send_code():
             recipients=[email],
             body=f"Your verification code is: {code}"
         )
-        print("准备发送邮件到：", email)
-        print("使用发件人：", current_app.config.get("MAIL_USERNAME"))
+        print("Preparing to send email to:", email)
+        print("Using sender:", current_app.config.get("MAIL_USERNAME"))
         mail.send(msg)
-        log_access(f"发送注册验证码到：{email}")  # ✅ 记录行为
+        log_access(f"Sent registration verification code to: {email}")  # Log action
         return jsonify({"status": "success", "message": "Verification code sent!"})
     except Exception as e:
-        print("邮件发送失败：", type(e), e)
+        print("Failed to send email:", type(e), e)
         return jsonify({"status": "fail", "message": "Failed to send email"}), 500
 
 @oconvenerBP.route('/dashboard', methods=['GET', 'POST'])
@@ -128,7 +128,7 @@ def dashboard():
     students = Student.query.filter_by(organization=org).all()
     teachers = Teacher.query.filter_by(organization=org).all()
 
-    log_access(f"O-Convener 查看仪表盘：{org}")  # ✅ 记录行为
+    log_access(f"O-Convener viewed dashboard: {org}")  # Log action
     return render_template('oconvener_dashboard.html',
                            name=org,
                            students=students,
@@ -150,7 +150,7 @@ def update_user(user_type, user_id):
     user.thesis_quota = int(request.form.get('thesis_quota', 0))
 
     db.session.commit()
-    log_access(f"O-Convener 修改用户权限：{user_type} ID {user_id}")  # ✅ 记录行为
+    log_access(f"O-Convener updated user permission: {user_type} ID {user_id}")  # Log action
     return redirect(url_for('oconvener.dashboard'))
 
 @oconvenerBP.route('/thesis/create', methods=['GET', 'POST'])
@@ -194,10 +194,10 @@ def create_thesis():
         with db.auto_commit():
             db.session.add(thesis)
 
-        log_access(f"O-Convener 上传论文：{title}")  # ✅ 记录行为
+        log_access(f"O-Convener uploaded thesis: {title}")  # Log action
         return redirect(url_for('oconvener.list_thesis'))
 
-    return render_template('create_thesis.html', title='上传论文')
+    return render_template('create_thesis.html', title='Upload Thesis')
 
 
 
@@ -208,8 +208,8 @@ def list_thesis():
 
     convener_org = session.get('user_name')
     theses = Thesis.query.filter_by(organization=convener_org, is_check=True).all()
-    log_access(f"O-Convener 查看论文列表：{convener_org}")  # ✅ 记录行为
-    return render_template('list_thesis.html', title='我的论文', theses=theses)
+    log_access(f"O-Convener viewed thesis list: {convener_org}")  # Log action
+    return render_template('list_thesis.html', title='My Theses', theses=theses)
 
 
 
@@ -217,7 +217,7 @@ def list_thesis():
 def uploaded_file(filename):
     import os
     upload_folder = current_app.config.get('UPLOAD_FOLDER', 'uploads')
-    print("尝试访问文件路径：", os.path.join(upload_folder, filename))  # ✅ 打印真实路径
+    print("Attempting to access file path:", os.path.join(upload_folder, filename))  # ✅ Print real path
     return send_from_directory(upload_folder, filename)
 
 @oconvenerBP.route('/thesis/update/<int:thesis_id>', methods=['POST'])
@@ -242,8 +242,8 @@ def update_thesis(thesis_id):
     thesis.price = price
 
     db.session.commit()
-    log_access(f"O-Convener 修改论文权限：{thesis.title}")  # ✅ 记录行为
-    flash('论文权限已更新', 'success')
+    log_access(f"O-Convener updated thesis permission: {thesis.title}")  # Log action
+    flash('Thesis permissions updated', 'success')
     return redirect(url_for('oconvener.list_thesis'))
 
 @oconvenerBP.route('/thesis/review', methods=['GET', 'POST'])
@@ -259,9 +259,9 @@ def review_thesis():
             )
             with db.auto_commit():
                 pass
-            flash(f"成功审核通过 {len(selected_ids)} 篇论文")
+            flash(f"Successfully approved {len(selected_ids)} theses")
         else:
-            flash("未选择任何论文")
+            flash("No theses selected")
         return redirect(url_for('oconvener.review_thesis'))
 
     # GET：获取所有未审核论文
@@ -307,29 +307,29 @@ def upload_members():
                     db.session.add(user)
 
                 else:
-                    raise ValueError("类型错误")
+                    raise ValueError("Invalid type")
 
                 with db.auto_commit():
                     pass
-                flash("单个成员添加成功")
-                log_access(f"O-Convener 添加成员 {email}")
+                flash("Single member added successfully")
+                log_access(f"O-Convener added member {email}")
 
             except Exception as e:
-                flash(f"添加失败：{str(e)}")
+                flash(f"Addition failed: {str(e)}")
 
             return redirect(url_for('oconvener.upload_members'))
 
         # === 批量 Excel 上传逻辑 ===
         file = request.files.get('excel_file')
         if not file or not file.filename.endswith('.xlsx'):
-            flash("请上传有效的 Excel (.xlsx) 文件")
+            flash("Please upload a valid Excel (.xlsx) file")
             return redirect(url_for('oconvener.upload_members'))
 
         try:
             df = pd.read_excel(file)
             required_cols = {'name', 'email', 'access_level', 'thesis_quota', 'type'}
             if not required_cols.issubset(df.columns):
-                flash("Excel 表头缺少必要字段")
+                flash("Excel header missing required fields")
                 return redirect(url_for('oconvener.upload_members'))
 
             for _, row in df.iterrows():
@@ -361,7 +361,7 @@ def upload_members():
                         db.session.add(user)
 
                     else:
-                        raise ValueError("未知类型")
+                        raise ValueError("Unknown type")
 
                     results['success'].append(email)
 
@@ -371,11 +371,11 @@ def upload_members():
             with db.auto_commit():
                 pass
 
-            flash(f"上传完成：成功 {len(results['success'])} 条，失败 {len(results['fail'])} 条")
-            log_access(f"O-Convener 批量上传成员：成功 {len(results['success'])} 条，失败 {len(results['fail'])} 条")
+            flash(f"Upload complete: {len(results['success'])} successful, {len(results['fail'])} failed")
+            log_access(f"O-Convener batch uploaded members: {len(results['success'])} successful, {len(results['fail'])} failed")
 
         except Exception as e:
-            flash(f"读取 Excel 失败：{str(e)}")
+            flash(f"Failed to read Excel: {str(e)}")
 
     return render_template("oconvener_upload_members.html", results=results)
 
@@ -389,16 +389,16 @@ def delete_user(user_type, user_id):
     elif user_type == 'teacher':
         user = Teacher.query.get(user_id)
     else:
-        flash("无效用户类型")
+        flash("Invalid user type")
         return redirect(url_for('oconvener.dashboard'))
 
     if user:
         db.session.delete(user)
         db.session.commit()
-        flash(f"成功删除 {user_type}：{user.name}")
-        log_access(f"O-Convener 删除用户 {user_type}：{user.email}")
+        flash(f"Successfully deleted {user_type}: {user.name}")
+        log_access(f"O-Convener deleted user {user_type}: {user.email}")
     else:
-        flash("找不到该用户")
+        flash("User not found")
 
     return redirect(url_for('oconvener.dashboard'))
 

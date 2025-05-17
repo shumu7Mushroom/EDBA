@@ -62,8 +62,8 @@ def view_logs():
         # 管理员才允许按 org 过滤
         if org:
             filters.append(AccessLog.organization.ilike(f"%{org}%"))
-    print("当前用户身份:", user_role, "组织:", user_org)
-    print("过滤条件：", filters)
+    # print("当前用户身份:", user_role, "组织:", user_org)
+    # print("过滤条件：", filters)
 
     # 执行查询
     logs = AccessLog.query.filter(and_(*filters)).order_by(AccessLog.timestamp.desc()).all()
@@ -79,10 +79,10 @@ def view_logs():
 def log_access(action_desc: str, target: str = None):
     """通用记录访问日志，可额外标记操作对象"""
     user = (
-        session.get('user_name') or session.get('admin_name') or '匿名'
+        session.get('user_name') or session.get('admin_name') or 'anonymity'
     )
     role =  session.get('user_role') or session.get('admin_role') or 'unknown'
-    organization = session.get('user_org') or session.get('user_name') or '未知'
+    organization = session.get('user_org') or session.get('user_name') or 'unknown'
 
     log = AccessLog(
         user=user,

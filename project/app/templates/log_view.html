@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>访问日志</title>
+    <title>Access Log</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -45,45 +45,45 @@
     </style>
 </head>
 <body>
-    <h2>系统访问日志</h2>
+    <h2>System Access Log</h2>
 
     {% if error %}
         <p>{{ error }}</p>
     {% endif %}
 
     <div class="logout">
-        <a href="{{ url_for('admin.logout') }}">退出登录</a>
+        <a href="{{ url_for('admin.logout') }}">Log Out</a>
     </div>
 
     <form method="get" action="{{ url_for('log.view_logs') }}">
-        <input type="text" name="user" placeholder="用户名" value="{{ request.args.get('user', '') }}">
+        <input type="text" name="user" placeholder="Username" value="{{ request.args.get('user', '') }}">
         <select name="role">
-            <option value="">角色</option>
+            <option value="">Role</option>
             <option value="student" {% if request.args.get('role') == 'student' %}selected{% endif %}>Student</option>
             <option value="teacher" {% if request.args.get('role') == 'teacher' %}selected{% endif %}>Teacher</option>
             <option value="convener" {% if request.args.get('role') == 'convener' %}selected{% endif %}>Convener</option>
             <option value="eadmin" {% if request.args.get('role') == 'eadmin' %}selected{% endif %}>E-Admin</option>
             <option value="senior" {% if request.args.get('role') == 'senior' %}selected{% endif %}>Senior-Admin</option>
         </select>
-        <input type="text" name="organization" placeholder="组织" value="{{ request.args.get('organization', '') }}">
-        <input type="text" name="action" placeholder="行为描述关键字" value="{{ request.args.get('action', '') }}">
+        <input type="text" name="organization" placeholder="Organization" value="{{ request.args.get('organization', '') }}">
+        <input type="text" name="action" placeholder="Action keyword" value="{{ request.args.get('action', '') }}">
         <input type="date" name="start_time" value="{{ request.args.get('start_time', '') }}">
         <input type="date" name="end_time" value="{{ request.args.get('end_time', '') }}">
-        <button type="submit">筛选</button>
+        <button type="submit">Filter</button>
     </form>
 
     <table>
         <thead>
             <tr>
                 <th>ID</th>
-                <th>用户</th>
-                <th>角色</th>
-                <th>组织</th>
-                <th>访问路径</th>
-                <th>行为描述</th>
-                <th>目标</th>
-                <th>时间</th>
-                <th>IP 地址</th>
+                <th>User</th>
+                <th>Role</th>
+                <th>Organization</th>
+                <th>URL</th>
+                <th>Action</th>
+                <th>Target</th>
+                <th>Time</th>
+                <th>IP Address</th>
             </tr>
         </thead>
         <tbody>
@@ -101,7 +101,7 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="9">暂无访问记录</td>
+                <td colspan="9">No access records</td>
             </tr>
             {% endfor %}
         </tbody>

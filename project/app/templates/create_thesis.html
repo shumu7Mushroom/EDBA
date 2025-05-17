@@ -91,46 +91,46 @@
 </head>
 <body>
     <div class="form-container">
-        <h2>上传论文</h2>
+        <h2>Upload Thesis</h2>
         <form method="post" enctype="multipart/form-data">
-            <label for="title">标题:</label>
+            <label for="title">Title:</label>
             <input type="text" name="title" id="title" required>
 
-            <label for="abstract">摘要:</label>
+            <label for="abstract">Abstract:</label>
             <textarea name="abstract" id="abstract" rows="5" required></textarea>
 
-            <label for="pdf_file">上传 PDF 文件:</label>
+            <label for="pdf_file">Upload PDF File:</label>
             <input type="file" name="pdf_file" id="pdf_file" accept="application/pdf" required>
 
-            <label for="access_scope">访问范围:</label>
+            <label for="access_scope">Access Scope:</label>
             <select name="access_scope" id="access_scope">
-                <option value="all">对所有组织开放</option>
-                <option value="specific">仅对特定组织开放</option>
-                <option value="self">仅限自身组织</option>
+                <option value="all">Open to All Organizations</option>
+                <option value="specific">Specific Organizations Only</option>
+                <option value="self">Own Organization Only</option>
             </select>
             <div id="specific-org-wrapper" style="display: none;">
-                <label for="specific_org">组织名称:</label>
-                <input type="text" name="specific_org" id="specific_org" placeholder="请输入组织名称">
+                <label for="specific_org">Organization Name:</label>
+                <input type="text" name="specific_org" id="specific_org" placeholder="Enter organization name">
             </div>
             
-            <label for="access_type">访问类型:</label>
+            <label for="access_type">Access Type:</label>
             <select name="access_type" id="access_type">
-                <option value="view">仅查看摘要</option>
-                <option value="download">允许下载</option>
+                <option value="view">View Abstract Only</option>
+                <option value="download">Allow Download</option>
             </select>
 
-            <label for="is_free">是否免费:</label>
+            <label for="is_free">Is Free:</label>
             <select name="is_free" id="is_free">
-                <option value="true">免费</option>
-                <option value="false">收费</option>
+                <option value="true">Free</option>
+                <option value="false">Paid</option>
             </select>
 
-            <label for="price">价格（积分）:</label>
+            <label for="price">Price (Points):</label>
             <input type="number" name="price" id="price" value="0" min="0">
 
-            <button type="submit">提交论文</button>
+            <button type="submit">Submit Thesis</button>
         </form>
-        <a href="{{ url_for('oconvener.dashboard') }}" class="back-btn">返回首页</a>
+        <a href="{{ url_for('oconvener.dashboard') }}" class="back-btn">Back to Dashboard</a>
     </div>
 
     <script>

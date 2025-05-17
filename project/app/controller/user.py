@@ -26,7 +26,7 @@ def login():
         user = Teacher.query.filter_by(email=email).first()
         valid = user and user._password == password
     else:
-        return render_template('login.html', title='Login', header='User Login', error='请选择有效角色')
+        return render_template('login.html', title='Login', header='User Login', error='Please select a valid role')
 
     if valid:
         session['user_id'] = user.id
@@ -40,10 +40,10 @@ def login():
             log_access(f"Teacher login successful (User ID: {user.id})")
             return redirect(url_for('teacher.dashboard'))
 
-    return render_template('login.html', title='Login', header='User Login', error='邮箱或密码错误')
+    return render_template('login.html', title='Login', header='User Login', error='Incorrect email or password')
 
 @userBP.route('/logout')
 def logout():
     session.clear()
-    flash("您已成功退出登录")
+    flash("You have successfully logged out")
     return redirect(url_for('user.login'))

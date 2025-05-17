@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>学生认证 / 成绩查询</title>
+  <title>Student Identity Verification / Score Query</title>
   <style>
       body {font-family:sans-serif;margin:40px;}
       pre  {background:#f5f5f5;padding:12px;border:1px solid #ddd;}
   </style>
 </head>
 <body>
-  <h1>学生认证 / 成绩查询</h1>
+  <h1>Student Identity Verification / Score Query</h1>
 
   {# ---------- flash ---------- #}
   {% with msgs = get_flashed_messages() %}
@@ -25,11 +25,11 @@
   <form method="post" action="{{ url_for('verify.student_query') }}"
         enctype="multipart/form-data">
 
-      接口：
+      API:
       <select name="api_choice">
           <option value="auto"
                   {% if api_choice == 'auto' %}selected{% endif %}>
-              自动（依次尝试）
+              Auto (try all)
           </option>
           {% for c in configs %}
               <option value="{{ c.id }}"
@@ -39,20 +39,20 @@
           {% endfor %}
       </select><br><br>
 
-      姓名：<input type="text" name="name"
+      Name: <input type="text" name="name"
                  value="{{ name|default('') }}" required><br><br>
 
-      学号：<input type="text" name="id"
+      Student ID: <input type="text" name="id"
                  value="{{ stu_id|default('') }}" required><br><br>
 
-      照片：<input type="file" name="photo"><br><br>
+      Photo: <input type="file" name="photo"><br><br>
 
-      <button type="submit">查询</button>
+      <button type="submit">Query</button>
   </form>
 
   {% if result %}
-    <h2>查询结果</h2>
-    <p><strong>来源：</strong>{{ source }}</p>
+    <h2>Query Result</h2>
+    <p><strong>Source:</strong> {{ source }}</p>
     <pre>{{ result | tojson | safe }}</pre>
   {% endif %}
 </body>

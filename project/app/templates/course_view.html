@@ -93,26 +93,26 @@
   {% endif %}
 {% endwith %}
 
-<!-- 标题和说明 -->
+<!-- Title and Description -->
 <div class="header-actions">
-  <h2>课程信息查看</h2>
+  <h2>Course Information</h2>
 </div>
 
-<!-- 权限提示 -->
+<!-- Readonly Notice -->
 <div class="readonly-notice">
-  <strong>注意：</strong> 您当前处于只读模式，只能查看课程信息，无法进行修改操作。
+  <strong>Note:</strong> You are in read-only mode. You can only view course information and cannot make changes.
 </div>
 
-<!-- 课程列表 -->
+<!-- Course List -->
 <section>
   <table>
     <thead>
       <tr>
-        <th>课程代码</th>
-        <th>课程名称</th>
-        <th>学分</th>
-        <th>授课教师</th>
-        <th>所属组织</th>
+        <th>Course Code</th>
+        <th>Course Name</th>
+        <th>Credits</th>
+        <th>Instructor</th>
+        <th>Organization</th>
       </tr>
     </thead>
     <tbody>
@@ -128,37 +128,37 @@
         {% endfor %}
       {% else %}
         <tr>
-          <td colspan="5" style="text-align: center;">暂无课程信息</td>
+          <td colspan="5" style="text-align: center;">No course information</td>
         </tr>
       {% endif %}
     </tbody>
   </table>
 </section>
 
-<!-- 课程详情 -->
+<!-- Course Details -->
 {% if courses %}
 <section>
-  <h3>课程详细介绍</h3>
+  <h3>Course Details</h3>
   {% for course in courses %}
   <div style="margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
     <h4>{{ course.code }}: {{ course.name }}</h4>
-    <p><strong>授课教师：</strong> {{ course.instructor }}</p>
-    <p><strong>学分：</strong> {{ course.credits }}</p>
-    <p><strong>描述：</strong></p>
+    <p><strong>Instructor:</strong> {{ course.instructor }}</p>
+    <p><strong>Credits:</strong> {{ course.credits }}</p>
+    <p><strong>Description:</strong></p>
     <div style="padding: 10px; background-color: #f9f9f9; border-radius: 5px;">
-      {{ course.description or '暂无描述' }}
+      {{ course.description or 'No description' }}
     </div>
   </div>
   {% endfor %}
 </section>
 {% endif %}
 
-<!-- 返回按钮 -->
+<!-- Back Button -->
 <div>
   {% if user_role == 'student' %}
-  <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary">返回主页</a>
+  <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary">Back to Home</a>
   {% elif user_role == 'teacher' %}
-  <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-primary">返回主页</a>
+  <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-primary">Back to Home</a>
   {% endif %}
 </div>
 
