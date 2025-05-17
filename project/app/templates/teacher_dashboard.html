@@ -157,6 +157,14 @@
       <button class="btn-danger">Log Out</button>
     </a>
   </div>
+  <div style="display:flex; justify-content: space-between; align-items: center;">
+  <h2></h2>
+  <a href="{{ url_for('help.submit_help_request') }}">
+    <button style="background-color: red; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
+      Help Request
+    </button>
+  </a>
+</div>
 </div>
 
 <p>Access Level: {{ teacher.access_level }} ｜ Download Quota: {{ teacher.thesis_quota }} units</p>

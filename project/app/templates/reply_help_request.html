@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Reply to Help Request #{{ question.id }}</h2>
+
+<p><strong>User Type:</strong> {{ question.user_type }}</p>
+<p><strong>User ID:</strong> {{ question.user_id }}</p>
+<p><strong>Content:</strong> {{ question.content }}</p>
+<p><strong>Status:</strong> {{ question.status }}</p>
+<p><strong>Admin Reply:</strong> {{ question.admin_reply or 'No reply yet' }}</p>
+
+<form method="post" action="{{ url_for('help.reply_help_request', id=question.id) }}">
+    <label for="reply">Your Reply:</label><br>
+    <textarea id="reply" name="reply" rows="6" cols="50" required></textarea><br><br>
+    <button type="submit">Submit Reply</button>
+</form>
+
+{% if get_flashed_messages() %}
+    <ul>
+    {% for msg in get_flashed_messages() %}
+        <li style="color:red;">{{ msg }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+{% endblock %}

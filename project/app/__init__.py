@@ -1,9 +1,8 @@
 from flask import Flask
-from app.controller import book, student, teacher, user, admin, oconvener, log, verify, home, senior_admin, t_admin, course
+from app.controller import book, student, teacher, user, admin, oconvener, log, verify, home, senior_admin, t_admin, course, help
 from flask_mail import Mail
 from flask_migrate import Migrate
 import os
-
 mail = Mail()
 
 # 定义注册蓝图方法
@@ -20,7 +19,7 @@ def register_blueprints(app):
     app.register_blueprint(home.mainBP,url_prefix='')
     app.register_blueprint(t_admin.tadminBP,url_prefix='/tadmin')
     app.register_blueprint(course.courseBP,url_prefix='/course')
-
+    app.register_blueprint(help.helpBP, url_prefix='/help')
 
 # 注册插件(数据库关联)
 def register_plugin(app):
@@ -42,7 +41,7 @@ def create_app():
 
     # ✅ 添加 secret_key
     app.secret_key = 'a-very-secret-key'  # 可以随便写，正式项目应更安全
-
+    
     register_filters(app)
 
     # 注册蓝图与app对象相关联

@@ -1,10 +1,12 @@
-from flask import Blueprint, render_template, request, session, redirect, url_for, current_app, send_from_directory, flash
+from flask import Blueprint, render_template, request, session, redirect, url_for, flash, jsonify, current_app, send_from_directory
 from app.models.rule import Rule
 from app.models.base import db
 from app.controller.log import log_access
 from werkzeug.utils import secure_filename
+from app.controller.admin_service import create_admin_account
 import os
 
+# 变量名改成 tadminBP
 tadminBP = Blueprint('tadmin', __name__)
 
 @tadminBP.route('/dashboard')
@@ -60,3 +62,27 @@ def delete_rule(rule_id):
         flash("规则已删除")
 
     return redirect(url_for('tadmin.dashboard'))
+
+@tadminBP.route('/create_admin', methods=['POST'])
+def create_admin():
+    data = request.form
+    name = data.get('name')
+    email = data.get('email')
+    password = data.get('password')
+    role = data.get('role')
+
+    if not all([name, email, password, role]):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    result = create_admin_account(name, email, password, role)
+    if "success" in result:
+        if role == "EAdmin":
+            msg = "E-Admin created successfully"
+        elif role == "SeniorEAdmin":
+            msg = "Senior E-Admin created successfully"
+        else:
+            msg = "Admin created successfully"
+
+        return jsonify({"message": msg, "id": result['admin_id']}), 201
+    else:
+        return jsonify({"error": result['error']}), 400

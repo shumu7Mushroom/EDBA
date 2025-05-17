@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Help Requests</h2>
+
+  {% if current_user.role == 't_admin' %}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>User Type</th>
+          <th>User ID</th>
+          <th>Content</th>
+          <th>Status</th>
+          <th>Created At</th>
+          <th>Admin Reply</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+        <tr>
+          <td>{{ req.id }}</td>
+          <td>{{ req.user_type }}</td>
+          <td>{{ req.user_id }}</td>
+          <td>{{ req.content }}</td>
+          <td>{{ req.status }}</td>
+          <td>{{ req.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+          <td>{{ req.admin_reply or '' }}</td>
+          <td>
+            <a href="{{ url_for('help.reply_help_request', id=req.id) }}">Reply</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8">No help requests found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <table border="1" cellpadding="5" cellspacing="0">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>User Type</th>
+          <th>User ID</th>
+          <th>Content</th>
+          <th>Status</th>
+          <th>Created At</th>
+          <th>Admin Reply</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for req in requests %}
+        <tr>
+          <td>{{ req.id }}</td>
+          <td>{{ req.user_type }}</td>
+          <td>{{ req.user_id }}</td>
+          <td>{{ req.content }}</td>
+          <td>{{ req.status }}</td>
+          <td>{{ req.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+          <td>{{ req.admin_reply or '-' }}</td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7">No help requests found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+
+  {% if get_flashed_messages() %}
+    <ul>
+    {% for msg in get_flashed_messages() %}
+      <li style="color:green;">{{ msg }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}
