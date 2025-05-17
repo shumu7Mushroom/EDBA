@@ -166,7 +166,8 @@
         <th style="width: 20%;">Organization</th>
         <th style="width: 25%;">Actions</th>
     </tr>
-    {% for s in students %}
+    {# access_level=2 单独显示 #}
+    {% for s in students if s.access_level == 2 %}
     <tr>
         <td>{{ s.name }}</td>
         <td>{{ s.email }}</td>
@@ -189,7 +190,104 @@
         </td>
     </tr>
     {% endfor %}
+
+    {# access_level=1 批量折叠显示 #}
+    {% set level1_students = students|selectattr('access_level', 'equalto', 1)|list %}
+    {% if level1_students|length > 0 %}
+    <tr>
+        <td colspan="6">
+            <button onclick="toggleLevel1()" id="toggle-btn" style="background:#6c757d;color:white;padding:6px 14px;border:none;border-radius:6px;cursor:pointer;">Show/Hide Level 1 Students ({{ level1_students|length }})</button>
+            <div id="level1-list" style="display:none;margin-top:10px;">
+                <!-- 批量操作表格格式说明 -->
+                <div style="margin-bottom:10px;">
+                </div>
+                <form id="batch-form" method="post" action="{{ url_for('oconvener.batch_update_students') }}">
+                  <table style="width:100%;background:#f8f9fa;">
+                    <tr>
+                      <th><input type="checkbox" id="select-all" onclick="toggleAllLevel1(this)"></th>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Quota</th>
+                      <th>Organization</th>
+                      <th>Actions</th>
+                    </tr>
+                    <!-- 批量操作输入行 -->
+                    <tr style="background:#e9ecef;">
+                      <td colspan="2"><strong>Batch Edit:</strong></td>
+                      <td></td>
+                      <td><input type="number" name="batch_thesis_quota" placeholder="Quota" style="width:80px;"></td>
+                      <td><input type="text" name="batch_organization" placeholder="Organization" style="width:120px;"></td>
+                      <td>
+                        <button type="button" onclick="batchUpdateLevel1()" class="update-btn">Batch Update</button>
+                        <button type="button" onclick="batchDeleteLevel1()" class="update-btn delete-btn">Batch Delete</button>
+                      </td>
+                    </tr>
+                    {% for s in level1_students %}
+                    <tr>
+                      <td><input type="checkbox" class="level1-checkbox" value="{{ s.id }}"></td>
+                      <td>{{ s.name }}</td>
+                      <td>{{ s.email }}</td>
+                      <td>{{ s.thesis_quota }}</td>
+                      <td>{{ s.organization }}</td>
+                      <td>
+                        <!-- 只保留单独删除表单 -->
+                        <form method="post" action="{{ url_for('oconvener.delete_user', user_type='student', user_id=s.id) }}" style="display:inline;" onsubmit="return confirm('Delete this student?');">
+                          <button type="submit" class="update-btn delete-btn">Delete</button>
+                        </form>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </table>
+                  <input type="hidden" name="batch_ids" id="batch-ids">
+                  <input type="hidden" name="batch_action" id="batch-action">
+                  <input type="hidden" name="batch_quota" id="batch-quota">
+                  <input type="hidden" name="batch_org" id="batch-org">
+                </form>
+                <div style="margin-top:10px;">
+                  <em>Batch operation: wildcard <b>*@</b> for all level 1 students.</em>
+                </div>
+            </div>
+        </td>
+        <td></td>
+    </tr>
+    {% endif %}
 </table>
+<script>
+function toggleLevel1() {
+  var el = document.getElementById('level1-list');
+  var btn = document.getElementById('toggle-btn');
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+    btn.innerText = 'Hide Level 1 Students ({{ level1_students|length }})';
+  } else {
+    el.style.display = 'none';
+    btn.innerText = 'Show Level 1 Students ({{ level1_students|length }})';
+  }
+}
+function toggleAllLevel1(source) {
+  var checkboxes = document.getElementsByClassName('level1-checkbox');
+  for (var i = 0; i < checkboxes.length; i++) {
+    checkboxes[i].checked = source.checked;
+  }
+}
+function batchUpdateLevel1() {
+  var ids = Array.from(document.getElementsByClassName('level1-checkbox')).filter(cb=>cb.checked).map(cb=>cb.value);
+  if(ids.length===0){alert('Please select at least one student.');return;}
+  document.getElementById('batch-ids').value = ids.join(',');
+  document.getElementById('batch-action').value = 'update';
+  document.getElementById('batch-quota').value = document.querySelector('input[name="batch_thesis_quota"]').value;
+  document.getElementById('batch-org').value = document.querySelector('input[name="batch_organization"]').value;
+  document.getElementById('batch-form').submit();
+}
+function batchDeleteLevel1() {
+  var ids = Array.from(document.getElementsByClassName('level1-checkbox')).filter(cb=>cb.checked).map(cb=>cb.value);
+  if(ids.length===0){alert('Please select at least one student.');return;}
+  if(!confirm('Delete selected students?')) return;
+  document.getElementById('batch-ids').value = ids.join(',');
+  document.getElementById('batch-action').value = 'delete';
+  document.getElementById('batch-form').submit();
+}
+</script>
 
 <h3>Manage Teachers</h3>
 <table>

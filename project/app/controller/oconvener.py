@@ -421,3 +421,36 @@ def download_pdf(filename):
         return send_from_directory(upload_folder, filename, as_attachment=True)
     else:
         abort(404)
+
+
+@oconvenerBP.route('/batch_update_students', methods=['POST'])
+def batch_update_students():
+    ids = request.form.get('batch_ids', '')
+    action = request.form.get('batch_action', '')
+    quota = request.form.get('batch_quota', '')
+    org = request.form.get('batch_org', '')
+    id_list = [int(i) for i in ids.split(',') if i.strip().isdigit()]
+    if not id_list:
+        flash("No students selected for batch operation")
+        return redirect(url_for('oconvener.dashboard'))
+
+    if action == 'update':
+        for sid in id_list:
+            student = Student.query.get(sid)
+            if student:
+                if quota:
+                    student.thesis_quota = int(quota)
+                if org:
+                    student.organization = org
+        db.session.commit()
+        flash(f"Batch update success for {len(id_list)} students")
+    elif action == 'delete':
+        for sid in id_list:
+            student = Student.query.get(sid)
+            if student:
+                db.session.delete(student)
+        db.session.commit()
+        flash(f"Batch delete success for {len(id_list)} students")
+    else:
+        flash("Unknown batch action")
+    return redirect(url_for('oconvener.dashboard'))

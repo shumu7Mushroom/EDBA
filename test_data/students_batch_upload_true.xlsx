@@ -1,0 +1,7 @@
+BINARY_EXCEL: name,email,access_level,thesis_quota,type
+Alice Smith,alice1@example.com,1,10,student
+Bob Lee,bob2@example.com,1,10,student
+Cathy Wang,cathy3@example.com,1,10,student
+David Brown,david4@example.com,2,20,student
+Eva Green,eva5@example.com,2,15,student
+Frank Zhao,frank6@example.com,2,12,student
