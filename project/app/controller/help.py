@@ -9,19 +9,24 @@ helpBP = Blueprint('help', __name__)
 @helpBP.route('/submit_help_request', methods=['GET', 'POST'])
 def submit_help_request():
     if request.method == 'GET':
-        user_type = session.get('user_role')
-        if user_type == 't_admin':
-            # 🔁 如果是 t_admin，直接跳转到查看页面
-            return redirect(url_for('help.view_help_requests'))
+        # 先检查用户是否登录
+        if not session.get('user_id'):
+            flash('Please login first.')
+            return redirect(url_for('user.login'))
+            
+        # 获取用户已有的帮助请求记录
+        requests = HelpRequest.query.filter_by(
+            user_type=session.get('user_role'),
+            user_id=session.get('user_id')
+        ).order_by(HelpRequest.created_at.desc()).all()
         
-        return render_template('submit_help_request.html',
-                               user_name=session.get('user_name', ''),
-                               user_email=session.get('user_email', ''),
-                               user_type=user_type)
+        return render_template('help_requests.html',
+                            requests=requests,
+                            is_tadmin=False)
 
-    # POST部分（不改）
+    # POST部分
     user_type = session.get('user_role')
-    user_id = session.get('user_id')
+    user_id = session.get('user_id')  # 确保登录时session保存了user_id
     content = request.form.get('content')
 
     if not all([user_type, user_id, content]):
@@ -45,10 +50,26 @@ def submit_help_request():
     flash('Help request submitted successfully.')
     return redirect(url_for('help.submit_help_request'))
 
+
 @helpBP.route('/help_requests')
 def view_help_requests():
-    requests = HelpRequest.query.order_by(HelpRequest.created_at.desc()).all()
-    is_tadmin = session.get('user_role') == 'tadmin'  # ⬅️ 根据 session 判断角色
+    # 检查用户是否登录
+    user_role = session.get('user_role')
+    user_id = session.get('user_id')
+    
+    if not user_id:
+        flash('Please login first.')
+        return redirect(url_for('user.login'))
+
+    if user_role == 'tadmin':
+        requests = HelpRequest.query.order_by(HelpRequest.created_at.desc()).all()
+        is_tadmin = True
+    else:
+        # 普通用户只能看到自己的请求
+        requests = HelpRequest.query.filter_by(user_type=user_role, user_id=user_id) \
+                    .order_by(HelpRequest.created_at.desc()).all()
+        is_tadmin = False
+
     return render_template('help_requests.html', requests=requests, is_tadmin=is_tadmin)
 
 
