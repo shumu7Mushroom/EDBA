@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f4f6f8;
+    padding: 40px;
+  }
+  h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+  th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+  th {
+    background-color: #007bff;
+    color: white;
+  }
+  tr:hover {
+    background-color: #f9f9f9;
+  }
+  .btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    color: white;
+    background: #007bff;
+    margin-right: 6px;
+  }
+  .btn-preview { background: #17a2b8; }
+  .btn-download { background: #28a745; }
+  .btn-back { background: #6c757d; }
+</style>
+
+<div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+  <h2>My Uploaded Thesis</h2>
+  <a href="{{ url_for('teacher.dashboard') }}"><button class="btn btn-back">Back to Dashboard</button></a>
+</div>
+
+{% if theses %}
+<table>
+  <tr>
+    <th>Title</th>
+    <th>Abstract</th>
+    <th>Access Scope</th>
+    <th>Access Type</th>
+    <th>Is Free</th>
+    <th>Price</th>
+    <th>PDF</th>
+  </tr>
+  {% for thesis in theses %}
+  <tr>
+    <td>{{ thesis.title }}</td>
+    <td>{{ thesis.abstract }}</td>
+    <td>{{ thesis.access_scope }}</td>
+    <td>{{ thesis.access_type }}</td>
+    <td>{% if thesis.is_free %}Yes{% else %}No{% endif %}</td>
+    <td>{{ thesis.price }}</td>
+    <td>
+      {% if thesis.pdf_path %}
+        <a href="{{ url_for('teacher.view_pdf', filename=thesis.pdf_path) }}" target="_blank"><button class="btn btn-preview">View</button></a>
+        <a href="{{ url_for('teacher.download_pdf', filename=thesis.pdf_path) }}"><button class="btn btn-download">Download</button></a>
+      {% else %}
+        None
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<div style="text-align:center; color:#888; padding:30px;">No thesis uploaded yet.</div>
+{% endif %}
+{% endblock %}

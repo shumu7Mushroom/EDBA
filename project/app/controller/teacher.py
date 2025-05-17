@@ -220,3 +220,29 @@ def view_pdf(filename):
     else:
         flash("File does not exist")
         return redirect(url_for('teacher.dashboard'))
+
+# 老师查看自己上传的论文
+@teacherBP.route('/mythesis')
+def my_thesis():
+    user_id = session.get('user_id')
+    if not user_id:
+        flash("请先登录")
+        return redirect(url_for('user.login'))
+    teacher = Teacher.query.filter_by(id=user_id).first()
+    if not teacher:
+        flash("User does not exist, please login again")
+        return redirect(url_for('user.login'))
+    # 查询自己上传的论文
+    theses = Thesis.query.filter_by(uploader=teacher.email).all()
+    return render_template('teacher_my_thesis.html', teacher=teacher, theses=theses)
+
+# 论文下载接口
+@teacherBP.route('/download/<filename>')
+def download_pdf(filename):
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+    file_path = os.path.join(upload_folder, filename)
+    if os.path.exists(file_path):
+        return send_file(file_path, as_attachment=True)
+    else:
+        flash("File does not exist")
+        return redirect(url_for('teacher.my_thesis'))
