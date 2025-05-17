@@ -166,6 +166,11 @@
   <a href="{{ url_for('log.view_logs') }}">
     <button>View Logs</button>
   </a>
+  {% if role == 'eadmin' %}
+  <a href="{{ url_for('admin.bank_config') }}">
+    <button>设置会费和收款账户</button>
+  </a>
+  {% endif %}
 </div>
 
 <h3>O-Convener Applications</h3>

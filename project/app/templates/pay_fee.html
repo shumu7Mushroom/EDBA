@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>支付会费</h2>
+{% if error %}
+  <div class="alert">{{ error }}</div>
+{% endif %}
+{% if config %}
+<p>银行账户：{{ config.bank_account }}</p>
+<p>会费金额：{{ config.fee }} 元</p>
+<form method="post">
+  <button type="submit" class="btn-primary">我已完成支付</button>
+</form>
+{% else %}
+<p>系统未设置银行账户信息，请联系管理员。</p>
+{% endif %}
+{% endblock %}

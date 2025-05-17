@@ -190,12 +190,10 @@
         Type = {{ thesis.access_type }} ｜ 
         {% if thesis.is_free %}Free{% else %}Requires {{ thesis.price }} units{% endif %}
       </em>
-      {% if student.access_level >= 2 %}
-        <form method="post" action="{{ url_for('student.purchase_thesis') }}" style="display:inline;">
-          <input type="hidden" name="title" value="{{ thesis.title }}">
-          <button type="submit" class="btn-primary" style="margin-top: 10px;">Buy & Download</button>
-        </form>
-      {% endif %}
+      <form method="post" action="{{ url_for('student.purchase_thesis') }}">
+        <input type="hidden" name="title" value="{{ thesis.title }}">
+        <button type="submit" class="btn-primary" style="margin-top: 10px;">Buy & Download</button>
+      </form>
       <a href="{{ url_for('student.view_thesis') }}?title={{ thesis.title }}" target="_blank">
         <button type="button" class="btn-secondary" style="margin-top: 10px;">Preview</button>
       </a>

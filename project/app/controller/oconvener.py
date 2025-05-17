@@ -122,12 +122,12 @@ def send_code():
 def dashboard():
     if 'user_id' not in session or session.get('user_role') != 'convener':
         return redirect(url_for('oconvener.login'))
-
+    convener = OConvener.query.get(session['user_id'])
+    if not convener.is_pay:
+        return redirect(url_for('oconvener.pay_fee'))
     org = session.get('user_name')  # 当前 O-Convener 的组织简称
-
     students = Student.query.filter_by(organization=org).all()
     teachers = Teacher.query.filter_by(organization=org).all()
-
     log_access(f"O-Convener viewed dashboard: {org}")  # Log action
     return render_template('oconvener_dashboard.html',
                            name=org,
@@ -454,3 +454,20 @@ def batch_update_students():
     else:
         flash("Unknown batch action")
     return redirect(url_for('oconvener.dashboard'))
+
+@oconvenerBP.route('/pay_fee', methods=['GET', 'POST'])
+def pay_fee():
+    if 'user_id' not in session or session.get('user_role') != 'convener':
+        return redirect(url_for('oconvener.login'))
+    convener = OConvener.query.get(session['user_id'])
+    if convener.status_text != 'approved':
+        return redirect(url_for('oconvener.login'))
+    from app.models.bank_config import BankConfig
+    config = BankConfig.query.first()
+    if request.method == 'POST':
+        # 模拟支付成功
+        convener.is_pay = True
+        db.session.commit()
+        log_access(f"O-Convener paid fee: {convener.org_shortname} ({convener.email})")
+        return redirect(url_for('oconvener.dashboard'))
+    return render_template('pay_fee.html', config=config)
