@@ -3,7 +3,6 @@ from app.models.student import Student
 from app.models.teacher import Teacher
 from flask import redirect, url_for, flash
 from app.controller.log import log_access
-
 userBP = Blueprint('user', __name__)
 
 @userBP.route('/login', methods=['GET', 'POST'])
