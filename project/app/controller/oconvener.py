@@ -30,7 +30,7 @@ def register():
     if not all([org_fullname, org_shortname, email, code, file]):
         return render_template('oconvener_register_fail.html', message="Incomplete form information")
 
-    if not (email.endswith('@mail.uic.edu.cn') or email.endswith('@163.com')):
+    if not (email.endswith('@mail.uic.edu.cn') or email.endswith('@163.com') or email.endswith('@qq.com')):
         return render_template('oconvener_register_fail.html', message="Invalid email format")
 
     if code != session.get('register_code', ''):
@@ -96,7 +96,7 @@ def send_code():
     from app import mail 
     email = request.form.get('email')
 
-    allowed_domains = ['@mail.uic.edu.cn', '@163.com']
+    allowed_domains = ['@mail.uic.edu.cn', '@163.com', '@qq.com']
     if not email or not any(email.endswith(domain) for domain in allowed_domains):
         return jsonify({"status": "fail", "message": "Invalid email"}), 400
 

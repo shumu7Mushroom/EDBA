@@ -93,11 +93,26 @@
   }
 </style>
 
-<h2>📘 Welcome T-Admin: {{ session.admin_name }}</h2>
-<a class="logout-link" href="{{ url_for('admin.logout') }}">Logout</a>
-<a href="{{ url_for('help.view_help_requests') }}" class="btn btn-danger" style="position: absolute; top: 20px; right: 20px;">
-  View Help Requests
-</a>
+<div style="position: relative; min-height: 40px; margin-bottom: 30px;">
+  <a class="logout-link" href="{{ url_for('admin.logout') }}" style="position: absolute; top: 0; right: 0; margin-bottom: 0;">Logout</a>
+  <h2 style="margin-bottom: 0;">📘 Welcome T-Admin: {{ session.admin_name }}</h2>
+  <a href="{{ url_for('help.view_help_requests') }}" class="btn-blue" style="margin-left: 0; margin-top: 8px; display: inline-block;">🆘 View help requests</a>
+</div>
+<style>
+  .btn-blue {
+    background-color: #007bff;
+    display: inline-block;
+    margin-bottom: 30px;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 14px;
+  }
+  .btn-blue:hover {
+    background-color: #0056b3;
+  }
+</style>
 <div class="form-section">
   <h3>Create New Admin Account</h3>
   <form id="create-admin-form" method="POST" action="{{ url_for('tadmin.create_admin') }}">

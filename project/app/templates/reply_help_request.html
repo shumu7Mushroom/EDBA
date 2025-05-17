@@ -1,26 +1,135 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Reply to Help Request #{{ question.id }}</h2>
+<style>
+  .help-reply-container {
+    max-width: 600px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    padding: 32px 36px 28px 36px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  .help-reply-container h2 {
+    color: #007bff;
+    margin-bottom: 18px;
+    font-size: 1.6em;
+    letter-spacing: 1px;
+  }
+  .help-info {
+    margin-bottom: 18px;
+    font-size: 1.08em;
+  }
+  .help-info strong {
+    color: #333;
+    width: 120px;
+    display: inline-block;
+  }
+  .help-content {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    font-size: 1.08em;
+    color: #444;
+    border-left: 4px solid #007bff;
+  }
+  .help-status {
+    margin-bottom: 10px;
+    font-size: 1.05em;
+    color: #888;
+  }
+  .admin-reply-block {
+    background: #e9f7ef;
+    border-radius: 8px;
+    padding: 12px 18px;
+    margin-bottom: 22px;
+    color: #218838;
+    border-left: 4px solid #28a745;
+    font-size: 1.08em;
+  }
+  .admin-reply-block.empty {
+    background: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+  }
+  .reply-form label {
+    font-weight: bold;
+    color: #007bff;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .reply-form textarea {
+    width: 100%;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    padding: 10px 12px;
+    font-size: 1em;
+    margin-bottom: 16px;
+    resize: vertical;
+    min-height: 100px;
+    background: #fafdff;
+    transition: border 0.2s;
+  }
+  .reply-form textarea:focus {
+    border: 1.5px solid #007bff;
+    outline: none;
+  }
+  .reply-form button {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 24px;
+    font-size: 1.08em;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  .reply-form button:hover {
+    background: linear-gradient(135deg, #3a8edb, #00c5dc);
+    transform: translateY(-2px);
+  }
+  .flash-messages {
+    margin-top: 18px;
+    margin-bottom: 0;
+    padding-left: 0;
+  }
+  .flash-messages li {
+    color: #dc3545;
+    font-size: 1em;
+    margin-bottom: 4px;
+    list-style: none;
+  }
+</style>
 
-<p><strong>User Type:</strong> {{ question.user_type }}</p>
-<p><strong>User ID:</strong> {{ question.user_id }}</p>
-<p><strong>Content:</strong> {{ question.content }}</p>
-<p><strong>Status:</strong> {{ question.status }}</p>
-<p><strong>Admin Reply:</strong> {{ question.admin_reply or 'No reply yet' }}</p>
-
-<form method="post" action="{{ url_for('help.reply_help_request', id=question.id) }}">
-    <label for="reply">Your Reply:</label><br>
-    <textarea id="reply" name="reply" rows="6" cols="50" required></textarea><br><br>
-    <button type="submit">Submit Reply</button>
-</form>
-
-{% if get_flashed_messages() %}
-    <ul>
+<div class="help-reply-container">
+  <h2>📩 回复帮助请求 #{{ question.id }}</h2>
+  <div class="help-info"><strong>用户类型:</strong> {{ question.user_type }}</div>
+  <div class="help-info"><strong>用户ID:</strong> {{ question.user_id }}</div>
+  <div class="help-content"><strong>请求内容:</strong><br>{{ question.content }}</div>
+  <div class="help-status"><strong>状态:</strong> {{ question.status }}</div>
+  <div class="admin-reply-block{% if not question.admin_reply %} empty{% endif %}">
+    <strong>管理员回复:</strong> {{ question.admin_reply or '暂无回复' }}
+  </div>
+  <form class="reply-form" method="post" action="{{ url_for('help.reply_help_request', id=question.id) }}">
+    <label for="reply">你的回复：</label>
+    <textarea id="reply" name="reply" required placeholder="请输入你的回复内容..."></textarea>
+    <div style="display:flex;justify-content:flex-end;gap:16px;margin-top:4px;">
+      <button type="submit">✔️ 提交回复</button>
+      <a href="{{ url_for('help.view_help_requests') }}" style="text-decoration:none;">
+        <button type="button" class="reply-form-btn" style="background:linear-gradient(135deg,#6c757d,#adb5bd);color:white;border:none;border-radius:6px;padding:8px 22px;font-size:1em;cursor:pointer;font-weight:bold;letter-spacing:1px;">↩️ 返回帮助请求列表</button>
+      </a>
+    </div>
+  </form>
+  {% if get_flashed_messages() %}
+    <ul class="flash-messages">
     {% for msg in get_flashed_messages() %}
-        <li style="color:red;">{{ msg }}</li>
+        <li>{{ msg }}</li>
     {% endfor %}
     </ul>
-{% endif %}
-
+  {% endif %}
+</div>
 {% endblock %}

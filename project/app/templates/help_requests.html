@@ -1,9 +1,76 @@
 {% extends 'base.html' %}
 {% block content %}
+<style>
+    body {
+        background-color: #f4f6f8;
+    }
+
+    .container {
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    h2 {
+        color: #333;
+        margin-bottom: 25px;
+    }
+
+    .table th {
+        background-color: #007bff;
+        color: white;
+        vertical-align: middle;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-success {
+        background-color: #28a745;
+        border: none;
+    }
+
+    .btn-success:hover {
+        background-color: #218838;
+    }
+
+    .back-btn {
+        margin-bottom: 20px;
+        display: inline-block;
+        padding: 8px 16px;
+        font-size: 14px;
+        background-color: #6c757d;
+        color: white;
+        border-radius: 6px;
+        text-decoration: none;
+    }
+
+    .back-btn:hover {
+        background-color: #5a6268;
+    }
+
+    .list-group-item {
+        background-color: #fdfdfd;
+    }
+</style>
+
 <div class="container mt-5">
+    <a href="{{ url_for('tadmin.dashboard') }}" class="back-btn">← Back</a>
+
     {% if is_tadmin %}
-    <h2>All Help Requests</h2>
-    
+    <h2>📋 All Help Requests</h2>
+
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -12,9 +79,9 @@
                 <th>User ID</th>
                 <th>Content</th>
                 <th>Status</th>
-                <th>Created At</th>
+                <th>Submitted At</th>
                 <th>Admin Reply</th>
-                <th>Actions</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -33,7 +100,7 @@
             </tr>
             {% endfor %}
             {% if requests|length == 0 %}
-            <tr><td colspan="8">No help requests found.</td></tr>
+            <tr><td colspan="8" class="text-center text-muted">No help requests.</td></tr>
             {% endif %}
         </tbody>
     </table>
@@ -41,30 +108,30 @@
     {% else %}
     <div class="row">
         <div class="col-md-8">
-            <h2>Help Request</h2>
+            <h2>🆘 Submit Help Request</h2>
             <form method="post" action="{{ url_for('help.submit_help_request') }}">
                 <div class="mb-3">
-                    <label for="content" class="form-label">Describe your problem:</label>
+                    <label for="content" class="form-label">Please describe your issue:</label>
                     <textarea id="content" name="content" class="form-control" rows="4" required></textarea>
                 </div>
                 <button type="submit" class="btn btn-success">Submit Request</button>
             </form>
         </div>
         <div class="col-md-4">
-            <h5>Your Help History</h5>
+            <h5>📌 History</h5>
             {% if requests %}
             <ul class="list-group">
                 {% for req in requests %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     {{ req.content }}
                     {% if req.admin_reply %}
-                        <span class="badge bg-warning text-dark">★</span>
+                        <span class="badge bg-warning text-dark">Replied</span>
                     {% endif %}
                 </li>
                 {% endfor %}
             </ul>
             {% else %}
-            <p class="text-muted">No help requests yet.</p>
+            <p class="text-muted">No submission records.</p>
             {% endif %}
         </div>
     </div>
