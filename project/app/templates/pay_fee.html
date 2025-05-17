@@ -1,16 +1,62 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% block content %}
-<h2>支付会费</h2>
-{% if error %}
-  <div class="alert">{{ error }}</div>
-{% endif %}
-{% if config %}
-<p>银行账户：{{ config.bank_account }}</p>
-<p>会费金额：{{ config.fee }} 元</p>
-<form method="post">
-  <button type="submit" class="btn-primary">我已完成支付</button>
-</form>
-{% else %}
-<p>系统未设置银行账户信息，请联系管理员。</p>
-{% endif %}
+<div class="container mt-4">
+    <h2>支付会费</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5>收款信息</h5>
+            <table class="table">
+                <tr>
+                    <th>收款银行：</th>
+                    <td>{{ config.bank_name or 'EDBA Bank' }}</td>
+                </tr>
+                <tr>
+                    <th>收款账户：</th>
+                    <td>{{ config.account_name or 'EDBA System' }}</td>
+                </tr>
+                <tr>
+                    <th>收款账号：</th>
+                    <td>{{ config.bank_account }}</td>
+                </tr>
+                <tr>
+                    <th>应付金额：</th>
+                    <td>{{ config.fee }} 元</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">支付银行</label>
+                    <input type="text" name="bank" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">账户名称</label>
+                    <input type="text" name="account_name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">银行账号</label>
+                    <input type="text" name="account_number" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">支付密码</label>
+                    <input type="password" name="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary">确认支付</button>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}

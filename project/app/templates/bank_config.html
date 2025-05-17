@@ -1,12 +1,24 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2>设置会费和收款银行账户</h2>
-<form method="post">
-  <label>银行账户：</label>
-  <input type="text" name="bank_account" value="{{ config.bank_account if config else '' }}" required>
-  <label>会费金额（元）：</label>
-  <input type="number" name="fee" value="{{ config.fee if config else 0 }}" required>
-  <button type="submit">保存</button>
+<form method="POST">
+    <div class="form-group">
+        <label>银行名称</label>
+        <input type="text" name="bank_name" value="{{ config.bank_name if config else 'EDBA Bank' }}" class="form-control">
+    </div>
+    <div class="form-group">
+        <label>账户名称</label>
+        <input type="text" name="account_name" value="{{ config.account_name if config else 'EDBA System' }}" class="form-control">
+    </div>
+    <div class="form-group">
+        <label>银行账号</label>
+        <input type="text" name="bank_account" value="{{ config.bank_account if config }}" required class="form-control">
+    </div>
+    <div class="form-group">
+        <label>会费金额</label>
+        <input type="number" name="fee" value="{{ config.fee if config }}" required class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">保存</button>
 </form>
 {% if msg %}<div class="alert">{{ msg }}</div>{% endif %}
 {% endblock %}

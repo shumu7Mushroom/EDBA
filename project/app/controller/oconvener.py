@@ -10,9 +10,11 @@ from app.models.teacher import Teacher
 from flask import redirect, url_for
 from app.models.thesis import Thesis
 from flask import send_from_directory
-from flask import flash, abort
+from flask import flash, abort,current_app
+import requests
 from app.controller.log import log_access  # ✅ 添加日志记录函数
 import pandas as pd
+from app.models.bank_config import BankConfig  # 添加这行
 
 oconvenerBP = Blueprint('oconvener', __name__)
 
@@ -469,19 +471,88 @@ def batch_update_students():
         flash("Unknown batch action")
     return redirect(url_for('oconvener.dashboard'))
 
+import requests
+from flask import flash
+
 @oconvenerBP.route('/pay_fee', methods=['GET', 'POST'])
 def pay_fee():
     if 'user_id' not in session or session.get('user_role') != 'convener':
         return redirect(url_for('oconvener.login'))
+    
     convener = OConvener.query.get(session['user_id'])
-    if convener.status_text != 'approved':
-        return redirect(url_for('oconvener.login'))
-    from app.models.bank_config import BankConfig
     config = BankConfig.query.first()
-    if request.method == 'POST':
-        # 模拟支付成功
-        convener.is_pay = True
-        db.session.commit()
-        log_access(f"O-Convener paid fee: {convener.org_shortname} ({convener.email})")
+    
+    if not config:
+        flash('系统未配置收款账户信息', 'error')
         return redirect(url_for('oconvener.dashboard'))
+    
+    if request.method == 'POST':
+        try:
+            # 获取表单数据
+            bank = request.form.get('bank')
+            account_name = request.form.get('account_name')
+            account_number = request.form.get('account_number')
+            password = request.form.get('password')
+            
+            # 验证必填字段
+            if not all([bank, account_name, account_number, password]):
+                flash('请填写所有必填字段', 'error')
+                return render_template('pay_fee.html', config=config)
+            
+            # 调用银行验证接口
+            auth_response = requests.post(
+                'http://172.16.160.88:8001/hw/bank/authenticate',
+                json={
+                    "bank": bank,
+                    "account_name": account_name,
+                    "account_number": account_number,
+                    "password": password
+                }
+            )
+            
+            if auth_response.status_code == 200:
+                auth_result = auth_response.json()
+                if auth_result['status'] == 'success':
+                    # 执行转账
+                    transfer_data = {
+                        "from_bank": "FutureLearn Federal Bank",  # 使用示例中的银行
+                        "from_name": "Utopia Credit Union",      # 使用示例中的账户名
+                        "from_account": "670547811218584",       # 使用示例中的账号
+                        "password": password,
+                        "to_bank": "E-DBA Bank",                 # 使用示例中的目标银行
+                        "to_name": "E-DBA account",             # 使用示例中的目标账户名
+                        "to_account": "596117071864958",        # 使用示例中的目标账号
+                        "amount": 100                           # 使用示例中的金额
+                    }
+                    
+                    print("转账请求数据:", {**transfer_data, 'password': '***'})  # 调试输出
+                    
+                    transfer_response = requests.post(
+                        'http://172.16.160.88:8001/hw/bank/transfer',
+                        json=transfer_data
+                    )
+                    
+                    print("转账响应:", transfer_response.text)  # 调试输出
+                    
+                    if transfer_response.status_code == 200:
+                        transfer_result = transfer_response.json()
+                        if transfer_result['status'] == 'success':
+                            convener.is_pay = True
+                            db.session.commit()
+                            flash('支付成功！', 'success')
+                            log_access(f"O-Convener {convener.org_shortname} 完成会费支付")
+                            return redirect(url_for('oconvener.dashboard'))
+                        else:
+                            flash(f'转账失败：{transfer_result.get("reason", "未知错误")}', 'error')
+                    else:
+                        flash('转账服务暂时不可用', 'error')
+                else:
+                    flash('账户验证失败', 'error')
+            else:
+                flash('银行服务暂时不可用', 'error')
+                
+        except Exception as e:
+            print("支付错误:", str(e))
+            flash(f'支付过程发生错误：{str(e)}', 'error')
+    
     return render_template('pay_fee.html', config=config)

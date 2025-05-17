@@ -19,19 +19,33 @@ print("adminBP 路由已加载")
 def bank_config():
     if session.get('admin_role') != 'eadmin':
         return redirect(url_for('admin.dashboard'))
+    
     config = BankConfig.query.first()
     msg = None
+    
     if request.method == 'POST':
+        bank_name = request.form.get('bank_name', 'EDBA Bank')
+        account_name = request.form.get('account_name', 'EDBA System')
         bank_account = request.form['bank_account']
         fee = int(request.form['fee'])
+        
         if not config:
-            config = BankConfig(bank_account=bank_account, fee=fee)
+            config = BankConfig(
+                bank_name=bank_name,
+                account_name=account_name,
+                bank_account=bank_account,
+                fee=fee
+            )
             db.session.add(config)
         else:
+            config.bank_name = bank_name
+            config.account_name = account_name
             config.bank_account = bank_account
             config.fee = fee
+            
         db.session.commit()
-        msg = "银行账户和会费已更新。"
+        msg = "银行账户和会费配置已更新。"
+        
     return render_template('bank_config.html', config=config, msg=msg)
 
 # 登录界面
@@ -58,10 +72,11 @@ def admin_login():
         session['user_id'] = admin.id
         session['user_role'] = role
         session['user_name'] = admin.name
+        session['user_org'] = 'admin' 
         session['admin_id'] = admin.id
         session['admin_role'] = role
         session['admin_name'] = admin.name
-        session['user_org'] = 'admin' 
+        
         
 
         log_access(f"{role} 登录成功（ID: {admin.id}）")
