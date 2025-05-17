@@ -43,36 +43,35 @@ def admin_login():
     
     email = request.form.get('email')
     password = request.form.get('password')
-    role = request.form.get('role')
-
+    role = request.form.get('role')    # Find admin based on role
+    admin = None
     if role == 'eadmin':
         admin = EAdmin.query.filter_by(email=email, _password=password).first()
     elif role == 'senior':
         admin = SeniorEAdmin.query.filter_by(email=email, _password=password).first()
     elif role == 'tadmin':
         admin = TAdmin.query.filter_by(email=email, _password=password).first()
-    else:
-        admin = None
-    session['user_org'] = "admin"
 
+    # Verify login and set session
     if admin:
         
+        session['user_id'] = admin.id
+        session['user_role'] = role
+        session['user_name'] = admin.name
         session['admin_id'] = admin.id
         session['admin_role'] = role
         session['admin_name'] = admin.name
+        session['user_org'] = 'admin' 
         
 
         log_access(f"{role} 登录成功（ID: {admin.id}）")
 
         # 👇 分开跳转
         if role == 'eadmin':
-            session['user_role'] = 'eadmin'
             return redirect(url_for('admin.dashboard'))
         elif role == 'senior':
-            session['user_role'] = 'senior'
             return redirect(url_for('senioradmin.dashboard'))
         elif role == 'tadmin':
-            session['user_role'] = 'tadmin'
             return redirect(url_for('tadmin.dashboard'))
     else:
         log_access(f"{role} 登录失败（email: {email}）")  # ✅ 记录登录失败
