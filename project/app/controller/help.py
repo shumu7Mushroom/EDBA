@@ -9,14 +9,19 @@ helpBP = Blueprint('help', __name__)
 @helpBP.route('/submit_help_request', methods=['GET', 'POST'])
 def submit_help_request():
     if request.method == 'GET':
+        user_type = session.get('user_role')
+        if user_type == 't_admin':
+            # 🔁 如果是 t_admin，直接跳转到查看页面
+            return redirect(url_for('help.view_help_requests'))
+        
         return render_template('submit_help_request.html',
                                user_name=session.get('user_name', ''),
                                user_email=session.get('user_email', ''),
-                               user_type=session.get('user_role', ''))
+                               user_type=user_type)
 
-    # POST部分
+    # POST部分（不改）
     user_type = session.get('user_role')
-    user_id = session.get('user_id')  # 确保登录时session保存了user_id
+    user_id = session.get('user_id')
     content = request.form.get('content')
 
     if not all([user_type, user_id, content]):
@@ -40,12 +45,12 @@ def submit_help_request():
     flash('Help request submitted successfully.')
     return redirect(url_for('help.submit_help_request'))
 
-
 @helpBP.route('/help_requests')
 def view_help_requests():
     requests = HelpRequest.query.order_by(HelpRequest.created_at.desc()).all()
     is_tadmin = session.get('user_role') == 'tadmin'  # ⬅️ 根据 session 判断角色
     return render_template('help_requests.html', requests=requests, is_tadmin=is_tadmin)
+
 
 @helpBP.route('/help_request/<int:id>/reply', methods=['GET', 'POST'])
 def reply_help_request(id):

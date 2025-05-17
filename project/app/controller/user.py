@@ -3,6 +3,7 @@ from app.models.student import Student
 from app.models.teacher import Teacher
 from flask import redirect, url_for, flash
 from app.controller.log import log_access
+from app.models.T_admin import TAdmin
 userBP = Blueprint('user', __name__)
 
 @userBP.route('/login', methods=['GET', 'POST'])
@@ -24,6 +25,9 @@ def login():
     elif role == 'teacher':
         user = Teacher.query.filter_by(email=email).first()
         valid = user and user._password == password
+    elif role == 't_admin':
+        user = TAdmin.query.filter_by(email=email).first()
+        valid = user and user._password == password
     else:
         return render_template('login.html', title='Login', header='User Login', error='Please select a valid role')
 
@@ -35,9 +39,12 @@ def login():
         if role == 'student':
             log_access(f"Student login successful (User ID: {user.id})")
             return redirect(url_for('student.dashboard'))
-        else:
+        elif role == 'teacher':
             log_access(f"Teacher login successful (User ID: {user.id})")
             return redirect(url_for('teacher.dashboard'))
+        elif role == 't_admin':
+            log_access(f"T-Admin login successful (User ID: {user.id})")
+            return redirect(url_for('tadmin.dashboard'))
 
     return render_template('login.html', title='Login', header='User Login', error='Incorrect email or password')
 
