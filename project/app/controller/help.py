@@ -43,9 +43,9 @@ def submit_help_request():
 
 @helpBP.route('/help_requests')
 def view_help_requests():
-    requests = HelpRequest.query.all()
-    # 传current_user给模板
-    return render_template('help_requests.html', requests=requests, current_user=current_user)
+    requests = HelpRequest.query.order_by(HelpRequest.created_at.desc()).all()
+    is_tadmin = session.get('user_role') == 'tadmin'  # ⬅️ 根据 session 判断角色
+    return render_template('help_requests.html', requests=requests, is_tadmin=is_tadmin)
 
 @helpBP.route('/help_request/<int:id>/reply', methods=['GET', 'POST'])
 def reply_help_request(id):

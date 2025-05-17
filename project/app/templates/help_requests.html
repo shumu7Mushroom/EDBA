@@ -1,81 +1,73 @@
-{% extends "base.html" %}
-
+{% extends 'base.html' %}
 {% block content %}
-  <h2>Help Requests</h2>
-
-  {% if current_user.role == 't_admin' %}
+<div class="container mt-5">
+    {% if is_tadmin %}
+    <h2>All Help Requests</h2>
+    
     <table class="table table-bordered">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>User Type</th>
-          <th>User ID</th>
-          <th>Content</th>
-          <th>Status</th>
-          <th>Created At</th>
-          <th>Admin Reply</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for req in requests %}
-        <tr>
-          <td>{{ req.id }}</td>
-          <td>{{ req.user_type }}</td>
-          <td>{{ req.user_id }}</td>
-          <td>{{ req.content }}</td>
-          <td>{{ req.status }}</td>
-          <td>{{ req.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-          <td>{{ req.admin_reply or '' }}</td>
-          <td>
-            <a href="{{ url_for('help.reply_help_request', id=req.id) }}">Reply</a>
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="8">No help requests found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>User Type</th>
+                <th>User ID</th>
+                <th>Content</th>
+                <th>Status</th>
+                <th>Created At</th>
+                <th>Admin Reply</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in requests %}
+            <tr>
+                <td>{{ req.id }}</td>
+                <td>{{ req.user_type }}</td>
+                <td>{{ req.user_id }}</td>
+                <td>{{ req.content }}</td>
+                <td>{{ req.status }}</td>
+                <td>{{ req.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ req.admin_reply or '-' }}</td>
+                <td>
+                    <a href="{{ url_for('help.reply_help_request', id=req.id) }}" class="btn btn-sm btn-primary">Reply</a>
+                </td>
+            </tr>
+            {% endfor %}
+            {% if requests|length == 0 %}
+            <tr><td colspan="8">No help requests found.</td></tr>
+            {% endif %}
+        </tbody>
     </table>
-  {% else %}
-    <table border="1" cellpadding="5" cellspacing="0">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>User Type</th>
-          <th>User ID</th>
-          <th>Content</th>
-          <th>Status</th>
-          <th>Created At</th>
-          <th>Admin Reply</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for req in requests %}
-        <tr>
-          <td>{{ req.id }}</td>
-          <td>{{ req.user_type }}</td>
-          <td>{{ req.user_id }}</td>
-          <td>{{ req.content }}</td>
-          <td>{{ req.status }}</td>
-          <td>{{ req.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-          <td>{{ req.admin_reply or '-' }}</td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="7">No help requests found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% endif %}
 
-  {% if get_flashed_messages() %}
-    <ul>
-    {% for msg in get_flashed_messages() %}
-      <li style="color:green;">{{ msg }}</li>
-    {% endfor %}
-    </ul>
-  {% endif %}
+    {% else %}
+    <div class="row">
+        <div class="col-md-8">
+            <h2>Help Request</h2>
+            <form method="post" action="{{ url_for('help.submit_help_request') }}">
+                <div class="mb-3">
+                    <label for="content" class="form-label">Describe your problem:</label>
+                    <textarea id="content" name="content" class="form-control" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Submit Request</button>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <h5>Your Help History</h5>
+            {% if requests %}
+            <ul class="list-group">
+                {% for req in requests %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ req.content }}
+                    {% if req.admin_reply %}
+                        <span class="badge bg-warning text-dark">★</span>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted">No help requests yet.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
