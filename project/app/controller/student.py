@@ -38,7 +38,7 @@ def search_thesis():
         flash("Please enter keywords")
         return redirect(url_for('student.dashboard'))
 
-    log_access(f"学生搜索论文关键词：{keywords}")  # ✅ 记录行为
+    log_access(f"Students search thesis with key words: {keywords}")  # ✅ 记录行为
 
     # 搜索出所有匹配的论文
     all_theses = Thesis.query.filter(

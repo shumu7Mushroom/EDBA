@@ -1,4 +1,4 @@
-# 📁 app/controller/verify.py
+# filepath: d:\GitHub\EDBA\project\app\controller\verify.py
 from flask import (
     Blueprint, render_template, request, session,
     redirect, url_for, flash, send_file
@@ -17,13 +17,12 @@ def _must_convener():
     return session.get('user_role') == 'convener'
 
 def _configs(service_type=None):
-    """当前 O‑Convener 配置的接口列表"""
+    """当前 O‑Convener 配置的接口列表"""
     q = APIConfig.query.filter_by(institution_id=session.get('user_id'))
     if service_type:
         q = q.filter_by(service_type=service_type)
     return q.all()
 
-# app/controller/verify.py
 def _call_api(cfg, payload, files=None):
     """
     根据 cfg 调用外部接口
@@ -77,8 +76,6 @@ def _call_api(cfg, payload, files=None):
         }
 
 
-
-
 # ------------------------------------------------------------
 # 1. 接口配置  /verify/config/<service_type>
 # ------------------------------------------------------------
@@ -88,25 +85,118 @@ def api_config_form(service_type):
         return 'Only O‑Convener can configure APIs', 403
 
     inst_id = session['user_id']
-    cfg = APIConfig.query.filter_by(institution_id=inst_id,
-                                    service_type=service_type).first()
-
-    if request.method == 'POST':
+    configs = APIConfig.query.filter_by(institution_id=inst_id,
+                                    service_type=service_type).all()
+                                    
+    if request.method == 'POST' and request.form.get('action') == 'add':
         base_url = request.form.get('base_url', '').strip()
         path     = request.form.get('path', '').strip()
         method   = request.form.get('method', 'POST').upper()
-        if cfg:
-            cfg.base_url, cfg.path, cfg.method = base_url, path, method
-        else:
-            cfg = APIConfig(institution_id=inst_id,
-                            service_type=service_type,
-                            base_url=base_url, path=path, method=method)
-            db.session.add(cfg)
+        input_json = request.form.get('input', '').strip()
+        output_json = request.form.get('output', '').strip()
+        
+        # 处理 input JSON 模板
+        input_data = None
+        if input_json:
+            try:
+                input_data = json.loads(input_json)
+            except json.JSONDecodeError:
+                flash('Invalid input JSON format')
+                return render_template('api_config_form.html',
+                           configs=configs, service_type=service_type)
+                
+        # 处理 output JSON 模板
+        output_data = None
+        if output_json:
+            try:
+                output_data = json.loads(output_json)
+            except json.JSONDecodeError:
+                flash('Invalid output JSON format')
+                return render_template('api_config_form.html',
+                           configs=configs, service_type=service_type)
+        
+        # 创建新的API配置
+        new_config = APIConfig(institution_id=inst_id,
+                        service_type=service_type,
+                        base_url=base_url, path=path, method=method,
+                        input=input_data, output=output_data)
+        db.session.add(new_config)
         db.session.commit()
-        flash('Saved successfully!')
+        
+        # 记录API配置添加
+        log_access(f"Added new {service_type} API configuration", f"URL: {base_url}{path}")
+        flash('New configuration added successfully!')
+        return redirect(url_for('verify.api_config_form', service_type=service_type))
 
     return render_template('api_config_form.html',
-                           cfg=cfg, service_type=service_type)
+                           configs=configs, service_type=service_type)
+
+# API配置编辑
+@verifyBP.route('/config/edit/<int:config_id>', methods=['GET', 'POST'])
+def edit_api_config(config_id):
+    if not _must_convener():
+        return 'Only O‑Convener can configure APIs', 403
+        
+    inst_id = session['user_id']
+    config = APIConfig.query.filter_by(id=config_id, institution_id=inst_id).first_or_404()
+    
+    if request.method == 'POST' and request.form.get('action') == 'edit':
+        base_url = request.form.get('base_url', '').strip()
+        path = request.form.get('path', '').strip()
+        method = request.form.get('method', 'POST').upper()
+        input_json = request.form.get('input', '').strip()
+        output_json = request.form.get('output', '').strip()
+        
+        # 处理 input JSON 模板
+        if input_json:
+            try:
+                input_data = json.loads(input_json)
+                config.input = input_data
+            except json.JSONDecodeError:
+                flash('Invalid input JSON format')
+                return render_template('edit_api_config.html', config=config)
+                
+        # 处理 output JSON 模板
+        if output_json:
+            try:
+                output_data = json.loads(output_json)
+                config.output = output_data
+            except json.JSONDecodeError:
+                flash('Invalid output JSON format')
+                return render_template('edit_api_config.html', config=config)
+        
+        # 更新配置
+        config.base_url = base_url
+        config.path = path
+        config.method = method
+        db.session.commit()
+        
+        # 记录API配置更新
+        log_access(f"Updated {config.service_type} API configuration", f"ID: {config_id}, URL: {base_url}{path}")
+        flash('Configuration updated successfully!')
+        return redirect(url_for('verify.api_config_form', service_type=config.service_type))
+    
+    return render_template('edit_api_config.html', config=config)
+
+# API配置删除
+@verifyBP.route('/config/delete/<int:config_id>')
+def delete_api_config(config_id):
+    if not _must_convener():
+        return 'Only O‑Convener can configure APIs', 403
+        
+    inst_id = session['user_id']
+    config = APIConfig.query.filter_by(id=config_id, institution_id=inst_id).first_or_404()
+    service_type = config.service_type
+    
+    # 记录删除操作
+    log_access(f"Deleted {service_type} API configuration", f"ID: {config_id}, URL: {config.base_url}{config.path}")
+    
+    # 删除配置
+    db.session.delete(config)
+    db.session.commit()
+    
+    flash('Configuration deleted successfully!')
+    return redirect(url_for('verify.api_config_form', service_type=service_type))
 
 # ------------------------------------------------------------
 # 2. 单条学生认证 /verify/student

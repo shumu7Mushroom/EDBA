@@ -14,8 +14,4 @@ class APIConfig(db.Model):
     output        = db.Column(JSON)   # 👈 返回模板（可选，用来做校验或文档）
     created_at    = db.Column(db.DateTime, server_default=db.func.now())
 
-
-    # 保证 (institution_id, service_type) 唯一
-    __table_args__ = (
-        db.UniqueConstraint('institution_id', 'service_type', name='uk_inst_service'),
-    )
+    # 移除唯一约束，支持多个API配置

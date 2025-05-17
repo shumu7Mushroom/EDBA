@@ -89,7 +89,7 @@ def search_thesis():
     global thesis_results
     thesis_results = filtered
 
-    log_access(f"教师搜索论文关键词：{keywords}")  # ✅ 记录行为
+    log_access(f"Teacher search thesis with key words: {keywords}")  # ✅ 记录行为
 
     return render_template('teacher_dashboard.html', teacher=teacher, theses=thesis_results)
 
@@ -185,9 +185,9 @@ def purchase_thesis():
         teacher.thesis_quota -= thesis.price
         with db.auto_commit():
             db.session.add(teacher)
-        log_access(f"教师 {teacher.name} 下载《{title}》，扣除 {thesis.price} 单位")
+        log_access(f"Teacher {teacher.name} download《{title}》，deduction {thesis.price} amount")
     else:
-        log_access(f"教师 {teacher.name} 下载免费论文《{title}》")
+        log_access(f"Teacher {teacher.name} download free thesis《{title}》")
 
     session['download_path'] = pdf_path
     session['download_title'] = title
@@ -198,7 +198,7 @@ def purchase_thesis():
 def refresh_data():
     user_id = session.get('user_id')
     if not user_id:
-        flash("请先登录")
+        flash("Please login first")
         return redirect(url_for('user.login'))
 
     db.session.expire_all()

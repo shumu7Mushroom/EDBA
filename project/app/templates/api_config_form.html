@@ -1,40 +1,109 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ service_type|upper }} 接口配置</title>
+    <title>{{ service_type|upper }} API Configuration</title>
     <style>
         body{font-family:Arial;margin:40px;}
         label{display:inline-block;width:120px;}
-        input[type=text]{width:60%;}
+        input[type=text], textarea{width:60%;}
+        textarea{height:150px;font-family:monospace;resize:vertical;}
         .msg{color:green;}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .config-list {
+            margin-bottom: 30px;
+        }
+        .add-new {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+        h3 {
+            margin-bottom: 15px;
+            color: #555;
+        }
     </style>
 </head>
 <body>
-    <h2>{{ service_type|upper }} 接口配置</h2>
+    <h2>{{ service_type|upper }} API Configuration</h2>
 
-    {% if message %}<p class="msg">{{ message }}</p>{% endif %}
+    {% if messages %}<p class="msg">{{ messages[-1] }}</p>{% endif %}
 
-    <form method="POST">
-        <p><label>Base URL：</label>
-           <input type="text" name="base_url" required
-                  value="{{ cfg.base_url if cfg else '' }}"></p>
+    <!-- 显示现有配置列表 -->
+    <div class="config-list">
+        <h3>Existing Configurations</h3>
+        {% if configs %}
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Base URL</th>
+                    <th>Path</th>
+                    <th>Method</th>
+                    <th>Actions</th>
+                </tr>
+                {% for config in configs %}
+                <tr>
+                    <td>{{ config.id }}</td>
+                    <td>{{ config.base_url }}</td>
+                    <td>{{ config.path }}</td>
+                    <td>{{ config.method }}</td>
+                    <td>
+                        <a href="{{ url_for('verify.edit_api_config', config_id=config.id) }}">Edit</a> |
+                        <a href="{{ url_for('verify.delete_api_config', config_id=config.id) }}" onclick="return confirm('Are you sure you want to delete this configuration?')">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No configurations yet. Add one below.</p>
+        {% endif %}
+    </div>
 
-        <p><label>Path：</label>
-           <input type="text" name="path" required
-                  value="{{ cfg.path if cfg else '' }}"></p>
+    <!-- 添加新配置表单 -->
+    <div class="add-new">
+        <h3>Add New Configuration</h3>
+        <form method="POST">
+            <input type="hidden" name="action" value="add">
+            
+            <p><label>Base URL:</label>
+            <input type="text" name="base_url" required></p>
 
-        <p><label>Method：</label>
-           <select name="method">
-               {% for m in ['POST','GET'] %}
-                   <option value="{{ m }}"
-                       {% if cfg and cfg.method==m %}selected{% endif %}>{{ m }}</option>
-               {% endfor %}
-           </select></p>
+            <p><label>Path:</label>
+            <input type="text" name="path" required></p>
 
-        <button type="submit">保存</button>
-    </form>
+            <p><label>Method:</label>
+            <select name="method">
+                {% for m in ['POST','GET'] %}
+                    <option value="{{ m }}">{{ m }}</option>
+                {% endfor %}
+            </select></p>
+            
+            <p><label>Input Template:</label>
+            <textarea name="input" placeholder='{"name":"{{name}}","id":"{{id}}","photo":"{{photo}}"}'></textarea>
+            <br><small>Request JSON template. Use {{variable}} for placeholders.</small>
+            </p>
 
-    <p><a href="{{ url_for('oconvener.dashboard') }}">← 返回工作区</a></p>
+            <p><label>Output Template:</label>
+            <textarea name="output" placeholder='{"name":"{{string}}","enroll_year":"{{string}}","status":"y"}'></textarea>
+            <br><small>Response JSON template (optional). Used for validation and documentation.</small>
+            </p>
+
+            <button type="submit">Add Configuration</button>
+        </form>
+    </div>
+
+    <p><a href="{{ url_for('oconvener.dashboard') }}">← Back to Dashboard</a></p>
 </body>
 </html>

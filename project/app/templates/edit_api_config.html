@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit API Configuration</title>
+    <style>
+        body{font-family:Arial;margin:40px;}
+        label{display:inline-block;width:120px;}
+        input[type=text], textarea{width:60%;}
+        textarea{height:150px;font-family:monospace;resize:vertical;}
+        .msg{color:green;}
+    </style>
+</head>
+<body>
+    <h2>Edit {{ config.service_type|upper }} API Configuration</h2>
+
+    {% if messages %}<p class="msg">{{ messages[-1] }}</p>{% endif %}
+
+    <form method="POST">
+        <input type="hidden" name="action" value="edit">
+        
+        <p><label>Base URL:</label>
+        <input type="text" name="base_url" required value="{{ config.base_url }}"></p>
+
+        <p><label>Path:</label>
+        <input type="text" name="path" required value="{{ config.path }}"></p>
+
+        <p><label>Method:</label>
+        <select name="method">
+            {% for m in ['POST','GET'] %}
+                <option value="{{ m }}" {% if config.method == m %}selected{% endif %}>{{ m }}</option>
+            {% endfor %}
+        </select></p>
+        
+        <p><label>Input Template:</label>
+        <textarea name="input" placeholder='{"name":"{{name}}","id":"{{id}}","photo":"{{photo}}"}'>{{ config.input|tojson if config.input else '' }}</textarea>
+        <br><small>Request JSON template. Use {{variable}} for placeholders.</small>
+        </p>
+
+        <p><label>Output Template:</label>
+        <textarea name="output" placeholder='{"name":"{{string}}","enroll_year":"{{string}}","status":"y"}'>{{ config.output|tojson if config.output else '' }}</textarea>
+        <br><small>Response JSON template (optional). Used for validation and documentation.</small>
+        </p>
+
+        <button type="submit">Update Configuration</button>
+    </form>
+
+    <p><a href="{{ url_for('verify.api_config_form', service_type=config.service_type) }}">← Back to Configuration List</a></p>
+</body>
+</html>
