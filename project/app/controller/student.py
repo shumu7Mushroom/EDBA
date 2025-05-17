@@ -92,6 +92,11 @@ def purchase_thesis():
         flash("Thesis not found")
         return redirect(url_for('student.dashboard'))
 
+    # 限制 access_level=1 只能预览，不能下载
+    if student.access_level == 1:
+        flash("Your permission level only allows you to preview, not download this thesis.")
+        return redirect(url_for('student.dashboard'))
+
     pdf_filename = thesis.pdf_path
     if not os.path.isabs(pdf_filename):
         pdf_filename = os.path.join(current_app.config['UPLOAD_FOLDER'], pdf_filename)
