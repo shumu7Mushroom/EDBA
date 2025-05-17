@@ -8,10 +8,15 @@ class Teacher(Human):
     organization = Column(String(100), default="")
     access_level = Column(Integer, default=3)
     thesis_quota = Column(Integer, default=100)
+    from sqlalchemy import Boolean
+    thesis_enabled = Column(Boolean, default=False)
+    course_enabled = Column(Boolean, default=False)
 
-    def __init__(self, name, age, major, email, password, organization="", access_level=3, thesis_quota=100):
+    def __init__(self, name, age, major, email, password, organization="", access_level=3, thesis_quota=100, thesis_enabled=False, course_enabled=False):
         super(Teacher,self).__init__(name, age, email, password)
         self.major = major
         self.organization = organization
         self.access_level = access_level
         self.thesis_quota = thesis_quota
+        self.thesis_enabled = thesis_enabled
+        self.course_enabled = course_enabled

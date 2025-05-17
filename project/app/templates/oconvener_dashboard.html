@@ -159,12 +159,14 @@
 <h3>Manage Students</h3>
 <table>
     <tr>
-        <th style="width: 15%;">Name</th>
-        <th style="width: 20%;">Email</th>
-        <th style="width: 10%;">Access</th>
-        <th style="width: 10%;">Quota</th>
-        <th style="width: 20%;">Organization</th>
-        <th style="width: 25%;">Actions</th>
+        <th style="width: 12%;">Name</th>
+        <th style="width: 16%;">Email</th>
+        <th style="width: 8%;">Access</th>
+        <th style="width: 8%;">Quota</th>
+        <th style="width: 14%;">Organization</th>
+        <th style="width: 10%;">Thesis</th>
+        <th style="width: 10%;">Course</th>
+        <th style="width: 22%;">Actions</th>
     </tr>
     {# access_level=2 单独显示 #}
     {% for s in students if s.access_level == 2 %}
@@ -181,11 +183,17 @@
         <td>
                 <input type="text" name="organization" value="{{ s.organization }}">
         </td>
+        <td style="text-align:center;">
+            <input type="checkbox" name="thesis_enabled" value="1" {% if s.thesis_enabled %}checked{% endif %}>
+        </td>
+        <td style="text-align:center;">
+            <input type="checkbox" name="course_enabled" value="1" {% if s.course_enabled %}checked{% endif %}>
+        </td>
         <td class="action-cell">
-                <button type="submit" class="update-btn">Update</button>
+                <button type="submit" class="update-btn">✔️ Update</button>
             </form>
             <form method="post" action="{{ url_for('oconvener.delete_user', user_type='student', user_id=s.id) }}" onsubmit="return confirm('Are you sure you want to delete this student?')" style="display:inline;">
-                <button type="submit" class="update-btn delete-btn">Delete</button>
+                <button type="submit" class="update-btn delete-btn">🗑 Delete</button>
             </form>
         </td>
     </tr>
@@ -195,61 +203,86 @@
     {% set level1_students = students|selectattr('access_level', 'equalto', 1)|list %}
     {% if level1_students|length > 0 %}
     <tr>
-        <td colspan="6">
-            <button onclick="toggleLevel1()" id="toggle-btn" style="background:#6c757d;color:white;padding:6px 14px;border:none;border-radius:6px;cursor:pointer;">Show/Hide Level 1 Students ({{ level1_students|length }})</button>
-            <div id="level1-list" style="display:none;margin-top:10px;">
-                <!-- 批量操作表格格式说明 -->
-                <div style="margin-bottom:10px;">
-                </div>
-                <form id="batch-form" method="post" action="{{ url_for('oconvener.batch_update_students') }}">
-                  <table style="width:100%;background:#f8f9fa;">
-                    <tr>
-                      <th><input type="checkbox" id="select-all" onclick="toggleAllLevel1(this)"></th>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Quota</th>
-                      <th>Organization</th>
-                      <th>Actions</th>
-                    </tr>
-                    <!-- 批量操作输入行 -->
-                    <tr style="background:#e9ecef;">
-                      <td colspan="2"><strong>Batch Edit:</strong></td>
-                      <td></td>
-                      <td><input type="number" name="batch_thesis_quota" placeholder="Quota" style="width:80px;"></td>
-                      <td><input type="text" name="batch_organization" placeholder="Organization" style="width:120px;"></td>
-                      <td>
-                        <button type="button" onclick="batchUpdateLevel1()" class="update-btn">Batch Update</button>
-                        <button type="button" onclick="batchDeleteLevel1()" class="update-btn delete-btn">Batch Delete</button>
-                      </td>
-                    </tr>
-                    {% for s in level1_students %}
-                    <tr>
-                      <td><input type="checkbox" class="level1-checkbox" value="{{ s.id }}"></td>
-                      <td>{{ s.name }}</td>
-                      <td>{{ s.email }}</td>
-                      <td>{{ s.thesis_quota }}</td>
-                      <td>{{ s.organization }}</td>
-                      <td>
-                        <!-- 只保留单独删除表单 -->
-                        <form method="post" action="{{ url_for('oconvener.delete_user', user_type='student', user_id=s.id) }}" style="display:inline;" onsubmit="return confirm('Delete this student?');">
-                          <button type="submit" class="update-btn delete-btn">Delete</button>
-                        </form>
-                      </td>
-                    </tr>
-                    {% endfor %}
-                  </table>
-                  <input type="hidden" name="batch_ids" id="batch-ids">
-                  <input type="hidden" name="batch_action" id="batch-action">
-                  <input type="hidden" name="batch_quota" id="batch-quota">
-                  <input type="hidden" name="batch_org" id="batch-org">
-                </form>
-                <div style="margin-top:10px;">
-                  <em>Batch operation: wildcard <b>*@</b> for all level 1 students.</em>
+        <td colspan="8">
+            <div style="background-color: #eef2f5; padding: 15px; border-radius: 10px;">
+                <button onclick="toggleLevel1()" id="toggle-btn" style="background:#6c757d;color:white;padding:8px 16px;border:none;border-radius:6px;cursor:pointer;margin-bottom:10px;">
+                    Show Level 1 Students ({{ level1_students|length }})
+                </button>
+
+                <div id="level1-list" style="display:none;">
+                    <form id="batch-form" method="post" action="{{ url_for('oconvener.batch_update_students') }}">
+                        <table style="width:100%; border: 1px solid #ccc; border-radius: 6px; overflow: hidden;">
+                            <thead>
+                                <tr style="background-color: #007bff; color: white;">
+                                    <th><input type="checkbox" id="select-all" onclick="toggleAllLevel1(this)"></th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Quota</th>
+                                    <th>Organization</th>
+                                    <th colspan="2">Access</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="background-color: #e2e6ea;">
+                                    <td colspan="2"><strong>Batch Edit:</strong></td>
+                                    <td></td>
+                                    <td><input type="number" name="batch_thesis_quota" placeholder="Quota" style="width: 80px;"></td>
+                                    <td><input type="text" name="batch_organization" placeholder="Organization" style="width: 140px;"></td>
+                                    <td colspan="2" style="text-align: center;">
+                                        <label><input type="checkbox" name="batch_thesis_enabled" value="1"> Thesis</label>
+                                        <label style="margin-left: 10px;"><input type="checkbox" name="batch_course_enabled" value="1"> Course</label>
+                                    </td>
+                                    <td>
+                                        <button type="button" onclick="batchUpdateLevel1()" class="update-btn">✔️ Update</button>
+                                        <button type="button" onclick="batchDeleteLevel1()" class="update-btn delete-btn">🗑 Delete</button>
+                                    </td>
+                                </tr>
+
+                                {% for s in level1_students %}
+                                <tr>
+                                    <td><input type="checkbox" class="level1-checkbox" value="{{ s.id }}"></td>
+                                    <td>{{ s.name }}</td>
+                                    <td>{{ s.email }}</td>
+                                    <td>{{ s.thesis_quota }}</td>
+                                    <td>{{ s.organization }}</td>
+                                    <td style="text-align:center;">
+                                        {% if s.thesis_enabled %}
+                                            <span style="color: #28a745; font-weight: bold;">✔</span>
+                                        {% else %}
+                                            <span style="color: #dc3545; font-weight: bold;">✖</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="text-align:center;">
+                                        {% if s.course_enabled %}
+                                            <span style="color: #28a745; font-weight: bold;">✔</span>
+                                        {% else %}
+                                            <span style="color: #dc3545; font-weight: bold;">✖</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form method="post" action="{{ url_for('oconvener.delete_user', user_type='student', user_id=s.id) }}" style="display:inline;" onsubmit="return confirm('Delete this student?');">
+                                            <button type="submit" class="update-btn delete-btn">🗑 Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+
+                        <input type="hidden" name="batch_ids" id="batch-ids">
+                        <input type="hidden" name="batch_action" id="batch-action">
+                        <input type="hidden" name="batch_quota" id="batch-quota">
+                        <input type="hidden" name="batch_org" id="batch-org">
+                    </form>
+                    <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                        <em>💡 Use checkboxes to select students. Batch action affects selected rows only.</em>
+                    </div>
                 </div>
             </div>
         </td>
-        <td></td>
     </tr>
+
     {% endif %}
 </table>
 <script>
@@ -292,12 +325,14 @@ function batchDeleteLevel1() {
 <h3>Manage Teachers</h3>
 <table>
     <tr>
-        <th style="width: 15%;">Name</th>
-        <th style="width: 20%;">Email</th>
-        <th style="width: 10%;">Access</th>
-        <th style="width: 10%;">Quota</th>
-        <th style="width: 20%;">Organization</th>
-        <th style="width: 25%;">Actions</th>
+        <th style="width: 12%;">Name</th>
+        <th style="width: 16%;">Email</th>
+        <th style="width: 8%;">Access</th>
+        <th style="width: 8%;">Quota</th>
+        <th style="width: 14%;">Organization</th>
+        <th style="width: 10%;">Thesis</th>
+        <th style="width: 10%;">Course</th>
+        <th style="width: 22%;">Actions</th>
     </tr>
     {% for t in teachers %}
     <tr>
@@ -313,11 +348,17 @@ function batchDeleteLevel1() {
         <td>
                 <input type="text" name="organization" value="{{ t.organization }}">
         </td>
+        <td style="text-align:center;">
+            <input type="checkbox" name="thesis_enabled" value="1" {% if t.thesis_enabled %}checked{% endif %}>
+        </td>
+        <td style="text-align:center;">
+            <input type="checkbox" name="course_enabled" value="1" {% if t.course_enabled %}checked{% endif %}>
+        </td>
         <td class="action-cell">
-                <button type="submit" class="update-btn">Update</button>
+                <button type="submit" class="update-btn">✔️ Update</button>
             </form>
             <form method="post" action="{{ url_for('oconvener.delete_user', user_type='teacher', user_id=t.id) }}" onsubmit="return confirm('Are you sure you want to delete this teacher?')" style="display:inline;">
-                <button type="submit" class="update-btn delete-btn">Delete</button>
+                <button type="submit" class="update-btn delete-btn">🗑 Delete</button>
             </form>
         </td>
     </tr>

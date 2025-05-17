@@ -148,6 +148,9 @@ def update_user(user_type, user_id):
     user.organization = request.form.get('organization')
     user.access_level = int(request.form.get('access_level', 2))
     user.thesis_quota = int(request.form.get('thesis_quota', 0))
+    # 新增功能权限字段
+    user.thesis_enabled = bool(request.form.get('thesis_enabled'))
+    user.course_enabled = bool(request.form.get('course_enabled'))
 
     db.session.commit()
     log_access(f"O-Convener updated user permission: {user_type} ID {user_id}")  # Log action
@@ -435,6 +438,8 @@ def batch_update_students():
         return redirect(url_for('oconvener.dashboard'))
 
     if action == 'update':
+        thesis_enabled = request.form.get('batch_thesis_enabled')
+        course_enabled = request.form.get('batch_course_enabled')
         for sid in id_list:
             student = Student.query.get(sid)
             if student:
@@ -442,6 +447,15 @@ def batch_update_students():
                     student.thesis_quota = int(quota)
                 if org:
                     student.organization = org
+                # 支持批量勾选/取消勾选
+                if thesis_enabled is not None:
+                    student.thesis_enabled = True
+                else:
+                    student.thesis_enabled = False
+                if course_enabled is not None:
+                    student.course_enabled = True
+                else:
+                    student.course_enabled = False
         db.session.commit()
         flash(f"Batch update success for {len(id_list)} students")
     elif action == 'delete':

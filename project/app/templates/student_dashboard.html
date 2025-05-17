@@ -154,29 +154,33 @@
 
 <!-- Functional Buttons -->
 <div class="button-group">
-  {% if student.access_level >= 1 %}
-  <a href="{{ url_for('course.view_courses') }}">
-    <button class="btn-info">View Courses</button>
-  </a>
-  {% endif %}
-  {% if student.access_level >= 2 %}
-  <a href="{{ url_for('course.list_courses') }}">
-    <button class="btn-success">Manage Courses</button>
-  </a>
+  {% if student.course_enabled %}
+    {% if student.access_level >= 1 %}
+    <a href="{{ url_for('course.view_courses') }}">
+      <button class="btn-info">View Courses</button>
+    </a>
+    {% endif %}
+    {% if student.access_level >= 2 %}
+    <a href="{{ url_for('course.list_courses') }}">
+      <button class="btn-success">Manage Courses</button>
+    </a>
+    {% endif %}
   {% endif %}
 </div>
 
 <!-- Search Thesis -->
 <section>
-  <h3>Search Thesis</h3>
-  <form method="post" action="{{ url_for('student.search_thesis') }}">
-    <input type="text" name="keywords" placeholder="Enter keywords" required>
-    <button type="submit" class="btn-primary">Search</button>
-  </form>
+  {% if student.thesis_enabled %}
+    <h3>Search Thesis</h3>
+    <form method="post" action="{{ url_for('student.search_thesis') }}">
+      <input type="text" name="keywords" placeholder="Enter keywords" required>
+      <button type="submit" class="btn-primary">Search</button>
+    </form>
+  {% endif %}
 </section>
 
 <!-- Search Results -->
-{% if theses %}
+{% if student.thesis_enabled and theses %}
 <section>
   <h3>Search Results</h3>
   <ul>

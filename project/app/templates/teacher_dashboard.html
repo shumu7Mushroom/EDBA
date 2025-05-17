@@ -171,15 +171,17 @@
 
 <!-- Action Buttons -->
 <div class="button-group">
-  {% if teacher.access_level >= 1 %}
-  <a href="{{ url_for('course.view_courses') }}">
-    <button class="btn-info">View Courses</button>
-  </a>
-  {% endif %}
-  {% if teacher.access_level >= 2 %}
-  <a href="{{ url_for('course.list_courses') }}">
-    <button class="btn-success">Manage Courses</button>
-  </a>
+  {% if teacher.course_enabled %}
+    {% if teacher.access_level >= 1 %}
+    <a href="{{ url_for('course.view_courses') }}">
+      <button class="btn-info">View Courses</button>
+    </a>
+    {% endif %}
+    {% if teacher.access_level >= 2 %}
+    <a href="{{ url_for('course.list_courses') }}">
+      <button class="btn-success">Manage Courses</button>
+    </a>
+    {% endif %}
   {% endif %}
   {% if teacher.access_level >= 3 %}
   <a href="{{ url_for('verify.score_query') }}">
@@ -187,23 +189,26 @@
   </a>
   {% endif %}
 
-  <!-- 新增我的论文按钮 -->
-  <a href="{{ url_for('teacher.my_thesis') }}">
-    <button class="btn-primary">My Thesis</button>
-  </a>
+  {% if teacher.thesis_enabled %}
+    <a href="{{ url_for('teacher.my_thesis') }}">
+      <button class="btn-primary">My Thesis</button>
+    </a>
+  {% endif %}
 </div>
 
 <!-- Search Thesis -->
 <section>
-  <h3>Search Thesis</h3>
-  <form method="post" action="{{ url_for('teacher.search_thesis') }}">
-    <input type="text" name="keywords" placeholder="Enter keywords" required>
-    <button type="submit" class="btn-primary">Search</button>
-  </form>
+  {% if teacher.thesis_enabled %}
+    <h3>Search Thesis</h3>
+    <form method="post" action="{{ url_for('teacher.search_thesis') }}">
+      <input type="text" name="keywords" placeholder="Enter keywords" required>
+      <button type="submit" class="btn-primary">Search</button>
+    </form>
+  {% endif %}
 </section>
 
 <!-- Search Results -->
-{% if theses %}
+{% if teacher.thesis_enabled and theses %}
 <section>
   <h3>Search Results</h3>
   <ul>
@@ -231,6 +236,7 @@
 {% endif %}
 
 <!-- Upload Thesis -->
+{% if teacher.thesis_enabled %}
 <section>
   <h3>Upload Thesis</h3>
   <form method="post" action="{{ url_for('teacher.upload_thesis') }}" enctype="multipart/form-data">
@@ -240,6 +246,7 @@
     <button type="submit" class="btn-success">Upload</button>
   </form>
 </section>
+{% endif %}
 
 <!-- Auto-hide Flash -->
 <script>
