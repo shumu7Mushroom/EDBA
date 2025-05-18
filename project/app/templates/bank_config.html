@@ -1,24 +1,60 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2>设置会费和收款银行账户</h2>
+{% if msg %}
+<div class="alert alert-success">{{ msg }}</div>
+{% endif %}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h4>当前账户余额: {{ config.balance if config else 0 }} CNY</h4>
+    </div>
+</div>
+
 <form method="POST">
-    <div class="form-group">
-        <label>银行名称</label>
-        <input type="text" name="bank_name" value="{{ config.bank_name if config else 'EDBA Bank' }}" class="form-control">
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>银行账户信息</h4>
+        </div>
+        <div class="card-body">
+            <div class="form-group">
+                <label>银行名称</label>
+                <input type="text" name="bank_name" value="{{ config.bank_name if config else 'FutureLearn Federal Bank' }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>账户名称</label>
+                <input type="text" name="account_name" value="{{ config.account_name if config else 'Utopia Credit Union' }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>银行账号</label>
+                <input type="text" name="bank_account" value="{{ config.bank_account if config }}" required class="form-control">
+            </div>
+            <div class="form-group">
+                <label>银行密码</label>
+                <input type="password" name="bank_password" value="{{ config.bank_password if config }}" required class="form-control">
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label>账户名称</label>
-        <input type="text" name="account_name" value="{{ config.account_name if config else 'EDBA System' }}" class="form-control">
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4>会费设置</h4>
+        </div>
+        <div class="card-body">            <div class="form-group">
+                <label>Level 1 访问级别费用</label>
+                <input type="number" name="level1_fee" value="{{ config.level1_fee if config else 20 }}" required class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Level 2 访问级别费用</label>
+                <input type="number" name="level2_fee" value="{{ config.level2_fee if config else 50 }}" required class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Level 3 访问级别费用</label>
+                <input type="number" name="level3_fee" value="{{ config.level3_fee if config else 100 }}" required class="form-control">
+            </div>
+        </div>
     </div>
-    <div class="form-group">
-        <label>银行账号</label>
-        <input type="text" name="bank_account" value="{{ config.bank_account if config }}" required class="form-control">
-    </div>
-    <div class="form-group">
-        <label>会费金额</label>
-        <input type="number" name="fee" value="{{ config.fee if config }}" required class="form-control">
-    </div>
-    <button type="submit" class="btn btn-primary">保存</button>
+    
+    <button type="submit" class="btn btn-primary">保存配置</button>
 </form>
-{% if msg %}<div class="alert">{{ msg }}</div>{% endif %}
 {% endblock %}

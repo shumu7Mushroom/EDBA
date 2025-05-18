@@ -1,4 +1,3 @@
-
 from sqlalchemy import Column, String, Boolean, Integer
 from app.models.base import Base
 
@@ -13,7 +12,6 @@ class OConvener(Base):
     status_text = Column(String(20), default='pending')  # pending/approved/rejected
     code = Column(String(10))  # 存储验证码（临时）
     verified = Column(Boolean, default=False)  # 是否通过邮箱验证
-    is_pay = Column(Boolean, default=False)  # 是否已缴纳会费
 
     def jsonstr(self):
         return {

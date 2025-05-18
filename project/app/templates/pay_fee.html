@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
-<div class="container mt-4">
-    <h2>支付会费</h2>
+<div class="main-container">
+    <h2>Organization Fee Payment</h2>
     
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -9,53 +9,105 @@
                 <div class="alert alert-{{ category }}">{{ message }}</div>
             {% endfor %}
         {% endif %}
-    {% endwith %}
-
+    {% endwith %}    <!-- Display Unpaid Users -->
     <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Unpaid Members in {{ organization }}</span>
+            <div>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="selectAll()">Select All</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="deselectAll()">Deselect All</button>
+            </div>
+        </div>
         <div class="card-body">
-            <h5>收款信息</h5>
-            <table class="table">
-                <tr>
-                    <th>收款银行：</th>
-                    <td>{{ config.bank_name or 'EDBA Bank' }}</td>
-                </tr>
-                <tr>
-                    <th>收款账户：</th>
-                    <td>{{ config.account_name or 'EDBA System' }}</td>
-                </tr>
-                <tr>
-                    <th>收款账号：</th>
-                    <td>{{ config.bank_account }}</td>
-                </tr>
-                <tr>
-                    <th>应付金额：</th>
-                    <td>{{ config.fee }} 元</td>
-                </tr>
-            </table>
+            <form method="POST" id="paymentForm">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Select</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Type</th>
+                            <th>Access Level</th>
+                            <th>Fee</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in unpaid_users %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="selected_users" value="{{ user.id }}" class="user-checkbox" data-fee="{{ user.fee }}" onchange="updateTotal()">
+                            </td>
+                            <td>{{ user.name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.type }}</td>
+                            <td>Level {{ user.access_level }}</td>
+                            <td>{{ user.fee }} CNY</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="table-info">
+                            <th colspan="5">Total Fee:</th>
+                            <td><strong id="totalFee">0 CNY</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <input type="hidden" name="total_amount" id="totalAmount" value="0">
+            </form>
         </div>
     </div>
 
-    <div class="card">
+    <script>
+    function updateTotal() {
+        let total = 0;
+        document.querySelectorAll('.user-checkbox:checked').forEach(checkbox => {
+            total += parseInt(checkbox.dataset.fee);
+        });
+        document.getElementById('totalFee').textContent = total + ' CNY';
+        document.getElementById('totalAmount').value = total;
+    }
+
+    function selectAll() {
+        document.querySelectorAll('.user-checkbox').forEach(checkbox => {
+            checkbox.checked = true;
+        });
+        updateTotal();
+    }
+
+    function deselectAll() {
+        document.querySelectorAll('.user-checkbox').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateTotal();
+    }
+    </script>
+
+    <!-- Display Receiving Bank Information -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Receiving Bank Information</span>
+            <a href="{{ url_for('bank_config.bank_api_config') }}" class="btn btn-primary btn-sm">
+                Configure Bank API
+            </a>
+        </div>
         <div class="card-body">
-            <form method="POST">
-                <div class="mb-3">
-                    <label class="form-label">支付银行</label>
-                    <input type="text" name="bank" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">账户名称</label>
-                    <input type="text" name="account_name" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">银行账号</label>
-                    <input type="text" name="account_number" class="form-control" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">支付密码</label>
-                    <input type="password" name="password" class="form-control" required>
-                </div>
-                <button type="submit" class="btn btn-primary">确认支付</button>
-            </form>
+            <table class="table">
+                <tr>
+                    <th>Receiving Bank:</th>
+                    <td>{{ config.bank_name or eadmin_config.bank_name }}</td>
+                </tr>
+                <tr>
+                    <th>Receiving Account:</th>
+                    <td>{{ config.account_name or eadmin_config.account_name }}</td>
+                </tr>
+                <tr>
+                    <th>Bank Account Number:</th>
+                    <td>{{ config.bank_account or eadmin_config.bank_account }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>    <!-- Payment Button -->
+    <div class="card">
+        <div class="card-body text-center">
+            <button type="submit" form="paymentForm" class="btn btn-primary">Confirm Payment for Selected Members</button>
         </div>
     </div>
 </div>
