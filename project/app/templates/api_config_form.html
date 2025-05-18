@@ -4,39 +4,157 @@
     <meta charset="UTF-8">
     <title>{{ service_type|upper }} API Configuration</title>
     <style>
-        body{font-family:Arial;margin:40px;}
-        label{display:inline-block;width:120px;}
-        input[type=text], textarea{width:60%;}
-        textarea{height:150px;font-family:monospace;resize:vertical;}
-        .msg{color:green;}
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f4f6f8;
+            margin: 0;
+            padding: 0;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+        .main-container {
+            background: #fff;
+            max-width: 900px;
+            margin: 40px auto 0 auto;
+            border-radius: 14px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 36px 40px 32px 40px;
         }
-        th {
-            background-color: #f2f2f2;
-        }
-        .config-list {
-            margin-bottom: 30px;
-        }
-        .add-new {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid #eee;
+        h2 {
+            color: #2d3a4b;
+            margin-bottom: 18px;
+            text-align: center;
+            letter-spacing: 1px;
         }
         h3 {
             margin-bottom: 15px;
-            color: #555;
+            color: #007bff;
+            font-weight: 500;
+        }
+        .msg {
+            color: #28a745;
+            background: #eafbe7;
+            border: 1px solid #b7e4c7;
+            border-radius: 5px;
+            padding: 8px 16px;
+            margin-bottom: 18px;
+            text-align: center;
+            font-size: 15px;
+        }
+        .config-list {
+            margin-bottom: 36px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0 0 0;
+            background: #fafbfc;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        th, td {
+            border-bottom: 1px solid #eaeaea;
+            padding: 12px 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        td a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 4px;
+        }
+        td a:hover {
+            text-decoration: underline;
+        }
+        .add-new {
+            margin-top: 36px;
+            padding-top: 24px;
+            border-top: 2px solid #e3e6ea;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            color: #444;
+            font-weight: 500;
+            vertical-align: top;
+        }
+        input[type=text], textarea, select {
+            width: 60%;
+            padding: 8px 10px;
+            border: 1px solid #cfd8dc;
+            border-radius: 5px;
+            font-size: 15px;
+            margin-bottom: 8px;
+            background: #f8fafb;
+            transition: border 0.2s;
+        }
+        input[type=text]:focus, textarea:focus, select:focus {
+            border: 1.5px solid #007bff;
+            outline: none;
+            background: #fff;
+        }
+        textarea {
+            height: 120px;
+            font-family: 'Fira Mono', 'Consolas', monospace;
+            resize: vertical;
+        }
+        small {
+            color: #888;
+            margin-left: 120px;
+            display: block;
+            margin-bottom: 8px;
+        }
+        button[type="submit"] {
+            background: linear-gradient(90deg, #007bff 60%, #0056b3 100%);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 28px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.2s;
+            box-shadow: 0 2px 8px rgba(0,123,255,0.07);
+        }
+        button[type="submit"]:hover {
+            background: linear-gradient(90deg, #0056b3 60%, #007bff 100%);
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 32px;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+        .back-link:hover {
+            color: #0056b3;
+            text-decoration: underline;
+        }
+        @media (max-width: 700px) {
+            .main-container {
+                padding: 18px 6vw 18px 6vw;
+            }
+            input[type=text], textarea, select {
+                width: 98%;
+            }
+            label, small {
+                width: 100%;
+                margin-left: 0;
+            }
         }
     </style>
 </head>
 <body>
+<div class="main-container">
     <h2>{{ service_type|upper }} API Configuration</h2>
 
     {% if messages %}<p class="msg">{{ messages[-1] }}</p>{% endif %}
@@ -67,7 +185,7 @@
                 {% endfor %}
             </table>
         {% else %}
-            <p>No configurations yet. Add one below.</p>
+            <p style="color:#888;">No configurations yet. Add one below.</p>
         {% endif %}
     </div>
 
@@ -92,18 +210,19 @@
             
             <p><label>Input Template:</label>
             <textarea name="input" placeholder='{"name":"{{name}}","id":"{{id}}","photo":"{{photo}}"}'></textarea>
-            <br><small>Request JSON template. Use {{variable}} for placeholders.</small>
+            <small>Request JSON template. Use <code>{{"{{variable}}"}}</code> for placeholders.</small>
             </p>
 
             <p><label>Output Template:</label>
             <textarea name="output" placeholder='{"name":"{{string}}","enroll_year":"{{string}}","status":"y"}'></textarea>
-            <br><small>Response JSON template (optional). Used for validation and documentation.</small>
+            <small>Response JSON template (optional). Used for validation and documentation.</small>
             </p>
 
             <button type="submit">Add Configuration</button>
         </form>
     </div>
 
-    <p><a href="{{ url_for('oconvener.dashboard') }}">← Back to Dashboard</a></p>
+    <a class="back-link" href="{{ url_for('oconvener.dashboard') }}">← Back to Dashboard</a>
+</div>
 </body>
 </html>
