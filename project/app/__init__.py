@@ -1,8 +1,13 @@
-from flask import Flask
-from app.controller import book, student, teacher, user, admin, oconvener, log, verify, home, senior_admin, t_admin, course, help
+from flask import Flask, render_template, request, session, redirect, url_for, flash
 from flask_mail import Mail
 from flask_migrate import Migrate
+from flask import Blueprint
 import os
+from app.controller import book, student, teacher, user, admin, oconvener, log, verify, home, senior_admin, t_admin, course, help
+
+from app.models.base import db
+from app.models.bank_config import BankConfig
+
 mail = Mail()
 
 # 定义注册蓝图方法
@@ -20,14 +25,13 @@ def register_blueprints(app):
     app.register_blueprint(t_admin.tadminBP,url_prefix='/tadmin')
     app.register_blueprint(course.courseBP,url_prefix='/course')
     app.register_blueprint(help.helpBP, url_prefix='/help')
+    app.register_blueprint(bankConfigBP, url_prefix='/bank_config')
 
 # 注册插件(数据库关联)
 def register_plugin(app):
-    from app.models.base import db
     db.init_app(app)
-    # create_all要放到app上下文环境中使用
-    Migrate(app, db)  # ✅ 注册 Migrate
-    mail.init_app(app)  # ✅ 初始化 Mail
+    Migrate(app, db)
+    mail.init_app(app)
     with app.app_context():
         db.create_all()
 
@@ -50,3 +54,58 @@ def create_app():
     register_plugin(app)
     # 一定要记得返回app
     return app
+
+# 定义银行配置蓝图
+bankConfigBP = Blueprint('bank_config', __name__)
+
+@bankConfigBP.route('/api', methods=['GET', 'POST'])
+def bank_api_config():
+    if session.get('user_role') != 'convener':
+        return redirect(url_for('oconvener.login'))
+        
+    # 获取当前用户ID
+    user_id = session.get('user_id')
+    
+    if request.method == 'POST':
+        # 根据user_id查找现有配置
+        config = BankConfig.query.filter_by(user_id=user_id).first()
+        
+        if not config:
+            # 如果找不到对应配置，创建新配置
+            config = BankConfig()
+            config.user_id = user_id  # 设置user_id
+        
+        # 保存基本API配置
+        config.base_url = request.form.get('base_url', '').strip()
+        config.auth_path = request.form.get('auth_path', '').strip()
+        config.transfer_path = request.form.get('transfer_path', '').strip()
+        
+        # 保存o-convener API配置
+        config.bank_name = request.form.get('bank', '').strip()
+        config.account_name = request.form.get('account_name', '').strip()
+        config.bank_account = request.form.get('account_number', '').strip()
+        config.bank_password = request.form.get('password', '').strip()
+        
+        # 保存输入模板到api_config
+        config.api_config = {
+            'input_template': {
+                'bank': request.form.get('bank'),
+                'account_name': request.form.get('account_name'),
+                'account_number': request.form.get('account_number'),
+                'password': request.form.get('password')
+            }
+        }
+        
+        try:
+            db.session.add(config)
+            db.session.commit()
+            flash('银行 API 配置已添加/更新', 'success')
+            return redirect(url_for('oconvener.pay_fee'))
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error saving config: {str(e)}")  # 添加调试日志
+            flash(f'保存配置失败: {str(e)}', 'error')
+    
+    # 对于GET请求，尝试获取当前用户的现有配置
+    config = BankConfig.query.filter_by(user_id=user_id).first()
+    return render_template('bank_api_config.html', config=config)

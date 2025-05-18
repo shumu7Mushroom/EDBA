@@ -22,26 +22,37 @@ def bank_config():
     
     config = BankConfig.query.first()
     msg = None
-    
     if request.method == 'POST':
         bank_name = request.form.get('bank_name', 'EDBA Bank')
         account_name = request.form.get('account_name', 'EDBA System')
         bank_account = request.form['bank_account']
-        fee = int(request.form['fee'])
+        bank_password = request.form['bank_password']
+        
+        # 获取各级别费用设置
+        level1_fee = request.form.get('level1_fee', 20)
+        level2_fee = request.form.get('level2_fee', 50)
+        level3_fee = request.form.get('level3_fee', 100)
         
         if not config:
             config = BankConfig(
                 bank_name=bank_name,
                 account_name=account_name,
                 bank_account=bank_account,
-                fee=fee
+                bank_password=bank_password,
+                level1_fee=level1_fee,
+                level2_fee=level2_fee,
+                level3_fee=level3_fee,
+                balance=0
             )
             db.session.add(config)
         else:
             config.bank_name = bank_name
             config.account_name = account_name
             config.bank_account = bank_account
-            config.fee = fee
+            config.bank_password = bank_password
+            config.level1_fee = level1_fee
+            config.level2_fee = level2_fee
+            config.level3_fee = level3_fee
             
         db.session.commit()
         msg = "银行账户和会费配置已更新。"
