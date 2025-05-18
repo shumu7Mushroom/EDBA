@@ -283,6 +283,7 @@ def upload_members():
 
     if request.method == 'POST':
         # === 单个成员添加逻辑 ===
+
         if 'single_submit' in request.form:
             try:
                 name = request.form['name'].strip()
@@ -290,15 +291,21 @@ def upload_members():
                 access_level = int(request.form['access_level'])
                 quota = int(request.form['thesis_quota'])
                 user_type = request.form['type'].strip().lower()
+                password = request.form.get('password', '').strip()
 
                 if user_type == 'student':
                     user = Student.query.filter_by(email=email).first()
                     if not user:
-                        user = Student(name, 0, "", email, "123456", org, access_level, quota)
+                        # 如果填写了密码则用填写的，否则用默认123456
+                        user_password = password if password else "123456"
+                        user = Student(name, 0, "", email, user_password, org, access_level, quota)
                     else:
                         user.access_level = access_level
                         user.thesis_quota = quota
                         user.organization = org
+                        # 如果填写了密码则更新
+                        if password:
+                            user.password = password
                     db.session.add(user)
 
                 elif user_type == 'teacher':

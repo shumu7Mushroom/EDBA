@@ -132,10 +132,21 @@
         .api-link:hover {
             background-color: #138496;
         }
+        
+        .main-container {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            padding: 3vw 4vw 3vw 4vw;
+            width: 85vw;
+            min-width: 320px;
+            min-height: 85vh;
+            margin: 0 auto 3vw auto;
+        }
     </style>
 </head>
 <body>
-
+<div class="main-container">
 <div class="top-bar">
     <h2>Welcome, {{ name }} (O-Convener)</h2>
     <a class="logout-link" href="{{ url_for('oconvener.login') }}">Logout</a>
@@ -364,6 +375,6 @@ function batchDeleteLevel1() {
     </tr>
     {% endfor %}
 </table>
-
+</div>
 </body>
 </html>
