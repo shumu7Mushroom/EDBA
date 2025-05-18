@@ -106,21 +106,21 @@
 </style>
 
 <div class="help-reply-container">
-  <h2>📩 回复帮助请求 #{{ question.id }}</h2>
-  <div class="help-info"><strong>用户类型:</strong> {{ question.user_type }}</div>
-  <div class="help-info"><strong>用户ID:</strong> {{ question.user_id }}</div>
-  <div class="help-content"><strong>请求内容:</strong><br>{{ question.content }}</div>
-  <div class="help-status"><strong>状态:</strong> {{ question.status }}</div>
+  <h2>📩 Reply to Help Request #{{ question.id }}</h2>
+  <div class="help-info"><strong>User Type:</strong> {{ question.user_type }}</div>
+  <div class="help-info"><strong>User ID:</strong> {{ question.user_id }}</div>
+  <div class="help-content"><strong>Request Content:</strong><br>{{ question.content }}</div>
+  <div class="help-status"><strong>Status:</strong> {{ question.status }}</div>
   <div class="admin-reply-block{% if not question.admin_reply %} empty{% endif %}">
-    <strong>管理员回复:</strong> {{ question.admin_reply or '暂无回复' }}
+    <strong>Admin Reply:</strong> {{ question.admin_reply or 'No reply yet' }}
   </div>
   <form class="reply-form" method="post" action="{{ url_for('help.reply_help_request', id=question.id) }}">
-    <label for="reply">你的回复：</label>
-    <textarea id="reply" name="reply" required placeholder="请输入你的回复内容..."></textarea>
+    <label for="reply">Your Reply:</label>
+    <textarea id="reply" name="reply" required placeholder="Please enter your reply..."></textarea>
     <div style="display:flex;justify-content:flex-end;gap:16px;margin-top:4px;">
-      <button type="submit">✔️ 提交回复</button>
+      <button type="submit">✔️ Submit Reply</button>
       <a href="{{ url_for('help.view_help_requests') }}" style="text-decoration:none;">
-        <button type="button" class="reply-form-btn" style="background:linear-gradient(135deg,#6c757d,#adb5bd);color:white;border:none;border-radius:6px;padding:8px 22px;font-size:1em;cursor:pointer;font-weight:bold;letter-spacing:1px;">↩️ 返回帮助请求列表</button>
+        <button type="button" class="reply-form-btn" style="background:linear-gradient(135deg,#6c757d,#adb5bd);color:white;border:none;border-radius:6px;padding:8px 22px;font-size:1em;cursor:pointer;font-weight:bold;letter-spacing:1px;">↩️ Back to Help Requests</button>
       </a>
     </div>
   </form>
