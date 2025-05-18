@@ -2,60 +2,139 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Access Log</title>
+    <title>System Access Log</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 30px;
+            background-color: #f4f6f8;
+            padding: 40px;
         }
-        h2 {
+
+        .top-header {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+            position: relative;
+        }
+        .logout {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .top-header h2 {
+            color: #333;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
             text-align: center;
         }
-        p {
-            text-align: center;
-            color: red;
+
+        .logout a {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
         }
-        form {
-            margin-top: 20px;
-            text-align: center;
+
+        .logout a:hover {
+            background-color: #c82333;
         }
-        input, select {
-            padding: 6px;
-            margin: 5px;
+
+        .filter-form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 30px;
         }
+
+        .filter-form input,
+        .filter-form select,
+        .filter-form button {
+            padding: 8px 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .filter-form button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .filter-form button:hover {
+            background-color: #0056b3;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
-        table, th, td {
-            border: 1px solid #ccc;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
+
         th, td {
-            padding: 10px;
+            padding: 12px 14px;
+            border-bottom: 1px solid #eee;
             text-align: center;
+            font-size: 14px;
         }
-        .logout {
-            float: right;
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        p {
+            text-align: center;
+            color: #d9534f;
             margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <h2>System Access Log</h2>
+
+    <div class="top-header">
+        <h2>📊 System Access Log</h2>
+        <div class="logout">
+            {% if session['user_role'] == 'convener' %}
+                <a href="{{ url_for('oconvener.dashboard') }}">Return</a>
+            {% else %}
+                <a href="{{ url_for('admin.dashboard') }}">Return</a>
+            {% endif %}
+        </div>
+    </div>
 
     {% if error %}
         <p>{{ error }}</p>
     {% endif %}
 
-    <div class="logout">
-        <a href="{{ url_for('admin.logout') }}">Log Out</a>
-    </div>
-
-    <form method="get" action="{{ url_for('log.view_logs') }}">
+    <form method="get" action="{{ url_for('log.view_logs') }}" class="filter-form">
         <input type="text" name="user" placeholder="Username" value="{{ request.args.get('user', '') }}">
         <select name="role">
             <option value="">Role</option>
@@ -65,11 +144,15 @@
             <option value="eadmin" {% if request.args.get('role') == 'eadmin' %}selected{% endif %}>E-Admin</option>
             <option value="senior" {% if request.args.get('role') == 'senior' %}selected{% endif %}>Senior-Admin</option>
         </select>
-        <input type="text" name="organization" placeholder="Organization" value="{{ request.args.get('organization', '') }}">
+        {% if session['user_role'] == 'convener' %}
+            <input type="text" name="organization" value="{{ session['user_org'] }}" readonly style="background:#f4f6f8;color:#888;cursor:not-allowed;">
+        {% else %}
+            <input type="text" name="organization" placeholder="Organization" value="{{ request.args.get('organization', '') }}">
+        {% endif %}
         <input type="text" name="action" placeholder="Action keyword" value="{{ request.args.get('action', '') }}">
         <input type="date" name="start_time" value="{{ request.args.get('start_time', '') }}">
         <input type="date" name="end_time" value="{{ request.args.get('end_time', '') }}">
-        <button type="submit">Filter</button>
+        <button type="submit">🔍 Filter</button>
     </form>
 
     <table>
@@ -83,7 +166,7 @@
                 <th>Action</th>
                 <th>Target</th>
                 <th>Time</th>
-                <th>IP Address</th>
+                <th>IP</th>
             </tr>
         </thead>
         <tbody>

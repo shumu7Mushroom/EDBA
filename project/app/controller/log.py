@@ -56,7 +56,7 @@ def view_logs():
 
     # 权限控制逻辑
     if user_role == 'convener':
-        # 强制只能查看本组织日志，忽略用户输入的 org 参数
+        # O-Convener 只能看本组织日志，且过滤条件不允许自定义 organization
         filters.append(AccessLog.organization == user_org)
     else:
         # 管理员才允许按 org 过滤
