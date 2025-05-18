@@ -75,11 +75,36 @@
             gap: 10px;
             margin-top: 10px;
         }
+        .back-btn-top {
+            position: absolute;
+            top: 10px;
+            right: 22px;
+            background: #fff0f0;
+            color: #d32f2f;
+            border: 1px solid #f5bcbc;
+            border-radius: 6px;
+            padding: 5px 13px;
+            font-size: 13px;
+            font-weight: 500;
+            text-align: center;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(211,47,47,0.07);
+            transition: background 0.18s, color 0.18s;
+            z-index: 10;
+            letter-spacing: 0.5px;
+        }
+        .back-btn-top:hover {
+            background: #ffd6d6;
+            color: #b71c1c;
+        }
+        .container {
+            position: relative;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>{{ header }}</h2>
+        <h2>{{ header }}O-Convener Registration</h2>
         <form method="post" enctype="multipart/form-data">
             <label>Org Full Name:</label>
             <input type="text" name="org_fullname" required>
@@ -98,7 +123,8 @@
             <div class="button-row">
                 <button type="submit">Register</button>
                 <button class="btn-secondary" type="button" onclick="sendCode()">Send Verification Code</button>
-            </div>    
+            </div>
+            <a href="{{ url_for('oconvener.login') }}" class="back-btn-top">← Return</a>
         </form>
     </div>
 
