@@ -105,7 +105,7 @@
 <div class="shelf-container">
   <div class="bookshelf">
     {% for rule in rules %}
-      <div class="book" data-url="{{ url_for('tadmin.download_rule', filename=rule.filename) }}">
+      <div class="book" data-url="{{ url_for('tadmin.download_rule', filename=rule.filename) }}" data-preview-url="{{ url_for('tadmin.preview_rule', filename=rule.filename) }}">
         <div class="book-title">{{ rule.title }}</div>
         <div class="book-desc">{{ rule.filename }}</div>
       </div>
@@ -120,8 +120,8 @@
 <script>
   document.querySelectorAll('.book').forEach(book => {
     book.addEventListener('click', () => {
-      const url = book.getAttribute('data-url');
-      if (url) window.location.href = url;
+      const previewUrl = book.getAttribute('data-preview-url');
+      if (previewUrl) window.open(previewUrl, '_blank');
     });
   });
 </script>

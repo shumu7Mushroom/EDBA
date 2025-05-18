@@ -86,3 +86,7 @@ def create_admin():
         return jsonify({"message": msg, "id": result['admin_id']}), 201
     else:
         return jsonify({"error": result['error']}), 400
+
+@tadminBP.route('/rule/preview/<filename>')
+def preview_rule(filename):
+    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)

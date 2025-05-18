@@ -129,16 +129,16 @@
 </div>
 
 <div class="form-section">
-  <h3>Upload New Rule File (PDF)</h3>
+  <h3>Upload New Policy File (PDF)</h3>
   <form method="POST" action="{{ url_for('tadmin.upload_rule') }}" enctype="multipart/form-data">
-    <input type="text" name="title" placeholder="Rule Title" required>
-    <textarea name="description" placeholder="Rule Description (optional)" rows="3"></textarea>
+    <input type="text" name="title" placeholder="Policy Title" required>
+    <textarea name="description" placeholder="Policy Description (optional)" rows="3"></textarea>
     <input type="file" name="rule_file" accept=".pdf" required>
-    <button type="submit">Upload Rule</button>
+    <button type="submit">Upload Policy</button>
   </form>
 </div>
 
-<h3>📚 Uploaded Rules</h3>
+<h3>📚 Uploaded Policies</h3>
 
 {% if rules %}
 <table>
@@ -156,6 +156,9 @@
     <td>
       <a href="{{ url_for('tadmin.download_rule', filename=rule.filename) }}" target="_blank">
         <button>Download</button>
+      </a>
+      <a href="{{ url_for('tadmin.preview_rule', filename=rule.filename) }}" target="_blank">
+        <button type="button" style="background-color:#17a2b8;">Preview</button>
       </a>
       <form method="post" action="{{ url_for('tadmin.delete_rule', rule_id=rule.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this rule?');">
         <button type="submit" class="danger-btn">Delete</button>
