@@ -483,7 +483,8 @@ from flask import flash
 def pay_fee():
     if 'user_id' not in session or session.get('user_role') != 'convener':
         return redirect(url_for('oconvener.login'))
-      convener = OConvener.query.get(session['user_id'])
+    
+    convener = OConvener.query.get(session['user_id'])
     
     # 获取当前用户的银行配置
     user_id = session.get('user_id')
