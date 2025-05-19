@@ -4,13 +4,121 @@
   <meta charset="UTF-8">
   <title>Student GPA Query</title>
   <style>
-      body {font-family:sans-serif;margin:40px;}
-      pre  {background:#f5f5f5;padding:12px;border:1px solid #ddd;}
+      body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #f4f6f8;
+        margin: 0;
+        padding: 0;
+      }
+      .main-container {
+        background: #fff;
+        max-width: 32vw;
+        margin: 48px auto 0 auto;
+        border-radius: 14px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        padding: 36px 40px 32px 40px;
+      }
+      h1 {
+        color: #2d3a4b;
+        margin-bottom: 28px;
+        text-align: center;
+        font-size: 1.6em;
+        letter-spacing: 1px;
+      }
+      .form-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 18px;
+      }
+      label {
+        flex: 0 0 110px;
+        color: #444;
+        font-weight: 500;
+        margin-bottom: 0;
+        text-align: right;
+        margin-right: 12px;
+      }
+      .form-input {
+        flex: 1;
+        min-width: 0;
+      }
+      select, input[type="text"] {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #cfd8dc;
+        border-radius: 6px;
+        font-size: 15px;
+        background: #f8fafb;
+        transition: border 0.2s;
+        margin-bottom: 0;
+      }
+      select:focus, input[type="text"]:focus {
+        border: 1.5px solid #007bff;
+        outline: none;
+        background: #fff;
+      }
+      button[type="submit"] {
+        background: linear-gradient(90deg, #007bff 60%, #0056b3 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 0;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        margin-bottom: 6px;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: 0 2px 12px rgba(0,123,255,0.10);
+        width: 100%;
+        letter-spacing: 1px;
+      }
+      button[type="submit"]:hover {
+        background: linear-gradient(90deg, #0056b3 60%, #007bff 100%);
+        box-shadow: 0 4px 18px rgba(0,123,255,0.13);
+      }
+      .back-btn {
+        display: block;
+        width: 100%;
+        background: #f3f7fa;
+        color: #007bff;
+        border: 1px solid #cfd8dc;
+        border-radius: 8px;
+        padding: 11px 0;
+        font-size: 15px;
+        font-weight: 500;
+        text-align: center;
+        text-decoration: none;
+        margin-top: 22px;
+        transition: background 0.18s, color 0.18s;
+      }
+      .back-btn:hover {
+        background: #e3eaf6;
+        color: #0056b3;
+      }
       .score-container {
-        margin-top: 20px;
+        background: #f5f8ff;
+        border: 1.5px solid #b3c6e0;
+        border-radius: 8px;
+        padding: 18px 16px 14px 16px;
+        margin-top: 32px;
+        font-size: 15px;
+        box-shadow: 0 2px 8px rgba(0,123,255,0.06);
       }
       .score-container h3 {
+        font-size: 1.18em;
+        color: #2d3a4b;
         margin-bottom: 10px;
+        margin-top: 0;
+        border-bottom: 1px solid #e3eaf6;
+        padding-bottom: 6px;
+      }
+      .score-summary {
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #e7f3ff;
+        border-left: 4px solid #0066cc;
+        border-radius: 6px;
       }
       .score-table {
         width: 100%;
@@ -25,62 +133,73 @@
       .score-table th {
         background-color: #f2f2f2;
       }
-      .score-summary {
-        margin-top: 20px;
-        padding: 10px;
-        background-color: #e7f3ff;
-        border-left: 4px solid #0066cc;
-      }
       .batch-upload {
         margin-top: 30px;
         padding: 20px;
         background-color: #f9f9f9;
         border-radius: 5px;
       }
+      @media (max-width: 600px) {
+        .main-container {
+          padding: 18px 4vw 18px 4vw;
+        }
+        .form-row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        label {
+          text-align: left;
+          margin-bottom: 6px;
+          margin-right: 0;
+        }
+      }
   </style>
 </head>
 <body>
-  <h1>Student GPA Query</h1>
+  <div class="main-container">
+    <h1>Student GPA Query</h1>
 
-  {# ---------- flash ---------- #}
-  {% with msgs = get_flashed_messages() %}
-    {% if msgs %}
-      <ul style="color:red">
-        {% for m in msgs %}
-          <li>{{ m }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
-
-  <form method="post" action="{{ url_for('verify.score_query') }}">
-      API:
-      <select name="api_choice">
-          <option value="auto"
-                  {% if api_choice == 'auto' %}selected{% endif %}>
-              Auto (try all)
-          </option>
-          {% for c in configs %}
-              <option value="{{ c.id }}"
-                {% if c.id|string == api_choice %}selected{% endif %}>
-                  {{ c.service_type }} ({{ c.path }})
-              </option>
+    {% with msgs = get_flashed_messages() %}
+      {% if msgs %}
+        <div class="flash-msg">
+          {% for m in msgs %}
+            <div>{{ m }}</div>
           {% endfor %}
-      </select><br><br>
+        </div>
+      {% endif %}
+    {% endwith %}
 
-      Name: <input type="text" name="name"
-                 value="{{ name|default('') }}" required><br><br>
-
-      Student ID: <input type="text" name="id"
-                 value="{{ stu_id|default('') }}" required><br><br>
-
+    <form method="post" action="{{ url_for('verify.score_query') }}">
+      <div class="form-row">
+        <label for="api_choice">API:</label>
+        <div class="form-input">
+          <select name="api_choice" id="api_choice">
+            <option value="auto" {% if api_choice == 'auto' %}selected{% endif %}>Auto (try all)</option>
+            {% for c in configs %}
+              <option value="{{ c.id }}" {% if c.id|string == api_choice %}selected{% endif %}>{{ c.service_type }} ({{ c.path }})</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="name">Name:</label>
+        <div class="form-input">
+          <input type="text" id="name" name="name" value="{{ name|default('') }}" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="stu_id">Student ID:</label>
+        <div class="form-input">
+          <input type="text" id="stu_id" name="id" value="{{ stu_id|default('') }}" required>
+        </div>
+      </div>
       <button type="submit">Query GPA</button>
-  </form>
+    </form>
 
-  {% if result %}
-    <div class="score-container">
-      <h3>Query Result</h3>
-      <p><strong>Source:</strong> {{ source }}</p>
+    {% if result %}
+      <div class="score-container">
+        <h3>Query Result</h3>
+        <p><strong>Source:</strong> {{ source }}</p>
         {% if result.status in ['y', 'success'] %}
         <div class="score-summary">
           <p><strong>Student:</strong> {{ result.name }} ({{ result.id }})</p>
@@ -90,7 +209,6 @@
           <p><strong>Rank:</strong> {{ result.rank }}</p>
           {% endif %}
         </div>
-        
         {% if result.courses %}
         <h4>Course Details</h4>
         <table class="score-table">
@@ -117,24 +235,20 @@
         </table>
         {% endif %}
       {% elif result.status == 'error' %}
-        <div style="background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin-top: 15px;">
+        <div style="background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; margin-top: 15px; border-radius: 6px;">
           <p style="color: #721c24;"><strong>Error:</strong> {{ result.message }}</p>
-          
           <h4>Debug Info:</h4>
-          <ul>
+          <ul style="font-size:13px;">
             {% if result.url %}
             <li><strong>API URL:</strong> {{ result.url }}</li>
             {% endif %}
-            
             {% if result.payload %}
             <li><strong>Request Payload:</strong> {{ result.payload }}</li>
             {% endif %}
-            
             {% if result.content %}
             <li><strong>Response Content:</strong> {{ result.content }}</li>
             {% endif %}
           </ul>
-          
           <p>Please contact the administrator to check API configuration and connection status.</p>
           <p style="margin-top: 10px;"><em>Tip: Try using the test server (/api/score) instead of the production server path.</em></p>
         </div>
@@ -142,15 +256,18 @@
         <pre>{{ result | tojson | safe }}</pre>
       {% endif %}
     </div>
-  {% endif %}
+    {% endif %}
 
-  <div class="batch-upload">
-    <h3>Batch Query</h3>
-    <form method="post" action="{{ url_for('verify.score_batch') }}" enctype="multipart/form-data">
-      <p>Upload Excel file with columns: name, id</p>
-      <input type="file" name="file" accept=".xlsx" required><br><br>
-      <button type="submit">Batch Query</button>
-    </form>
+    <div class="batch-upload">
+      <h3>Batch Query</h3>
+      <form method="post" action="{{ url_for('verify.score_batch') }}" enctype="multipart/form-data">
+        <p>Upload Excel file with columns: name, id</p>
+        <input type="file" name="file" accept=".xlsx" required><br><br>
+        <button type="submit">Batch Query</button>
+      </form>
+    </div>
+
+    <a href="{{ url_for('teacher.dashboard') if session.get('user_role') == 'teacher' else url_for('oconvener.dashboard') }}" class="back-btn">← Back to Dashboard</a>
   </div>
 </body>
 </html>

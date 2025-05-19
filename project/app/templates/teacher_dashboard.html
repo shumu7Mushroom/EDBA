@@ -182,11 +182,8 @@
       <button class="btn-success">Manage Courses</button>
     </a>
     <!-- 学生身份验证功能入口，仅 access_level >= 2 可见 -->
-    <a href="{{ url_for('teacher.verify_identity') }}">
+    <a href="{{ url_for('verify.student_query') }}">
       <button class="btn-secondary">Verify One Student Identity</button>
-    </a>
-    <a href="{{ url_for('teacher.verify_identity_batch') }}">
-      <button class="btn-secondary">Batch Verify Student Identities</button>
     </a>
     {% endif %}
   {% endif %}

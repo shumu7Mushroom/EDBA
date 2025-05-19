@@ -182,7 +182,7 @@
 </head>
 <body>
   <div class="main-container">
-    <h1>Student Identity Verification / Score Query</h1>
+    <h1>Student Identity Verification</h1>
 
     {# ---------- flash ---------- #}
     {% with msgs = get_flashed_messages() %}
@@ -237,7 +237,7 @@
       </div>
     {% endif %}
 
-    <a href="{{ url_for('oconvener.dashboard') }}" class="back-btn">← Back to Dashboard</a>
+    <a href="{{ url_for('teacher.dashboard') if session.get('user_role') == 'teacher' else url_for('oconvener.dashboard') }}" class="back-btn">← Back to Dashboard</a>
   </div>
 </body>
 </html>
