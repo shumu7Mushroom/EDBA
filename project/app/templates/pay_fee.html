@@ -1,5 +1,20 @@
 {% extends 'base.html' %}
 {% block content %}
+  <style>
+    body { background-color: #f4f6f8; font-family: 'Segoe UI', sans-serif; margin: 0; }
+    .main-container { max-width: 900px; margin: 60px auto; padding: 40px 30px; background: #ffffff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .card { border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .card-header { background-color: #007bff; color: #fff; padding: 12px 20px; border-bottom: none; border-radius: 8px 8px 0 0; }
+    .card-body { padding: 20px; }
+    .btn-primary { background: linear-gradient(135deg, #4facfe, #00f2fe); border: none; color: #fff; transition: background 0.3s ease, transform 0.2s; }
+    .btn-primary:hover { background: linear-gradient(135deg, #3a8edb, #00c5dc); transform: translateY(-1px); }
+    .btn-secondary { background: #6c757d; border: none; color: white; }
+    .btn-secondary:hover { background: #5a6268; }
+    table.table { width: 100%; border-collapse: collapse; }
+    table.table th, table.table td { padding: 12px; }
+    .table-info { background-color: #e9f7fd; }
+  </style>
+
 <div class="main-container">
     <h2>Organization Fee Payment</h2>
     

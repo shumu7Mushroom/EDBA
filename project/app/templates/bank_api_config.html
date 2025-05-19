@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="main-container">
-    <h2>银行 API 配置</h2>
+    <h2>Bank API Configuration</h2>
 
     <form method="POST" class="mt-4">
         <div class="mb-3">
@@ -9,34 +9,35 @@
             <input type="text" name="base_url" class="form-control" value="{{ config.base_url if config else 'http://172.16.160.88:8001' }}" required>
         </div>
 
-        <div class="mb-3">            <label class="form-label">认证路径 (auth_path)</label>
+        <div class="mb-3">
+            <label class="form-label">Authentication Path (auth_path)</label>
             <input type="text" name="auth_path" class="form-control" value="{{ config.auth_path if config else '/hw/bank/authenticate' }}" required placeholder="/hw/bank/authenticate">
         </div>
 
         <div class="mb-3">
-            <label class="form-label">转账路径 (transfer_path)</label>
+            <label class="form-label">Transfer Path (transfer_path)</label>
             <input type="text" name="transfer_path" class="form-control" value="{{ config.transfer_path if config else '/hw/bank/transfer' }}" required placeholder="/hw/bank/transfer">
         </div>
 
         <div class="mb-3">
-            <h4>o-convener API 配置</h4>
+            <h4>o-convener API Configuration</h4>
             <div class="ms-4">
-                <label class="form-label">银行名称 (bank)</label>
+                <label class="form-label">Bank Name (bank)</label>
                 <input type="text" name="bank" class="form-control" value="{{ config.api_config['input_template']['bank'] if config and config.api_config and 'bank' in config.api_config['input_template'] else '' }}" required>
 
-                <label class="form-label mt-2">账户名称 (account_name)</label>
+                <label class="form-label mt-2">Account Name (account_name)</label>
                 <input type="text" name="account_name" class="form-control" value="{{ config.api_config['input_template']['account_name'] if config and config.api_config and 'account_name' in config.api_config['input_template'] else '' }}" required>
 
-                <label class="form-label mt-2">账户号码 (account_number)</label>
+                <label class="form-label mt-2">Account Number (account_number)</label>
                 <input type="text" name="account_number" class="form-control" value="{{ config.api_config['input_template']['account_number'] if config and config.api_config and 'account_number' in config.api_config['input_template'] else '' }}" required>
 
-                <label class="form-label mt-2">密码 (password)</label>
+                <label class="form-label mt-2">Password (password)</label>
                 <input type="password" name="password" class="form-control" value="{{ config.api_config['input_template']['password'] if config and config.api_config and 'password' in config.api_config['input_template'] else '' }}" required>
             </div>
         </div>
 
-        <button type="submit" class="btn btn-primary">保存配置</button>
-        <a href="{{ url_for('oconvener.pay_fee') }}" class="btn btn-secondary">返回支付</a>
+        <button type="submit" class="btn btn-primary">Save Configuration</button>
+        <a href="{{ url_for('oconvener.pay_fee') }}" class="btn btn-secondary">Return to Payment</a>
     </form>
 </div>
 {% endblock %}
