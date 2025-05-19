@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Batch Identity Verification Result</title>
+  <style>
+    body {font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0;}
+    .main-container {background: #fff; max-width: 40vw; margin: 48px auto 0 auto; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 36px 40px 32px 40px;}
+    h1 {color: #2d3a4b; margin-bottom: 28px; text-align: center; font-size: 1.6em; letter-spacing: 1px;}
+    table {width: 100%; border-collapse: collapse; margin-top: 18px; background: #fff;}
+    th, td {padding: 10px 12px; border-bottom: 1px solid #eee; text-align: left;}
+    th {background-color: #007bff; color: white;}
+    tr:nth-child(even) {background-color: #f9f9f9;}
+    .success {color: #28a745; font-weight: bold;}
+    .fail {color: #dc3545; font-weight: bold;}
+    .missing {color: #ffc107; font-weight: bold;}
+    .back-btn {display: block; width: 100%; background: #f3f7fa; color: #007bff; border: 1px solid #cfd8dc; border-radius: 8px; padding: 11px 0; font-size: 15px; font-weight: 500; text-align: center; text-decoration: none; margin-top: 22px; transition: background 0.18s, color 0.18s;}
+    .back-btn:hover {background: #e3eaf6; color: #0056b3;}
+    .summary {margin-bottom: 20px; padding: 15px; background: #f0f7ff; border-radius: 5px;}
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h1>Batch Identity Verification Result</h1>
+    {% if results %}
+    <div class="summary">
+      <h3>Summary</h3>
+      <p>Total records: {{ results|length }}</p>
+      {% set success_count = results|selectattr('status', 'equalto', 'y')|list|length %}
+      {% set fail_count = results|selectattr('status', 'equalto', 'fail')|list|length %}
+      {% set missing_count = results|selectattr('status', 'equalto', 'missing')|list|length %}
+      <p>Success: <span class="success">{{ success_count }}</span> |
+         Failed: <span class="fail">{{ fail_count }}</span> |
+         Incomplete: <span class="missing">{{ missing_count }}</span></p>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Student ID</th>
+          <th>Status</th>
+          <th>Major</th>
+          <th>Info</th>
+          <th>Error</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          <td>{{ r.name }}</td>
+          <td>{{ r.id }}</td>
+          <td class="{{ r.status }}">
+            {% if r.status == 'y' %}Success
+            {% elif r.status == 'fail' %}Failed
+              {% if r.error_message %}<br><small>({{ r.error_message }})</small>{% endif %}
+            {% elif r.status == 'missing' %}Incomplete
+            {% else %}{{ r.status }}{% endif %}
+          </td>
+          <td>{{ r.major if r.major else '-' }}</td>
+          <td>{{ r.info if r.info else '-' }}</td>
+          <td>{% if r.error_message %}{{ r.error_message }}{% else %}-{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    <a href="{{ url_for('verify.student_query') }}" class="back-btn">← Back to Identity Verification</a>
+  </div>
+</body>
+</html>

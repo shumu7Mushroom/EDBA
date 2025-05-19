@@ -237,6 +237,15 @@
       </div>
     {% endif %}
 
+    <div class="batch-upload">
+      <h3>Batch Identity Verification</h3>
+      <form method="post" action="{{ url_for('verify.student_batch') }}" enctype="multipart/form-data">
+        <p>Upload Excel file with columns: name, id</p>
+        <input type="file" name="file" accept=".xlsx" required><br><br>
+        <button type="submit">Batch Verify</button>
+      </form>
+    </div>
+
     <a href="{{ url_for('teacher.dashboard') if session.get('user_role') == 'teacher' else url_for('oconvener.dashboard') }}" class="back-btn">← Back to Dashboard</a>
   </div>
 </body>
