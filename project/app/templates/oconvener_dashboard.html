@@ -190,13 +190,13 @@
         <td>{{ s.email }}</td>
         <td>
             <form method="post" action="{{ url_for('oconvener.update_user', user_type='student', user_id=s.id) }}">
-                <input type="number" name="access_level" value="{{ s.access_level }}" min="1" max="3" required>
+                <input type="number" name="access_level" value="{{ s.access_level }}" min="1" max="3" required readonly style="background:#f5f5f5;cursor:not-allowed;">
         </td>
         <td>
                 <input type="number" name="thesis_quota" value="{{ s.thesis_quota }}" required>
         </td>
         <td>
-                <input type="text" name="organization" value="{{ s.organization }}">
+                <input type="text" name="organization" value="{{ s.organization }}" readonly style="background:#f5f5f5;cursor:not-allowed;">
         </td>
         <td style="text-align:center;">
             <input type="checkbox" name="thesis_enabled" value="1" {% if s.thesis_enabled %}checked{% endif %}>
@@ -243,7 +243,7 @@
                                     <td colspan="2"><strong>Batch Edit:</strong></td>
                                     <td></td>
                                     <td><input type="number" name="batch_thesis_quota" placeholder="Quota" style="width: 80px;"></td>
-                                    <td><input type="text" name="batch_organization" placeholder="Organization" style="width: 140px;"></td>
+                                    <td><input type="text" name="batch_organization" placeholder="Organization" style="width: 140px;" readonly style="background:#f5f5f5;cursor:not-allowed;"></td>
                                     <td colspan="2" style="text-align: center;">
                                         <label><input type="checkbox" name="batch_thesis_enabled" value="1"> Thesis</label>
                                         <label style="margin-left: 10px;"><input type="checkbox" name="batch_course_enabled" value="1"> Course</label>
@@ -353,15 +353,14 @@ function batchDeleteLevel1() {
     <tr>
         <td>{{ t.name }}</td>
         <td>{{ t.email }}</td>
-        <td>
-            <form method="post" action="{{ url_for('oconvener.update_user', user_type='teacher', user_id=t.id) }}">
-                <input type="number" name="access_level" value="{{ t.access_level }}" min="1" max="3" required>
+        <td>            <form method="post" action="{{ url_for('oconvener.update_user', user_type='teacher', user_id=t.id) }}">
+                <input type="number" name="access_level" value="{{ t.access_level }}" min="1" max="3" required readonly style="background:#f5f5f5;cursor:not-allowed;">
         </td>
         <td>
                 <input type="number" name="thesis_quota" value="{{ t.thesis_quota }}" required>
         </td>
         <td>
-                <input type="text" name="organization" value="{{ t.organization }}">
+                <input type="text" name="organization" value="{{ t.organization }}" readonly style="background:#f5f5f5;cursor:not-allowed;">
         </td>
         <td style="text-align:center;">
             <input type="checkbox" name="thesis_enabled" value="1" {% if t.thesis_enabled %}checked{% endif %}>
