@@ -1,3 +1,7 @@
+# 查询单个学生记录（GPA/成绩/身份）
+from app.models.api_config import APIConfig
+import pandas as pd
+import requests
 from flask import Blueprint, render_template, request, session, flash, send_file, redirect, url_for, current_app
 from werkzeug.utils import secure_filename
 import os
@@ -246,3 +250,120 @@ def download_pdf(filename):
     else:
         flash("File does not exist")
         return redirect(url_for('teacher.my_thesis'))
+
+
+# 查询单个学生记录
+@teacherBP.route('/query_student', methods=['GET', 'POST'])
+def query_student():
+    user_id = session.get('user_id')
+    teacher = Teacher.query.get(user_id)
+    if not teacher or teacher.access_level < 2:
+        flash('No permission')
+        return redirect(url_for('teacher.dashboard'))
+
+    # 获取本组织 O-Convener 的 API 配置
+    from app.models.o_convener import OConvener
+    convener = OConvener.query.filter_by(org_shortname=teacher.organization).first()
+    if not convener:
+        flash('No O-Convener found for your organization')
+        return redirect(url_for('teacher.dashboard'))
+    # 只查 score 类型的 API（学生成绩/记录查询）
+    configs = APIConfig.query.filter_by(institution_id=convener.id, service_type='score').all()
+
+    name = ''
+    stu_id = ''
+    result = None
+    api_choice = request.form.get('api_choice', 'auto') if request.method == 'POST' else 'auto'
+    if request.method == 'POST':
+        name = (request.form.get('name') or '').strip()
+        stu_id = (request.form.get('id') or '').strip()
+        if not name or not stu_id:
+            flash('Name / ID cannot be empty')
+        else:
+            payload = {'name': name, 'id': stu_id}
+            last_resp, last_cfg = None, None
+            cfg_list = configs if api_choice == 'auto' else [c for c in configs if str(c.id) == str(api_choice)]
+            for cfg in cfg_list:
+                try:
+                    url = cfg.base_url.rstrip('/') + cfg.path
+                    headers = {"Content-Type": "application/json"} if '/student/record' in cfg.path else None
+                    r = requests.post(url, json=payload, headers=headers, timeout=5) if headers else requests.post(url, data=payload, timeout=5)
+                    if r.status_code == 200:
+                        data = r.json()
+                        last_resp = data
+                        if data.get('status') in ('y', 'success') or 'gpa' in data:
+                            result = data
+                            break
+                    else:
+                        last_resp = {'status': 'error', 'message': f'API returned {r.status_code}'}
+                except Exception as e:
+                    last_resp = {'status': 'error', 'message': str(e)}
+            if result is None:
+                result = last_resp or {'status': 'not_found'}
+
+    return render_template('teacher_query_student.html', name=name, stu_id=stu_id, result=result, configs=configs, api_choice=api_choice)
+
+# 批量查询学生记录
+@teacherBP.route('/query_student_batch', methods=['GET', 'POST'])
+def query_student_batch():
+    user_id = session.get('user_id')
+    teacher = Teacher.query.get(user_id)
+    if not teacher or teacher.access_level < 2:
+        flash('No permission')
+        return redirect(url_for('teacher.dashboard'))
+
+    from app.models.o_convener import OConvener
+    convener = OConvener.query.filter_by(org_shortname=teacher.organization).first()
+    if not convener:
+        flash('No O-Convener found for your organization')
+        return redirect(url_for('teacher.dashboard'))
+    # 只查 score 类型的 API（学生成绩/记录查询）
+    configs = APIConfig.query.filter_by(institution_id=convener.id, service_type='score').all()
+
+    results = None
+    api_choice = request.form.get('api_choice', 'auto') if request.method == 'POST' else 'auto'
+    if request.method == 'POST':
+        file = request.files.get('file')
+        if not file:
+            flash('Please upload an Excel file')
+        else:
+            try:
+                df = pd.read_excel(file)
+            except Exception as e:
+                flash(f'Failed to read Excel file: {str(e)}')
+                return render_template('teacher_query_student_batch.html', results=None, configs=configs, api_choice=api_choice)
+            results = []
+            cfg_list = configs if api_choice == 'auto' else [c for c in configs if str(c.id) == str(api_choice)]
+            for _, row in df.iterrows():
+                name = str(row.get('name', '')).strip()
+                sid = str(row.get('id', '')).strip()
+                if not name or not sid:
+                    results.append({**row, 'status': 'missing'})
+                    continue
+                payload = {'name': name, 'id': sid}
+                ok = False
+                last_data = None
+                for cfg in cfg_list:
+                    try:
+                        url = cfg.base_url.rstrip('/') + cfg.path
+                        headers = {"Content-Type": "application/json"} if '/student/record' in cfg.path else None
+                        r = requests.post(url, json=payload, headers=headers, timeout=5) if headers else requests.post(url, data=payload, timeout=5)
+                        if r.status_code == 200:
+                            data = r.json()
+                            last_data = data
+                            if data.get('status') in ('y', 'success') or 'gpa' in data:
+                                results.append({**row, **data, 'status': 'y'})
+                                ok = True
+                                break
+                        else:
+                            last_data = {'status': 'fail', 'message': f'API returned {r.status_code}'}
+                    except Exception as e:
+                        last_data = {'status': 'fail', 'message': str(e)}
+                if not ok:
+                    error_result = {**row, 'status': 'fail'}
+                    if last_data and 'message' in last_data:
+                        error_result['error_message'] = last_data['message']
+                    results.append(error_result)
+
+    # 保证 configs 和 api_choice 始终传递到模板
+    return render_template('teacher_query_student_batch.html', results=results, configs=configs, api_choice=api_choice)

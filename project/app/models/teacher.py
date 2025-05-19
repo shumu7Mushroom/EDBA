@@ -11,8 +11,9 @@ class Teacher(Human):
     from sqlalchemy import Boolean
     thesis_enabled = Column(Boolean, default=False)
     course_enabled = Column(Boolean, default=False)
+    is_pay = Column(Boolean, default=False)  # 是否已缴费
 
-    def __init__(self, name, age, major, email, password, organization="", access_level=3, thesis_quota=100, thesis_enabled=False, course_enabled=False):
+    def __init__(self, name, age, major, email, password, organization="", access_level=3, thesis_quota=100, thesis_enabled=False, course_enabled=False, is_pay=False):
         super(Teacher,self).__init__(name, age, email, password)
         self.major = major
         self.organization = organization
@@ -20,3 +21,4 @@ class Teacher(Human):
         self.thesis_quota = thesis_quota
         self.thesis_enabled = thesis_enabled
         self.course_enabled = course_enabled
+        self.is_pay = is_pay

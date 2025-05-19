@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+  .main-container {
+    background: #fff;
+    max-width: 40vw;
+    margin: 48px auto 0 auto;
+    border-radius: 14px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 36px 40px 32px 40px;
+  }
+  h1 {
+    color: #2d3a4b;
+    margin-bottom: 28px;
+    text-align: center;
+    font-size: 1.6em;
+    letter-spacing: 1px;
+  }
+  .form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  label {
+    width: 120px;
+    font-weight: bold;
+    color: #444;
+    margin-right: 10px;
+  }
+  input[type="file"] {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 15px;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 500;
+    color: white;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  .result-box {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  th { background-color: #f2f2f2; }
+</style>
+<div class="main-container">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <h1 style="margin-bottom:0;">Batch Query Student Records</h1>
+    <a href="{{ url_for('teacher.dashboard') }}">
+      <button type="button" style="background:#6c757d;color:white;padding:8px 18px;border:none;border-radius:6px;cursor:pointer;margin-left:20px;">← Back to Dashboard</button>
+    </a>
+  </div>
+  {% with msgs = get_flashed_messages() %}
+    {% if msgs %}
+      <div class="alert alert-warning">{{ msgs[-1] }}</div>
+    {% endif %}
+  {% endwith %}
+  <form method="post" enctype="multipart/form-data">
+    {% if configs and configs|length > 0 %}
+    <div class="form-row">
+      <label>API:</label>
+      <select name="api_choice" style="flex:1;padding:8px 10px;border-radius:6px;border:1px solid #ccc;font-size:15px;">
+        <option value="auto" {% if api_choice=='auto' %}selected{% endif %}>Auto (try all)</option>
+        {% for c in configs %}
+        <option value="{{ c.id }}" {% if api_choice==c.id|string %}selected{% endif %}>{{ c.base_url }}{{ c.path }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <div class="form-row">
+      <label>Upload Excel (.xlsx):</label>
+      <input type="file" name="file" accept=".xlsx" required>
+    </div>
+    <button type="submit">Batch Query</button>
+  </form>
+  {% if results %}
+    <div class="result-box">
+      <h3>Batch Query Result</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Student ID</th>
+            <th>Status</th>
+            <th>GPA</th>
+            <th>Major</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+          <tr>
+            <td>{{ r.name }}</td>
+            <td>{{ r.id }}</td>
+            <td>
+              {% if r.status == 'y' %}Success{% elif r.status == 'fail' %}Failed{% elif r.status == 'missing' %}Incomplete{% else %}{{ r.status }}{% endif %}
+            </td>
+            <td>{{ r.gpa if r.gpa else '-' }}</td>
+            <td>
+              {% if r.major %}{{ r.major }}{% elif r.enroll_year %}{{ r.enroll_year }}-{{ r.graduation_year }} student{% else %}-{% endif %}
+            </td>
+            <td>
+              {% if r.courses %}{{ r.courses|length }} courses{% else %}-{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

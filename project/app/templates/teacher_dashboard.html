@@ -181,6 +181,13 @@
     <a href="{{ url_for('course.list_courses') }}">
       <button class="btn-success">Manage Courses</button>
     </a>
+    <!-- 学生记录查询功能入口，仅 access_level >= 2 可见 -->
+    <a href="{{ url_for('teacher.query_student') }}">
+      <button class="btn-secondary">Query One Student Record</button>
+    </a>
+    <a href="{{ url_for('teacher.query_student_batch') }}">
+      <button class="btn-secondary">Batch Query Student Records</button>
+    </a>
     {% endif %}
   {% endif %}
   {% if teacher.access_level >= 3 %}
