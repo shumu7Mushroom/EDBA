@@ -23,7 +23,7 @@ SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:@localhost:3306/edba_db?charset=
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 MAIL_SERVER = ''
-MAIL_PORT = 
+MAIL_PORT = ''
 MAIL_USE_SSL = True
 MAIL_USERNAME = ''
 MAIL_PASSWORD = ''
