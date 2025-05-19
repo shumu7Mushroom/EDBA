@@ -15,6 +15,7 @@ import requests
 from app.controller.log import log_access  # ✅ 添加日志记录函数
 import pandas as pd
 from app.models.bank_config import BankConfig  # 添加这行
+from app.models.E_admin import EAdmin  # 添加E-Admin模型
 
 oconvenerBP = Blueprint('oconvener', __name__)
 
@@ -486,40 +487,43 @@ def pay_fee():
     
     convener = OConvener.query.get(session['user_id'])
     
-    # 获取当前用户的银行配置
+    # Get sender's bank config (o-convener)
     user_id = session.get('user_id')
-    config = BankConfig.query.filter_by(user_id=user_id).first()
+    sender_config = BankConfig.query.filter_by(user_id=user_id).first()
     
-    # 如果没有特定用户的配置，则回退到默认配置
-    if not config:
-        config = BankConfig.query.first()
+    # If no user-specific config, fallback to default
+    if not sender_config:
+        sender_config = BankConfig.query.filter_by(user_id=None).first()
     
-    # 更全面的配置检查
-    if not config or not all([
-        config.bank_name, 
-        config.account_name, 
-        config.bank_account, 
-        config.bank_password,
-        config.base_url,
-        config.auth_path,
-        config.transfer_path
+    # Get receiver's bank config (E-admin, id=1)
+    receiver_config = BankConfig.query.get(1)
+    
+    # Check both sender and receiver configs
+    if not sender_config or not receiver_config or not all([
+        sender_config.bank_name, 
+        sender_config.account_name, 
+        sender_config.bank_account, 
+        sender_config.bank_password,
+        sender_config.base_url,
+        sender_config.auth_path,
+        sender_config.transfer_path
     ]):
         flash('未配置完整的银行API信息，请先配置银行API', 'error')
         return redirect(url_for('bank_config.bank_api_config'))
 
-    # 1. 获取该组织下未支付的学生和教师
+    # Get unpaid students and teachers
     students = Student.query.filter_by(organization=convener.org_shortname, is_pay=0).all()
     teachers = Teacher.query.filter_by(organization=convener.org_shortname, is_pay=0).all()
     
-    # 2. 准备未支付用户列表
+    # Prepare unpaid users list
     unpaid_users = []
     
-    # 获取E-Admin设置的各级别费用
-    level1_fee = config.level1_fee if config.level1_fee is not None else 20
-    level2_fee = config.level2_fee if config.level2_fee is not None else 50
-    level3_fee = config.level3_fee if config.level3_fee is not None else 100
+    # Get fee levels from the default BankConfig (id=1)
+    level1_fee = receiver_config.level1_fee if receiver_config.level1_fee is not None else 2
+    level2_fee = receiver_config.level2_fee if receiver_config.level2_fee is not None else 5
+    level3_fee = receiver_config.level3_fee if receiver_config.level3_fee is not None else 10
     
-    # 根据访问级别获取相应费用
+    # Get fee by access level
     def get_fee_by_level(level):
         if level == 1:
             return level1_fee
@@ -528,9 +532,9 @@ def pay_fee():
         elif level == 3:
             return level3_fee
         else:
-            return level * 20  # 默认计算方式，兼容旧数据
+            return level * 20  # Default calculation for backward compatibility
     
-    # 添加学生数据
+    # Add student data
     for student in students:
         unpaid_users.append({
             'id': f"s_{student.id}",
@@ -541,7 +545,7 @@ def pay_fee():
             'fee': get_fee_by_level(student.access_level)
         })
     
-    # 添加教师数据
+    # Add teacher data
     for teacher in teachers:
         unpaid_users.append({
             'id': f"t_{teacher.id}",
@@ -554,224 +558,183 @@ def pay_fee():
 
     if request.method == 'POST':
         try:
+            # 1. Validate form data
             selected_users = request.form.getlist('selected_users')
             if not selected_users:
-                flash('请选择至少一个用户进行支付', 'error')
-                return render_template('pay_fee.html',
-                                    config=config,
-                                    organization=convener.org_shortname,
-                                    unpaid_users=unpaid_users)
-
-            # 计算选中用户的总费用
-            total_fee = int(request.form.get('total_amount', 0))
-            
-            # 调试日志：打印配置信息
-            print("Bank Config Values:")
-            print(f"base_url: {config.base_url}")
-            print(f"auth_path: {config.auth_path}")
-            print(f"transfer_path: {config.transfer_path}")
-            
-            # 确保配置完整性
-            if not config.base_url or not config.auth_path or not config.transfer_path:
-                flash('请先完成银行API配置 (基础URL、认证路径和转账路径都是必需的)', 'error')
-                return redirect(url_for('bank_config.bank_api_config'))
-
-            # Format paths correctly
-            base_url = config.base_url.rstrip('/')
-            auth_path = config.auth_path.strip('/')
-            transfer_path = config.transfer_path.strip('/')
-            
-            # 验证路径是否有效
-            if not auth_path or not transfer_path:
-                flash('API认证路径或转账路径格式无效', 'error')
-                return redirect(url_for('bank_config.bank_api_config'))
-            
-            # 构建完整URL
-            auth_url = f"{base_url}/{auth_path}"
-            auth_data = {
-                "bank": config.bank_name,
-                "account_name": config.account_name,
-                "account_number": config.bank_account,
-                "password": config.bank_password
-            }
-            
-            print(f"完整认证URL: {auth_url}")  # 调试日志
-            print(f"认证数据: {auth_data}")  # 调试日志
-            
-            # 确保请求中包含requests模块
-            import requests
-            
-            # 模拟支付开关
-            mock_success = True  # 设置为True开启模拟支付，False禁用
-            
-            try:
-                # 增加超时设置，防止长时间等待
-                auth_response = requests.post(auth_url, json=auth_data, timeout=5)
-                print(f"认证响应状态码: {auth_response.status_code}")  # 调试日志
-                if auth_response.status_code != 200:
-                    print(f"认证响应内容: {auth_response.text}")  # 调试日志，记录非200响应的内容
-                    raise requests.exceptions.RequestException("认证服务返回非200状态码")
-                    
-                auth_result = auth_response.json()
-                if auth_result['status'] != 'success':
-                    flash(f'账户验证失败：{auth_result.get("reason", "未知错误")}', 'error')
-                    return render_template('pay_fee.html',
-                                        config=config,
-                                        organization=convener.org_shortname,
-                                        unpaid_users=unpaid_users)
-                
-                # 执行转账
-                transfer_url = f"{base_url}/{transfer_path}"
-                transfer_data = {
-                    "from_bank": config.bank_name,
-                    "from_name": config.account_name,
-                    "from_account": config.bank_account,
-                    "password": config.bank_password,
-                    "to_bank": "E-DBA Bank",
-                    "to_name": "E-DBA account",
-                    "to_account": "596117071864958",  # E-admin的账号
-                    "amount": total_fee
-                }
-                
-                print(f"Transferring with URL: {transfer_url}")  # 调试日志
-                print(f"Transfer data: {transfer_data}")  # 调试日志
-                
-                transfer_response = requests.post(transfer_url, json=transfer_data, timeout=5)
-                if transfer_response.status_code != 200:
-                    flash(f'转账服务暂时不可用 (HTTP {transfer_response.status_code})', 'error')
-                    return render_template('pay_fee.html',
-                                        config=config,
-                                        organization=convener.org_shortname,
-                                        unpaid_users=unpaid_users)
-                
-                transfer_result = transfer_response.json()
-                if transfer_result['status'] != 'success':
-                    flash(f'转账失败：{transfer_result.get("reason", "未知错误")}', 'error')
-                    return render_template('pay_fee.html',
-                                        config=config,
-                                        organization=convener.org_shortname,
-                                        unpaid_users=unpaid_users)
-                
-                # 更新选中用户的支付状态
-                for user_id in selected_users:
-                    type_prefix, id_num = user_id.split('_')
-                    id_num = int(id_num)
-                    if type_prefix == 's':
-                        student = Student.query.get(id_num)
-                        if student:
-                            student.is_pay = 1
-                    else:
-                        teacher = Teacher.query.get(id_num)
-                        if teacher:
-                            teacher.is_pay = 1
-                
-                db.session.commit()
-                flash('支付成功！', 'success')
-                log_access(f"O-Convener {convener.org_shortname} 为 {len(selected_users)} 个用户完成支付")
+                flash('未选择任何用户，返回主界面', 'info')
                 return redirect(url_for('oconvener.dashboard'))
-                
-            except requests.exceptions.RequestException as e:
-                print(f"请求异常: {str(e)}")  # 调试日志
-                flash(f'API请求失败: {str(e)}', 'error')
-                
-                # 如果API不可用且开启了模拟支付
-                if mock_success:
-                    try:
-                        # 模拟成功的支付流程
-                        for user_id in selected_users:
-                            type_prefix, id_num = user_id.split('_')
-                            id_num = int(id_num)
-                            if type_prefix == 's':
-                                student = Student.query.get(id_num)
-                                if student:
-                                    student.is_pay = 1
-                            else:
-                                teacher = Teacher.query.get(id_num)
-                                if teacher:
-                                    teacher.is_pay = 1
-                        
-                        db.session.commit()
-                        flash('由于银行API不可用，已模拟支付成功！', 'warning')
-                        log_access(f"O-Convener {convener.org_shortname} 模拟支付 {len(selected_users)} 个用户")
-                        return redirect(url_for('oconvener.dashboard'))
-                    except Exception as mock_error:
-                        db.session.rollback()
-                        flash(f'模拟支付失败: {str(mock_error)}', 'error')
-                
+
+            total_fee = int(request.form.get('total_amount', 0))
+
+            # 2. Format URLs
+            base_url = sender_config.base_url.rstrip('/')
+            auth_url = f"{sender_config.base_url}/{sender_config.auth_path.strip('/')}"
+
+            transfer_url = f"{base_url}/{sender_config.transfer_path.strip('/')}"
+
+            # 3. Check receiver config
+            if not receiver_config:
+                flash('系统未配置E-admin收款账号信息，请联系管理员', 'error')
                 return render_template('pay_fee.html',
-                                    config=config,
+                                    config=sender_config,
                                     organization=convener.org_shortname,
                                     unpaid_users=unpaid_users)
+
+            # 4. Prepare auth data
+            auth_data = {
+                "bank": sender_config.bank_name,
+                "account_name": sender_config.account_name,
+                "account_number": sender_config.bank_account,
+                "bank_account": sender_config.bank_account,
+                "password": sender_config.bank_password
+            }
+
+            # 调试日志：打印传递给外部 API 的数据
+            print("Auth Data:", auth_data)
+            # 调试日志：打印传递给外部 API 的数据（在 transfer_data 定义后）
+            
+
+            # 5. Authenticate
+            auth_response = requests.post(auth_url, json=auth_data, timeout=5)
+            if auth_response.status_code != 200:
+                raise requests.exceptions.RequestException("认证服务返回非200状态码")
+            
+            auth_result = auth_response.json()
+            if auth_result['status'] != 'success':
+                flash(f'账户验证失败：{auth_result.get("reason", "未知错误")}', 'error')
+                return render_template('pay_fee.html',
+                                    config=sender_config,
+                                    eadmin_info={
+                                        'bank_name': receiver_config.bank_name,
+                                        'account_name': receiver_config.account_name,
+                                        'bank_account': receiver_config.bank_account
+                                    },
+                                    organization=convener.org_shortname,
+                                    unpaid_users=unpaid_users)
+
+            # 6. Prepare and execute transfer
+            TO_BANK_ACCOUNT = "aaa"
+            TO_BANK_NAME = "sddddda"
+            TO_ACCOUNT_NAME = "ssss"
+
+            transfer_data = {
+                "from_bank": sender_config.bank_name,
+                "from_name": sender_config.account_name,
+                "from_account": sender_config.bank_account,
+                "account_number": sender_config.bank_account,
+                "password": sender_config.bank_password,
                 
+                # ✅ 兼容远程 mock server 写死逻辑
+                "to_bank": TO_BANK_NAME,
+                "to_name": TO_ACCOUNT_NAME,
+                "to_account": TO_BANK_ACCOUNT,
+
+                "amount": total_fee
+            }
+
+            print("Transfer Data:", transfer_data)
+            # Debug log to verify the to_account value
+            print(f"Debug: Sending to_account={transfer_data['to_account']} to external API")
+            transfer_response = requests.post(transfer_url, json=transfer_data, timeout=5)
+            print("📦 transfer_response.status_code =", transfer_response.status_code)
+            print("📦 transfer_response.text =", transfer_response.text)
+            print("🔍 实际请求 transfer_url =", transfer_url)
+            print("💡 正在使用 base_url =", sender_config.base_url)
+            print("💡 请求转账路径 =", transfer_url)
+
+            if transfer_response.status_code != 200:
+                raise requests.exceptions.RequestException(f"转账服务返回非200状态码: {transfer_response.status_code}")
+
+            transfer_result = transfer_response.json()
+            if transfer_result['status'] != 'success':
+                raise Exception(transfer_result.get("reason", "转账失败：未知错误"))
+
+            # Debug log to verify receiver_config values
+            print(f"Debug: receiver_config.bank_account={receiver_config.bank_account}")
+            print(f"Debug: receiver_config.account_name={receiver_config.account_name}")
+            print(f"Debug: receiver_config.bank_name={receiver_config.bank_name}")
+
+            # 7. Update user payment status
+            for user_id in selected_users:
+                type_prefix, id_num = user_id.split('_')
+                id_num = int(id_num)
+                if type_prefix == 's':
+                    student = Student.query.get(id_num)
+                    if student:
+                        student.is_pay = 1
+                else:
+                    teacher = Teacher.query.get(id_num)
+                    if teacher:
+                        teacher.is_pay = 1
+
+            # 8. Update balance
+            if 'from_balance' in transfer_result:
+                sender_config.balance = transfer_result['from_balance']
+            else:
+                sender_config.balance = (sender_config.balance or 0) - total_fee
+
+            receiver_config.balance = (receiver_config.balance or 0) + total_fee#e admin收款
+            db.session.commit()
+            flash('支付成功！', 'success')
+            log_access(f"O-Convener {convener.org_shortname} 为 {len(selected_users)} 个用户完成支付")
+            return redirect(url_for('oconvener.dashboard'))
+
+        except requests.exceptions.RequestException as e:
+            flash(f'API请求失败: {str(e)}', 'error')
         except Exception as e:
-            print("支付错误:", str(e))
             flash(f'支付过程发生错误：{str(e)}', 'error')
             db.session.rollback()
-    
+
+    # GET request handling
+    eadmin_info = {}
+    if receiver_config:
+        eadmin_info = {
+            'bank_name': receiver_config.bank_name,
+            'account_name': receiver_config.account_name,
+            'bank_account': receiver_config.bank_account
+        }
+    else:
+        flash('系统未配置E-admin收款账号信息，请联系管理员', 'error')
+
     return render_template('pay_fee.html',
-                         config=config,
+                         config=sender_config,
+                         eadmin_info=eadmin_info,
                          organization=convener.org_shortname,
                          unpaid_users=unpaid_users)
-
-import json
-
+    
 @oconvenerBP.route('/save_bank_config', methods=['POST'])
 def save_bank_config():
     if 'user_id' not in session or session.get('user_role') != 'convener':
         return redirect(url_for('oconvener.login'))
 
-    # Retrieve form data
-    bank_name = request.form.get('bank')
-    account_name = request.form.get('account_name')
-    account_number = request.form.get('account_number')
-    password = request.form.get('password')
-    auth_path = request.form.get('auth_path')
-    transfer_path = request.form.get('transfer_path')
+    form_data = {
+        'bank_name': request.form.get('bank'),
+        'account_name': request.form.get('account_name'),
+        'account_number': request.form.get('account_number'),
+        'password': request.form.get('password'),
+        'auth_path': request.form.get('auth_path'),
+        'transfer_path': request.form.get('transfer_path')
+    }
 
-    # Debugging: Log retrieved form data
-    print(f"Form Data - Bank: {bank_name}, Account Name: {account_name}, Account Number: {account_number}, Password: {password}, Auth Path: {auth_path}, Transfer Path: {transfer_path}")
-
-    # Validate required fields
-    if not all([bank_name, account_name, account_number, password, auth_path, transfer_path]):
+    if not all(form_data.values()):
         flash('请填写所有必填字段', 'error')
-        return redirect(url_for('bank_config.bank_api_config'))    # Save to database
+        return redirect(url_for('bank_config.bank_api_config'))
+
     try:
-        # 获取当前用户ID
         user_id = session.get('user_id')
-        
-        # 按用户ID查找现有配置
         config = BankConfig.query.filter_by(user_id=user_id).first()
-        # Debugging: Log initial database state
-        print(f"Initial Database State: {config}")
 
         if not config:
-            config = BankConfig(
-                user_id=user_id,  # 设置关联的用户ID
-                bank_name=bank_name,
-                account_name=account_name,
-                bank_account=account_number,
-                bank_password=password,
-                auth_path=auth_path,
-                transfer_path=transfer_path,
-                balance=0
-            )
+            config = BankConfig(user_id=user_id, balance=0, **form_data)
             db.session.add(config)
         else:
-            config.bank_name = bank_name
-            config.account_name = account_name
-            config.bank_account = account_number
-            config.bank_password = password
-            config.auth_path = auth_path
-            config.transfer_path = transfer_path
+            for key, value in form_data.items():
+                setattr(config, key, value)
 
         db.session.commit()
-        # Debugging: Log updated database state
-        print(f"Updated Database State: {config}")
         flash('银行API配置已成功保存', 'success')
     except Exception as e:
         db.session.rollback()
-        # Debugging: Log exception details
-        print(f"Error while saving configuration: {str(e)}")
         flash(f'保存配置时出错: {str(e)}', 'error')
 
     return redirect(url_for('bank_config.bank_api_config'))

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="main-container">
+    <h2>{{ '银行' if service_type == 'bank' else '学生验证' }} API 配置</h2>
+
+    <form method="POST" class="mt-4">
+        {% if service_type == 'bank' %}
+        <div class="mb-3">
+            <label class="form-label">Base URL</label>
+            <input type="text" name="base_url" class="form-control" 
+                   value="{{ config.base_url or 'http://172.16.160.88:8001' }}" required>
+        </div>
+
+        <div class="mb-3">
+            <h4>认证接口配置</h4>
+            <div class="ms-4">
+                <label class="form-label">路径</label>
+                <input type="text" name="auth_path" class="form-control" 
+                       value="{{ config.auth_path or '/hw/bank/authenticate' }}" required>
+                <label class="form-label mt-2">请求格式</label>
+                <textarea class="form-control" rows="5" readonly>{{ templates.auth.input | tojson(indent=2) }}</textarea>
+                <label class="form-label mt-2">响应格式</label>
+                <textarea class="form-control" rows="2" readonly>{{ templates.auth.output | tojson(indent=2) }}</textarea>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <h4>转账接口配置</h4>
+            <div class="ms-4">
+                <label class="form-label">路径</label>
+                <input type="text" name="transfer_path" class="form-control" 
+                       value="{{ config.transfer_path or '/hw/bank/transfer' }}" required>
+                <label class="form-label mt-2">请求格式</label>
+                <textarea class="form-control" rows="9" readonly>{{ templates.transfer.input | tojson(indent=2) }}</textarea>
+                <label class="form-label mt-2">响应格式</label>
+                <textarea class="form-control" rows="4" readonly>{{ templates.transfer.output | tojson(indent=2) }}</textarea>
+            </div>
+        </div>
+        {% else %}
+        <div class="mb-3">
+            <h4>学生验证接口</h4>
+            <div class="ms-4">
+                <label class="form-label mt-2">请求格式</label>
+                <textarea class="form-control" rows="4" readonly>{{ templates.verify.input | tojson(indent=2) }}</textarea>
+                <label class="form-label mt-2">响应格式</label>
+                <textarea class="form-control" rows="4" readonly>{{ templates.verify.output | tojson(indent=2) }}</textarea>
+            </div>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary">保存配置</button>
+        <a href="{{ url_for('oconvener.dashboard') }}" class="btn btn-secondary">返回</a>
+    </form>
+</div>
+{% endblock %}

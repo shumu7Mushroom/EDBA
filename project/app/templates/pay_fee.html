@@ -90,17 +90,16 @@
         </div>
         <div class="card-body">
             <table class="table">
-                <tr>
-                    <th>Receiving Bank:</th>
-                    <td>{{ config.bank_name or eadmin_config.bank_name }}</td>
+                <tr>                    <th>Receiving Bank:</th>
+                    <td>{{ eadmin_info.bank_name }}</td>
                 </tr>
                 <tr>
                     <th>Receiving Account:</th>
-                    <td>{{ config.account_name or eadmin_config.account_name }}</td>
+                    <td>{{ eadmin_info.account_name }}</td>
                 </tr>
                 <tr>
                     <th>Bank Account Number:</th>
-                    <td>{{ config.bank_account or eadmin_config.bank_account }}</td>
+                    <td>{{ eadmin_info.bank_account }}</td>
                 </tr>
             </table>
         </div>

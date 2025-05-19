@@ -35,6 +35,18 @@ class BankConfig(Base):
         if amount <= 0:
             raise ValueError("Transfer amount must be greater than zero.")
         
-        self.balance += amount  # 更新余额
+        # 查找 E-admin 账户 (id=1)
+        admin_config = session.query(BankConfig).filter_by(id=1).first()
+        if not admin_config:
+            raise ValueError("E-admin account not found")
+            
+        # 减少发送方余额
+        self.balance -= amount
+        
+        # 增加 E-admin 账户余额
+        admin_config.balance += amount
+        
         print(f"Transferring {amount} from {self.bank_account} to {admin_account}")
+        print(f"New balances - Sender: {self.balance}, E-admin: {admin_config.balance}")
+        
         session.commit()
