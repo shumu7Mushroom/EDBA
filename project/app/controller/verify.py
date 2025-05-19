@@ -221,12 +221,53 @@ def student_query():
 
     if not name or not sid:
         flash('Name / ID cannot be empty')
-        # 直接回渲染页面而非 redirect，避免丢失输入
         return render_template('verify_identity.html',
                                configs=configs,
                                api_choice=api_choice,
                                name=name,
                                stu_id=sid)
+
+    # ---------- 自动扣费逻辑 ---------- #
+    user_role = session.get('user_role')
+    user_id = session.get('user_id')
+    user = None
+    if user_role == 'teacher':
+        from app.models.teacher import Teacher
+        user = Teacher.query.get(user_id)
+    elif user_role == 'student':
+        from app.models.student import Student
+        user = Student.query.get(user_id)
+    organization = getattr(user, 'organization', None) if user else None
+    from app.models.o_convener import OConvener
+    convener = OConvener.query.filter_by(org_shortname=organization).first()
+    fee = convener.identity_fee if convener else 0
+    print(f"[DEBUG] [identity] user_role={user_role}, user_id={user_id}, organization={organization}, fee={fee}")
+    log_access("DEBUG", f"[identity] user_role={user_role}, user_id={user_id}, organization={organization}, fee={fee}")
+    if user_role in ('teacher', 'student') and fee > 0:
+        print(f"[DEBUG] [identity] user object: {user}")
+        log_access("DEBUG", f"[identity] user object: {user}")
+        if not hasattr(user, 'thesis_quota') or user.thesis_quota is None:
+            print(f"[DEBUG] [identity] user has no thesis_quota, set to 0")
+            log_access("DEBUG", f"[identity] user has no thesis_quota, set to 0")
+            user.thesis_quota = 0
+        print(f"[DEBUG] [identity] Before deduction: user.thesis_quota={user.thesis_quota}, fee={fee}")
+        log_access("DEBUG", f"[identity] Before deduction: user.thesis_quota={user.thesis_quota}, fee={fee}")
+        if user.thesis_quota < fee:
+            print(f"[DEBUG] [identity] Insufficient points: current={user.thesis_quota}, required={fee}")
+            log_access("DEBUG", f"[identity] Insufficient points: current={user.thesis_quota}, required={fee}")
+            flash(f'Insufficient points (current: {user.thesis_quota}, required: {fee}), operation denied.', 'error')
+            return render_template('verify_identity.html',
+                                   configs=configs,
+                                   api_choice=api_choice,
+                                   name=name,
+                                   stu_id=sid)
+        user.thesis_quota -= fee
+        db.session.commit()
+        print(f"[DEBUG] [identity] After deduction: user.thesis_quota={user.thesis_quota}")
+        log_access("DEBUG", f"[identity] After deduction: user.thesis_quota={user.thesis_quota}")
+    else:
+        print(f"[DEBUG] [identity] No deduction needed for user_role={user_role}")
+        log_access("DEBUG", f"[identity] No deduction needed for user_role={user_role}")
 
     # ---------- 处理文件 ---------- #
     photo  = request.files.get('photo')
@@ -244,7 +285,6 @@ def student_query():
         try:
             data = _call_api(cfg, payload, files)
             last_resp, last_cfg = data, cfg
-            # 外部接口成功标志
             if data.get('status') in ('y', 'success'):
                 return render_template(
                     'verify_identity.html',
@@ -286,6 +326,45 @@ def student_batch():
     cfgs = _configs('identity')
     if not cfgs:
         return 'No authentication interface configured', 400
+
+    # ---------- 自动扣费逻辑 ---------- #
+    user_role = session.get('user_role')
+    user_id = session.get('user_id')
+    user = None
+    if user_role == 'teacher':
+        from app.models.teacher import Teacher
+        user = Teacher.query.get(user_id)
+    elif user_role == 'student':
+        from app.models.student import Student
+        user = Student.query.get(user_id)
+    organization = getattr(user, 'organization', None) if user else None
+    from app.models.o_convener import OConvener
+    convener = OConvener.query.filter_by(org_shortname=organization).first()
+    fee = convener.identity_fee if convener else 0
+    print(f"[DEBUG] [identity_batch] user_role={user_role}, user_id={user_id}, organization={organization}, fee={fee}")
+    log_access("DEBUG", f"[identity_batch] user_role={user_role}, user_id={user_id}, organization={organization}, fee={fee}")
+    if user_role in ('teacher', 'student') and fee > 0:
+        print(f"[DEBUG] [identity_batch] user object: {user}")
+        log_access("DEBUG", f"[identity_batch] user object: {user}")
+        if not hasattr(user, 'thesis_quota') or user.thesis_quota is None:
+            print(f"[DEBUG] [identity_batch] user has no thesis_quota, set to 0")
+            log_access("DEBUG", f"[identity_batch] user has no thesis_quota, set to 0")
+            user.thesis_quota = 0
+        total_fee = fee * len(df)
+        print(f"[DEBUG] [identity_batch] Before deduction: user.thesis_quota={user.thesis_quota}, total_fee={total_fee}")
+        log_access("DEBUG", f"[identity_batch] Before deduction: user.thesis_quota={user.thesis_quota}, total_fee={total_fee}")
+        if user.thesis_quota < total_fee:
+            print(f"[DEBUG] [identity_batch] Insufficient points: current={user.thesis_quota}, required={total_fee}")
+            log_access("DEBUG", f"[identity_batch] Insufficient points: current={user.thesis_quota}, required={total_fee}")
+            flash(f'Insufficient points for batch operation (current: {user.thesis_quota}, required: {total_fee})', 'error')
+            return render_template('verify_identity_batch_result.html', results=[])
+        user.thesis_quota -= total_fee
+        db.session.commit()
+        print(f"[DEBUG] [identity_batch] After deduction: user.thesis_quota={user.thesis_quota}")
+        log_access("DEBUG", f"[identity_batch] After deduction: user.thesis_quota={user.thesis_quota}")
+    else:
+        print(f"[DEBUG] [identity_batch] No deduction needed for user_role={user_role}")
+        log_access("DEBUG", f"[identity_batch] No deduction needed for user_role={user_role}")
 
     results = []
     for _, row in df.iterrows():
@@ -354,6 +433,48 @@ def score_query():
                                api_choice=api_choice,
                                name=name,
                                stu_id=sid)
+
+    # ---------- 自动扣费逻辑 ---------- #
+    user_role = session.get('user_role')
+    user_id = session.get('user_id')
+    user = None
+    if user_role == 'teacher':
+        from app.models.teacher import Teacher
+        user = Teacher.query.get(user_id)
+    elif user_role == 'student':
+        from app.models.student import Student
+        user = Student.query.get(user_id)
+    organization = getattr(user, 'organization', None) if user else None
+    from app.models.o_convener import OConvener
+    convener = OConvener.query.filter_by(org_shortname=organization).first()
+    fee = convener.score_fee if convener else 0
+    print(f"[DEBUG] [score] user_role={user_role}, user_id={user_id}, organization={organization}, fee={fee}")
+    log_access("DEBUG", f"[score] user_role={user_role}, user_id={user_id}, organization={organization}, fee={fee}")
+    if user_role in ('teacher', 'student') and fee > 0:
+        print(f"[DEBUG] [score] user object: {user}")
+        log_access("DEBUG", f"[score] user object: {user}")
+        if not hasattr(user, 'thesis_quota') or user.thesis_quota is None:
+            print(f"[DEBUG] [score] user has no thesis_quota, set to 0")
+            log_access("DEBUG", f"[score] user has no thesis_quota, set to 0")
+            user.thesis_quota = 0
+        print(f"[DEBUG] [score] Before deduction: user.thesis_quota={user.thesis_quota}, fee={fee}")
+        log_access("DEBUG", f"[score] Before deduction: user.thesis_quota={user.thesis_quota}, fee={fee}")
+        if user.thesis_quota < fee:
+            print(f"[DEBUG] [score] Insufficient points: current={user.thesis_quota}, required={fee}")
+            log_access("DEBUG", f"[score] Insufficient points: current={user.thesis_quota}, required={fee}")
+            flash(f'Insufficient points (current: {user.thesis_quota}, required: {fee}), operation denied.', 'error')
+            return render_template('verify_score.html',
+                                   configs=configs,
+                                   api_choice=api_choice,
+                                   name=name,
+                                   stu_id=sid)
+        user.thesis_quota -= fee
+        db.session.commit()
+        print(f"[DEBUG] [score] After deduction: user.thesis_quota={user.thesis_quota}")
+        log_access("DEBUG", f"[score] After deduction: user.thesis_quota={user.thesis_quota}")
+    else:
+        print(f"[DEBUG] [score] No deduction needed for user_role={user_role}")
+        log_access("DEBUG", f"[score] No deduction needed for user_role={user_role}")
 
     payload = {'name': name, 'id': sid}
     cfg_list = configs if api_choice == 'auto' else \
@@ -430,6 +551,45 @@ def score_batch():
 
     # 记录批量查询日志
     log_access(f"Batch query student GPA", f"Total {len(df)} records")
+
+    # ---------- 自动扣费逻辑 ---------- #
+    user_role = session.get('user_role')
+    user_id = session.get('user_id')
+    user = None
+    if user_role == 'teacher':
+        from app.models.teacher import Teacher
+        user = Teacher.query.get(user_id)
+    elif user_role == 'student':
+        from app.models.student import Student
+        user = Student.query.get(user_id)
+    organization = getattr(user, 'organization', None) if user else None
+    from app.models.o_convener import OConvener
+    convener = OConvener.query.filter_by(org_shortname=organization).first()
+    fee = convener.score_fee if convener else 0
+    print(f"[DEBUG] [score_batch] user_role={user_role}, user_id={user_id}, organization={organization}, fee={fee}")
+    log_access("DEBUG", f"[score_batch] user_role={user_role}, user_id={user_id}, organization={organization}, fee={fee}")
+    if user_role in ('teacher', 'student') and fee > 0:
+        print(f"[DEBUG] [score_batch] user object: {user}")
+        log_access("DEBUG", f"[score_batch] user object: {user}")
+        if not hasattr(user, 'thesis_quota') or user.thesis_quota is None:
+            print(f"[DEBUG] [score_batch] user has no thesis_quota, set to 0")
+            log_access("DEBUG", f"[score_batch] user has no thesis_quota, set to 0")
+            user.thesis_quota = 0
+        total_fee = fee * len(df)
+        print(f"[DEBUG] [score_batch] Before deduction: user.thesis_quota={user.thesis_quota}, total_fee={total_fee}")
+        log_access("DEBUG", f"[score_batch] Before deduction: user.thesis_quota={user.thesis_quota}, total_fee={total_fee}")
+        if user.thesis_quota < total_fee:
+            print(f"[DEBUG] [score_batch] Insufficient points: current={user.thesis_quota}, required={total_fee}")
+            log_access("DEBUG", f"[score_batch] Insufficient points: current={user.thesis_quota}, required={total_fee}")
+            flash(f'Insufficient points for batch operation (current: {user.thesis_quota}, required: {total_fee})', 'error')
+            return render_template('verify_score_batch_result.html', results=[])
+        user.thesis_quota -= total_fee
+        db.session.commit()
+        print(f"[DEBUG] [score_batch] After deduction: user.thesis_quota={user.thesis_quota}")
+        log_access("DEBUG", f"[score_batch] After deduction: user.thesis_quota={user.thesis_quota}")
+    else:
+        print(f"[DEBUG] [score_batch] No deduction needed for user_role={user_role}")
+        log_access("DEBUG", f"[score_batch] No deduction needed for user_role={user_role}")
 
     results = []
     success_count = 0
@@ -538,6 +698,47 @@ def thesis_query():
                                configs=configs,
                                api_choice='auto',
                                title='')
+
+    # ---------- 自动扣费逻辑 ---------- #
+    user_role = session.get('user_role')
+    user_id = session.get('user_id')
+    user = None
+    if user_role == 'teacher':
+        from app.models.teacher import Teacher
+        user = Teacher.query.get(user_id)
+    elif user_role == 'student':
+        from app.models.student import Student
+        user = Student.query.get(user_id)
+    organization = getattr(user, 'organization', None) if user else None
+    from app.models.o_convener import OConvener
+    convener = OConvener.query.filter_by(org_shortname=organization).first()
+    fee = convener.thesis_fee if convener else 0
+    print(f"[DEBUG] [thesis_query] user_role={user_role}, user_id={user_id}, organization={organization}, fee={fee}")
+    log_access("DEBUG", f"[thesis_query] user_role={user_role}, user_id={user_id}, organization={organization}, fee={fee}")
+    if user_role in ('teacher', 'student') and fee > 0:
+        print(f"[DEBUG] [thesis_query] user object: {user}")
+        log_access("DEBUG", f"[thesis_query] user object: {user}")
+        if not hasattr(user, 'thesis_quota') or user.thesis_quota is None:
+            print(f"[DEBUG] [thesis_query] user has no thesis_quota, set to 0")
+            log_access("DEBUG", f"[thesis_query] user has no thesis_quota, set to 0")
+            user.thesis_quota = 0
+        print(f"[DEBUG] [thesis_query] Before deduction: user.thesis_quota={user.thesis_quota}, fee={fee}")
+        log_access("DEBUG", f"[thesis_query] Before deduction: user.thesis_quota={user.thesis_quota}, fee={fee}")
+        if user.thesis_quota < fee:
+            print(f"[DEBUG] [thesis_query] Insufficient points: current={user.thesis_quota}, required={fee}")
+            log_access("DEBUG", f"[thesis_query] Insufficient points: current={user.thesis_quota}, required={fee}")
+            flash(f'Insufficient points (current: {user.thesis_quota}, required: {fee}), operation denied.', 'error')
+            return render_template('thesis_query.html',
+                                   configs=configs,
+                                   api_choice='auto',
+                                   title='')
+        user.thesis_quota -= fee
+        db.session.commit()
+        print(f"[DEBUG] [thesis_query] After deduction: user.thesis_quota={user.thesis_quota}")
+        log_access("DEBUG", f"[thesis_query] After deduction: user.thesis_quota={user.thesis_quota}")
+    else:
+        print(f"[DEBUG] [thesis_query] No deduction needed for user_role={user_role}")
+        log_access("DEBUG", f"[thesis_query] No deduction needed for user_role={user_role}")
 
     # 表单取值
     keywords = (request.form.get('title') or '').strip()

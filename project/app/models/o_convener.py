@@ -13,6 +13,11 @@ class OConvener(Base):
     code = Column(String(10))  # 存储验证码（临时）
     verified = Column(Boolean, default=False)  # 是否通过邮箱验证
 
+    # 新增：三项服务的积分费用
+    identity_fee = Column(Integer, default=0)  # 身份认证
+    score_fee = Column(Integer, default=0)     # 成绩查询
+    thesis_fee = Column(Integer, default=0)    # 论文查询
+
     def jsonstr(self):
         return {
             'id': self.id,
@@ -23,5 +28,8 @@ class OConvener(Base):
             'status_text': self.status_text,
             'verified': self.verified,
             'create_time': self.create_time,
-            'is_pay': self.is_pay
+            # 'is_pay': self.is_pay,  # 兼容老代码
+            'identity_fee': self.identity_fee,
+            'score_fee': self.score_fee,
+            'thesis_fee': self.thesis_fee
         }

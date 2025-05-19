@@ -4,3 +4,6 @@ SQLAlchemy==1.4.48
 PyMySQL
 Flask-Mail
 Flask-Migrate
+flask-login
+pandas
+requests

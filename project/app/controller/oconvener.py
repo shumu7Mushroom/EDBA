@@ -738,3 +738,23 @@ def save_bank_config():
         flash(f'保存配置时出错: {str(e)}', 'error')
 
     return redirect(url_for('bank_config.bank_api_config'))
+
+@oconvenerBP.route('/set_service_fee', methods=['GET', 'POST'])
+def set_service_fee():
+    if 'user_id' not in session or session.get('user_role') != 'convener':
+        return redirect(url_for('oconvener.login'))
+    convener = OConvener.query.get(session['user_id'])
+    msg = None
+    if request.method == 'POST':
+        convener.identity_fee = int(request.form.get('identity_fee', 0))
+        convener.score_fee = int(request.form.get('score_fee', 0))
+        convener.thesis_fee = int(request.form.get('thesis_fee', 0))
+        db.session.commit()
+        msg = "Service fees updated successfully!"
+    return render_template(
+        'set_service_fee.html',
+        identity_fee=convener.identity_fee or 0,
+        score_fee=convener.score_fee or 0,
+        thesis_fee=convener.thesis_fee or 0,
+        msg=msg
+    )
