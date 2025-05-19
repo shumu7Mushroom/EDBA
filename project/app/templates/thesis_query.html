@@ -93,7 +93,13 @@
         {% endif %}
       </div>
     {% endif %}
-    <a href="{{ url_for('oconvener.dashboard') }}" class="back-btn">← Back to Dashboard</a>
+    {% set back_url = url_for('oconvener.dashboard') %}
+    {% if session.get('user_role') == 'teacher' %}
+      {% set back_url = url_for('teacher.dashboard') %}
+    {% elif session.get('user_role') == 'student' %}
+      {% set back_url = url_for('student.dashboard') %}
+    {% endif %}
+    <a href="{{ back_url }}" class="back-btn">← Back to Dashboard</a>
   </div>
 </body>
 </html>

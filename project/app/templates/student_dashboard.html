@@ -166,6 +166,11 @@
     </a>
     {% endif %}
   {% endif %}
+  {% if student.thesis_enabled and student.access_level >= 2 %}
+    <a href="{{ url_for('verify.thesis_query') }}">
+      <button class="btn-info">Query External Thesis</button>
+    </a>
+  {% endif %}
 </div>
 
 <!-- Search Thesis -->
