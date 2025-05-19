@@ -619,3 +619,82 @@ def thesis_query():
                            source=src,
                            result=result)
 
+# ------------------------------------------------------------
+# 7. 论文PDF下载 /verify/thesis_download
+# ------------------------------------------------------------
+@verifyBP.route('/thesis_download', methods=['POST'])
+def thesis_download():
+    """
+    通过外部API下载论文PDF，前端传入title和api_choice。
+    input: {"title": ..., "api_choice": ...}
+    output: PDF文件流或错误信息
+    """
+    title = (request.form.get('title') or '').strip()
+    api_choice = request.form.get('api_choice', 'auto')
+    print(f"[DEBUG] thesis_download: title={title}, api_choice={api_choice}")
+    log_access("DEBUG", f"thesis_download: title={title}, api_choice={api_choice}")
+    if not title:
+        print("[DEBUG] thesis_download: Missing thesis title")
+        log_access("DEBUG", "thesis_download: Missing thesis title")
+        return {"status": "error", "message": "Missing thesis title"}, 400
+
+    configs = _configs('thesis')
+    cfg_list = configs if api_choice == 'auto' else [APIConfig.query.get(int(api_choice))]
+    payload = {"title": title}
+    last_resp, last_cfg = None, None
+    print(f"[DEBUG] thesis_download: payload={payload}, cfg_list={[f'{c.base_url}{c.path}' for c in cfg_list]}")
+    log_access("DEBUG", f"thesis_download: payload={payload}, cfg_list={[f'{c.base_url}{c.path}' for c in cfg_list]}")
+
+    for cfg in cfg_list:
+        try:
+            url = cfg.base_url.rstrip('/') + cfg.path
+            # headers = {"Content-Type": "application/json"}
+            print(f"[DEBUG] thesis_download: calling API {url}")
+            log_access("DEBUG", f"thesis_download: calling API {url}")
+            r = requests.get(url, params=payload, timeout=10)
+            print(f"[DEBUG] thesis_download: API status={r.status_code}, content-type={r.headers.get('Content-Type')}")
+            if r.status_code == 200 and r.headers.get('Content-Type', '').startswith('application/pdf'):
+                print(f"[DEBUG] thesis_download: PDF stream received, size={len(r.content)} bytes")
+                log_access("DEBUG", f"thesis_download: PDF stream received, size={len(r.content)} bytes")
+                return send_file(
+                    io.BytesIO(r.content),
+                    mimetype='application/pdf',
+                    as_attachment=True,
+                    download_name=f"{title}.pdf"
+                )
+            try:
+                data = r.json()
+                print(f"[DEBUG] thesis_download: API JSON response: {data}")
+                log_access("DEBUG", f"thesis_download: API JSON response: {data}")
+                last_resp, last_cfg = data, cfg
+                if data.get('status') == 'error':
+                    print(f"[DEBUG] thesis_download: API returned error: {data.get('message')}")
+                    log_access("DEBUG", f"thesis_download: API returned error: {data.get('message')}")
+                    continue
+                if data.get('pdf_base64'):
+                    import base64
+                    pdf_bytes = base64.b64decode(data['pdf_base64'])
+                    print(f"[DEBUG] thesis_download: Decoded base64 PDF, size={len(pdf_bytes)} bytes")
+                    log_access("DEBUG", f"thesis_download: Decoded base64 PDF, size={len(pdf_bytes)} bytes")
+                    return send_file(
+                        io.BytesIO(pdf_bytes),
+                        mimetype='application/pdf',
+                        as_attachment=True,
+                        download_name=f"{title}.pdf"
+                    )
+                print(f"[DEBUG] thesis_download: API returned unknown JSON, message={data.get('message')}")
+                log_access("DEBUG", f"thesis_download: API returned unknown JSON, message={data.get('message')}")
+                return {"status": "error", "message": data.get('message', 'Unknown error')}, 400
+            except Exception as e:
+                print(f"[DEBUG] thesis_download: API returned non-JSON, error={e}, text={r.text[:200]}")
+                log_access("DEBUG", f"thesis_download: API returned non-JSON, error={e}, text={r.text[:200]}")
+                return {"status": "error", "message": f"API returned non-PDF, non-JSON response: {r.text[:200]}"}, 400
+        except Exception as e:
+            print(f"[DEBUG] thesis_download: Exception: {e}")
+            log_access("DEBUG", f"thesis_download: Exception: {e}")
+            last_resp = {"status": "error", "message": str(e)}
+            continue
+    print(f"[DEBUG] thesis_download: all API failed, last_resp={last_resp}")
+    log_access("DEBUG", f"thesis_download: all API failed, last_resp={last_resp}")
+    return last_resp or {"status": "error", "message": "All APIs failed"}, 400
+
