@@ -77,6 +77,7 @@
     {% endif %}
   {% endwith %}
   <form method="post" enctype="multipart/form-data">
+  {# 已去除银行余额和扣费相关展示 #}
     {% if configs and configs|length > 0 %}
     <div class="form-row">
       <label>API:</label>

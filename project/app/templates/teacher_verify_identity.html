@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Identity Verification</title>
+  <style>
+    body {font-family:sans-serif;margin:40px;}
+    .result-container {margin-top: 20px;}
+    .result-container h3 {margin-bottom: 10px;}
+    .success {color:green;}
+    .fail {color:red;}
+    .error {color:#721c24;background:#f8d7da;padding:12px;border-left:4px solid #dc3545;margin-top:15px;}
+    .form-section {background:#f9f9f9;padding:20px;border-radius:6px;max-width:400px;}
+    select,input[type=text] {width:100%;padding:8px;margin-bottom:12px;}
+    button {padding:8px 18px;border:none;border-radius:5px;background:#007bff;color:white;cursor:pointer;}
+    button:hover {background:#0056b3;}
+  </style>
+</head>
+<body>
+  <h1>Student Identity Verification</h1>
+
+  {% with msgs = get_flashed_messages() %}
+    {% if msgs %}
+      <ul style="color:red">
+        {% for m in msgs %}
+          <li>{{ m }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <div class="form-section">
+    <form method="post">
+      <label>API:
+        <select name="api_choice">
+          <option value="auto" {% if api_choice == 'auto' %}selected{% endif %}>Auto (try all)</option>
+          {% for c in configs %}
+            <option value="{{ c.id }}" {% if c.id|string == api_choice %}selected{% endif %}>{{ c.service_type }} ({{ c.path }})</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Name:
+        <input type="text" name="name" value="{{ name|default('') }}" required>
+      </label>
+      <label>Student ID:
+        <input type="text" name="id" value="{{ stu_id|default('') }}" required>
+      </label>
+      <button type="submit">Verify Identity</button>
+    </form>
+  </div>
+
+  {% if result %}
+    <div class="result-container">
+      <h3>Verification Result</h3>
+      {% if result.status in ['y', 'success'] %}
+        <div class="success">
+          <p><strong>Verified:</strong> {{ result.name }} ({{ result.id }})</p>
+          {% if result.major %}<p><strong>Major:</strong> {{ result.major }}</p>{% endif %}
+          {% if result.info %}<p><strong>Info:</strong> {{ result.info }}</p>{% endif %}
+        </div>
+      {% elif result.status == 'error' %}
+        <div class="error">
+          <strong>Error:</strong> {{ result.message }}
+        </div>
+      {% elif result.status == 'not_found' %}
+        <div class="fail">
+          <strong>Not Found or Verification Failed.</strong>
+        </div>
+      {% else %}
+        <pre>{{ result | tojson | safe }}</pre>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <div style="margin-top:30px;">
+    <a href="{{ url_for('teacher.dashboard') }}"><button style="background:#6c757d;">Back to Dashboard</button></a>
+  </div>
+</body>
+</html>

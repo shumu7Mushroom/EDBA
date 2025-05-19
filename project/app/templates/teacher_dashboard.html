@@ -181,12 +181,12 @@
     <a href="{{ url_for('course.list_courses') }}">
       <button class="btn-success">Manage Courses</button>
     </a>
-    <!-- 学生记录查询功能入口，仅 access_level >= 2 可见 -->
-    <a href="{{ url_for('teacher.query_student') }}">
-      <button class="btn-secondary">Query One Student Record</button>
+    <!-- 学生身份验证功能入口，仅 access_level >= 2 可见 -->
+    <a href="{{ url_for('teacher.verify_identity') }}">
+      <button class="btn-secondary">Verify One Student Identity</button>
     </a>
-    <a href="{{ url_for('teacher.query_student_batch') }}">
-      <button class="btn-secondary">Batch Query Student Records</button>
+    <a href="{{ url_for('teacher.verify_identity_batch') }}">
+      <button class="btn-secondary">Batch Verify Student Identities</button>
     </a>
     {% endif %}
   {% endif %}

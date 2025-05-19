@@ -10,7 +10,8 @@ from sqlalchemy import or_
 from app.models.teacher import Teacher
 from app.models.thesis import Thesis
 from app.models.base import db
-from app.controller.log import log_access  # ✅ 添加日志记录函数
+from app.controller.log import log_access
+# from project.app.models import bank_config  # ✅ 添加日志记录函数
 
 teacherBP = Blueprint('teacher', __name__, url_prefix='/teacher')
 ALLOWED_EXTENSIONS = {'pdf'}
@@ -252,28 +253,28 @@ def download_pdf(filename):
         return redirect(url_for('teacher.my_thesis'))
 
 
-# 查询单个学生记录
-@teacherBP.route('/query_student', methods=['GET', 'POST'])
-def query_student():
+
+# 老师身份认证（单个）
+@teacherBP.route('/verify_identity', methods=['GET', 'POST'])
+def verify_identity():
     user_id = session.get('user_id')
     teacher = Teacher.query.get(user_id)
     if not teacher or teacher.access_level < 2:
         flash('No permission')
         return redirect(url_for('teacher.dashboard'))
 
-    # 获取本组织 O-Convener 的 API 配置
     from app.models.o_convener import OConvener
     convener = OConvener.query.filter_by(org_shortname=teacher.organization).first()
     if not convener:
         flash('No O-Convener found for your organization')
         return redirect(url_for('teacher.dashboard'))
-    # 只查 score 类型的 API（学生成绩/记录查询）
-    configs = APIConfig.query.filter_by(institution_id=convener.id, service_type='score').all()
+    # 只查 identity 类型的 API（学生身份认证）
+    configs = APIConfig.query.filter_by(institution_id=convener.id, service_type='identity').all()
 
     name = ''
     stu_id = ''
-    result = None
     api_choice = request.form.get('api_choice', 'auto') if request.method == 'POST' else 'auto'
+    result = None
     if request.method == 'POST':
         name = (request.form.get('name') or '').strip()
         stu_id = (request.form.get('id') or '').strip()
@@ -286,12 +287,12 @@ def query_student():
             for cfg in cfg_list:
                 try:
                     url = cfg.base_url.rstrip('/') + cfg.path
-                    headers = {"Content-Type": "application/json"} if '/student/record' in cfg.path else None
+                    headers = {"Content-Type": "application/json"} if '/student/identity' in cfg.path else None
                     r = requests.post(url, json=payload, headers=headers, timeout=5) if headers else requests.post(url, data=payload, timeout=5)
                     if r.status_code == 200:
                         data = r.json()
                         last_resp = data
-                        if data.get('status') in ('y', 'success') or 'gpa' in data:
+                        if data.get('status') in ('y', 'success'):
                             result = data
                             break
                     else:
@@ -301,11 +302,19 @@ def query_student():
             if result is None:
                 result = last_resp or {'status': 'not_found'}
 
-    return render_template('teacher_query_student.html', name=name, stu_id=stu_id, result=result, configs=configs, api_choice=api_choice)
+    return render_template(
+        'teacher_verify_identity.html',
+        name=name,
+        stu_id=stu_id,
+        result=result,
+        configs=configs,
+        api_choice=api_choice
+    )
 
-# 批量查询学生记录
-@teacherBP.route('/query_student_batch', methods=['GET', 'POST'])
-def query_student_batch():
+
+# 老师身份认证（批量）
+@teacherBP.route('/verify_identity_batch', methods=['GET', 'POST'])
+def verify_identity_batch():
     user_id = session.get('user_id')
     teacher = Teacher.query.get(user_id)
     if not teacher or teacher.access_level < 2:
@@ -317,8 +326,8 @@ def query_student_batch():
     if not convener:
         flash('No O-Convener found for your organization')
         return redirect(url_for('teacher.dashboard'))
-    # 只查 score 类型的 API（学生成绩/记录查询）
-    configs = APIConfig.query.filter_by(institution_id=convener.id, service_type='score').all()
+    # 只查 identity 类型的 API（学生身份认证）
+    configs = APIConfig.query.filter_by(institution_id=convener.id, service_type='identity').all()
 
     results = None
     api_choice = request.form.get('api_choice', 'auto') if request.method == 'POST' else 'auto'
@@ -331,7 +340,7 @@ def query_student_batch():
                 df = pd.read_excel(file)
             except Exception as e:
                 flash(f'Failed to read Excel file: {str(e)}')
-                return render_template('teacher_query_student_batch.html', results=None, configs=configs, api_choice=api_choice)
+                return render_template('teacher_verify_identity_batch.html', results=None, configs=configs, api_choice=api_choice)
             results = []
             cfg_list = configs if api_choice == 'auto' else [c for c in configs if str(c.id) == str(api_choice)]
             for _, row in df.iterrows():
@@ -346,12 +355,12 @@ def query_student_batch():
                 for cfg in cfg_list:
                     try:
                         url = cfg.base_url.rstrip('/') + cfg.path
-                        headers = {"Content-Type": "application/json"} if '/student/record' in cfg.path else None
+                        headers = {"Content-Type": "application/json"} if '/student/identity' in cfg.path else None
                         r = requests.post(url, json=payload, headers=headers, timeout=5) if headers else requests.post(url, data=payload, timeout=5)
                         if r.status_code == 200:
                             data = r.json()
                             last_data = data
-                            if data.get('status') in ('y', 'success') or 'gpa' in data:
+                            if data.get('status') in ('y', 'success'):
                                 results.append({**row, **data, 'status': 'y'})
                                 ok = True
                                 break
@@ -365,5 +374,9 @@ def query_student_batch():
                         error_result['error_message'] = last_data['message']
                     results.append(error_result)
 
-    # 保证 configs 和 api_choice 始终传递到模板
-    return render_template('teacher_query_student_batch.html', results=results, configs=configs, api_choice=api_choice)
+    return render_template(
+        'teacher_verify_identity_batch.html',
+        results=results,
+        configs=configs,
+        api_choice=api_choice
+    )
