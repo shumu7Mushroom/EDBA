@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Set Service Fees</title>
+  <style>
+    body {font-family:sans-serif;background:#f4f6f8;padding:40px;}
+    .main-container {background:#fff;max-width:480px;margin:48px auto 0 auto;border-radius:14px;box-shadow:0 4px 24px rgba(0,0,0,0.08);padding:36px 40px 32px 40px;}
+    h1 {color:#2d3a4b;margin-bottom:28px;text-align:center;font-size:1.6em;letter-spacing:1px;}
+    form {margin-top:20px;}
+    .form-row {display:flex;align-items:center;margin-bottom:18px;}
+    label {flex:0 0 180px;color:#444;font-weight:500;margin-bottom:0;text-align:right;margin-right:12px;}
+    input[type="number"] {flex:1;min-width:0;padding:8px 10px;border:1px solid #cfd8dc;border-radius:6px;font-size:15px;background:#f8fafb;transition:border 0.2s;margin-bottom:0;}
+    input[type="number"]:focus {border:1.5px solid #007bff;outline:none;background:#fff;}
+    button[type="submit"] {background:linear-gradient(90deg,#007bff 60%,#0056b3 100%);color:#fff;border:none;border-radius:8px;padding:12px 0;font-size:16px;font-weight:600;cursor:pointer;margin-top:10px;margin-bottom:6px;transition:background 0.2s,box-shadow 0.2s;box-shadow:0 2px 12px rgba(0,123,255,0.10);width:100%;letter-spacing:1px;}
+    button[type="submit"]:hover {background:linear-gradient(90deg,#0056b3 60%,#007bff 100%);box-shadow:0 4px 18px rgba(0,123,255,0.13);}
+    .back-btn {display:block;width:100%;background:#f3f7fa;color:#007bff;border:1px solid #cfd8dc;border-radius:8px;padding:11px 0;font-size:15px;font-weight:500;text-align:center;text-decoration:none;margin-top:22px;transition:background 0.18s,color 0.18s;}
+    .back-btn:hover {background:#e3eaf6;color:#0056b3;}
+    .msg {color:green;text-align:center;margin-bottom:18px;}
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h1>Set Service Fees</h1>
+    {% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
+    <form method="post">
+      <div class="form-row">
+        <label for="identity_fee">Identity Verification Fee (points):</label>
+        <input type="number" id="identity_fee" name="identity_fee" min="0" value="{{ identity_fee|default(0) }}" required>
+      </div>
+      <div class="form-row">
+        <label for="score_fee">GPA Query Fee (points):</label>
+        <input type="number" id="score_fee" name="score_fee" min="0" value="{{ score_fee|default(0) }}" required>
+      </div>
+      <div class="form-row">
+        <label for="thesis_fee">Thesis Query Fee (points):</label>
+        <input type="number" id="thesis_fee" name="thesis_fee" min="0" value="{{ thesis_fee|default(0) }}" required>
+      </div>
+      <button type="submit">Save</button>
+    </form>
+    <a href="{{ url_for('oconvener.dashboard') }}" class="back-btn">← Back to Dashboard</a>
+  </div>
+</body>
+</html>

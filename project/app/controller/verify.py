@@ -221,12 +221,38 @@ def student_query():
 
     if not name or not sid:
         flash('Name / ID cannot be empty')
-        # 直接回渲染页面而非 redirect，避免丢失输入
         return render_template('verify_identity.html',
                                configs=configs,
                                api_choice=api_choice,
                                name=name,
                                stu_id=sid)
+
+    # ---------- 自动扣费逻辑 ---------- #
+    user_role = session.get('user_role')
+    user_id = session.get('user_id')
+    org_shortname = session.get('user_name')
+    from app.models.o_convener import OConvener
+    convener = OConvener.query.filter_by(org_shortname=org_shortname).first()
+    fee = convener.identity_fee if convener else 0
+    # 仅老师/学生扣费，O-Convener免费
+    if user_role in ('teacher', 'student') and fee > 0:
+        if user_role == 'teacher':
+            from app.models.teacher import Teacher
+            user = Teacher.query.get(user_id)
+        else:
+            from app.models.student import Student
+            user = Student.query.get(user_id)
+        if not hasattr(user, 'thesis_quota') or user.thesis_quota is None:
+            user.thesis_quota = 0
+        if user.thesis_quota < fee:
+            flash(f'Insufficient points (current: {user.thesis_quota}, required: {fee}), operation denied.', 'error')
+            return render_template('verify_identity.html',
+                                   configs=configs,
+                                   api_choice=api_choice,
+                                   name=name,
+                                   stu_id=sid)
+        user.thesis_quota -= fee
+        db.session.commit()
 
     # ---------- 处理文件 ---------- #
     photo  = request.files.get('photo')
@@ -244,7 +270,6 @@ def student_query():
         try:
             data = _call_api(cfg, payload, files)
             last_resp, last_cfg = data, cfg
-            # 外部接口成功标志
             if data.get('status') in ('y', 'success'):
                 return render_template(
                     'verify_identity.html',
@@ -286,6 +311,30 @@ def student_batch():
     cfgs = _configs('identity')
     if not cfgs:
         return 'No authentication interface configured', 400
+
+    # 自动扣费逻辑
+    user_role = session.get('user_role')
+    user_id = session.get('user_id')
+    org_shortname = session.get('user_name')
+    from app.models.o_convener import OConvener
+    convener = OConvener.query.filter_by(org_shortname=org_shortname).first()
+    fee = convener.identity_fee if convener else 0
+    # 仅老师/学生扣费，O-Convener免费
+    if user_role in ('teacher', 'student') and fee > 0:
+        if user_role == 'teacher':
+            from app.models.teacher import Teacher
+            user = Teacher.query.get(user_id)
+        else:
+            from app.models.student import Student
+            user = Student.query.get(user_id)
+        if not hasattr(user, 'thesis_quota') or user.thesis_quota is None:
+            user.thesis_quota = 0
+        total_fee = fee * len(df)
+        if user.thesis_quota < total_fee:
+            flash(f'Insufficient points for batch operation (current: {user.thesis_quota}, required: {total_fee})', 'error')
+            return render_template('verify_identity_batch_result.html', results=[])
+        user.thesis_quota -= total_fee
+        db.session.commit()
 
     results = []
     for _, row in df.iterrows():
@@ -354,6 +403,32 @@ def score_query():
                                api_choice=api_choice,
                                name=name,
                                stu_id=sid)
+
+    # ---------- 自动扣费逻辑 ---------- #
+    user_role = session.get('user_role')
+    user_id = session.get('user_id')
+    org_shortname = session.get('user_name')
+    from app.models.o_convener import OConvener
+    convener = OConvener.query.filter_by(org_shortname=org_shortname).first()
+    fee = convener.score_fee if convener else 0
+    if user_role in ('teacher', 'student') and fee > 0:
+        if user_role == 'teacher':
+            from app.models.teacher import Teacher
+            user = Teacher.query.get(user_id)
+        else:
+            from app.models.student import Student
+            user = Student.query.get(user_id)
+        if not hasattr(user, 'thesis_quota') or user.thesis_quota is None:
+            user.thesis_quota = 0
+        if user.thesis_quota < fee:
+            flash(f'Insufficient points (current: {user.thesis_quota}, required: {fee}), operation denied.', 'error')
+            return render_template('verify_score.html',
+                                   configs=configs,
+                                   api_choice=api_choice,
+                                   name=name,
+                                   stu_id=sid)
+        user.thesis_quota -= fee
+        db.session.commit()
 
     payload = {'name': name, 'id': sid}
     cfg_list = configs if api_choice == 'auto' else \
@@ -430,6 +505,29 @@ def score_batch():
 
     # 记录批量查询日志
     log_access(f"Batch query student GPA", f"Total {len(df)} records")
+
+    # 自动扣费逻辑
+    user_role = session.get('user_role')
+    user_id = session.get('user_id')
+    org_shortname = session.get('user_name')
+    from app.models.o_convener import OConvener
+    convener = OConvener.query.filter_by(org_shortname=org_shortname).first()
+    fee = convener.score_fee if convener else 0
+    if user_role in ('teacher', 'student') and fee > 0:
+        if user_role == 'teacher':
+            from app.models.teacher import Teacher
+            user = Teacher.query.get(user_id)
+        else:
+            from app.models.student import Student
+            user = Student.query.get(user_id)
+        if not hasattr(user, 'thesis_quota') or user.thesis_quota is None:
+            user.thesis_quota = 0
+        total_fee = fee * len(df)
+        if user.thesis_quota < total_fee:
+            flash(f'Insufficient points for batch operation (current: {user.thesis_quota}, required: {total_fee})', 'error')
+            return render_template('verify_score_batch_result.html', results=[])
+        user.thesis_quota -= total_fee
+        db.session.commit()
 
     results = []
     success_count = 0
@@ -538,6 +636,31 @@ def thesis_query():
                                configs=configs,
                                api_choice='auto',
                                title='')
+
+    # ---------- 自动扣费逻辑 ---------- #
+    user_role = session.get('user_role')
+    user_id = session.get('user_id')
+    org_shortname = session.get('user_name')
+    from app.models.o_convener import OConvener
+    convener = OConvener.query.filter_by(org_shortname=org_shortname).first()
+    fee = convener.thesis_fee if convener else 0
+    if user_role in ('teacher', 'student') and fee > 0:
+        if user_role == 'teacher':
+            from app.models.teacher import Teacher
+            user = Teacher.query.get(user_id)
+        else:
+            from app.models.student import Student
+            user = Student.query.get(user_id)
+        if not hasattr(user, 'thesis_quota') or user.thesis_quota is None:
+            user.thesis_quota = 0
+        if user.thesis_quota < fee:
+            flash(f'Insufficient points (current: {user.thesis_quota}, required: {fee}), operation denied.', 'error')
+            return render_template('thesis_query.html',
+                                   configs=configs,
+                                   api_choice='auto',
+                                   title='')
+        user.thesis_quota -= fee
+        db.session.commit()
 
     # 表单取值
     keywords = (request.form.get('title') or '').strip()
