@@ -125,7 +125,13 @@
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     {{ req.content }}
                     {% if req.admin_reply %}
-                        <span class="badge bg-warning text-dark">Replied</span>
+                        <span class="badge bg-warning text-dark d-flex align-items-center">
+                            Replied
+                            <span style="color: gold; margin-left: 4px;">⭐</span>
+                        </span>
+                        <div style="margin-top: 8px; font-size: 0.9em; color: #6c757d;">
+                            <strong>Reply:</strong> {{ req.admin_reply }}
+                        </div>
                     {% endif %}
                 </li>
                 {% endfor %}

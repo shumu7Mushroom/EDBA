@@ -13,6 +13,11 @@
     table.table { width: 100%; border-collapse: collapse; }
     table.table th, table.table td { padding: 12px; }
     .table-info { background-color: #e9f7fd; }
+    .badge { padding: 6px 12px; border-radius: 4px; font-weight: 500; font-size: 0.875rem; }
+    .bg-info { background-color: #17a2b8; color: white; }
+    .bg-success { background-color: #28a745; color: white; }
+    .me-2 { margin-right: 0.5rem; }
+    code { background: #f8f9fa; padding: 4px 8px; border-radius: 4px; color: #e83e8c; }
   </style>
 
 <div class="main-container">
@@ -93,19 +98,25 @@
         });
         updateTotal();
     }
-    </script>
-
-    <!-- Display Receiving Bank Information -->
+    </script>    <!-- Display Receiving Bank Information -->
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <span>Receiving Bank Information</span>
-            <a href="{{ url_for('bank_config.bank_api_config') }}" class="btn btn-primary btn-sm">
-                Configure Bank API
-            </a>
+            <div class="d-flex align-items-center">
+                {% if "localhost" in config.base_url or "127.0.0.1" in config.base_url %}
+                    <span class="badge bg-info me-2">Local Bank API</span>
+                {% else %}
+                    <span class="badge bg-success me-2">External Bank API</span>
+                {% endif %}
+                <a href="{{ url_for('bank_config.bank_api_config') }}" class="btn btn-primary btn-sm">
+                    Configure Bank API
+                </a>
+            </div>
         </div>
         <div class="card-body">
             <table class="table">
-                <tr>                    <th>Receiving Bank:</th>
+                <tr>
+                    <th style="width: 30%;">Receiving Bank:</th>
                     <td>{{ eadmin_info.bank_name }}</td>
                 </tr>
                 <tr>
@@ -116,9 +127,15 @@
                     <th>Bank Account Number:</th>
                     <td>{{ eadmin_info.bank_account }}</td>
                 </tr>
+                <tr>
+                    <th>API Server:</th>
+                    <td>
+                        <code>{{ config.base_url }}</code>
+                    </td>
+                </tr>
             </table>
         </div>
-    </div>    <!-- Payment Button -->
+    </div><!-- Payment Button -->
     <div class="card">
         <div class="card-body text-center">
             <button type="submit" form="paymentForm" class="btn btn-primary">Confirm Payment for Selected Members</button>

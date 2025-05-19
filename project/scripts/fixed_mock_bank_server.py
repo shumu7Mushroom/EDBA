@@ -73,52 +73,74 @@ def transfer():
     password = data.get('password')
     amount = int(data.get('amount', 0))
 
+    print(f"[DEBUG] 转账请求数据: {data}")
     print(f"[DEBUG] 转账请求 from={from_account}, to={to_account}, amount={amount}")
 
-    # 查找发送方账户
-    sender_config = BankConfig.query.filter_by(bank_account=from_account.strip()).first()
-    if not sender_config:
-        return jsonify({"status": "error", "reason": "发送方账号不存在"}), 200
-    if sender_config.bank_password != password:
-        return jsonify({"status": "error", "reason": "密码错误"}), 200
-    if sender_config.balance < amount:
-        return jsonify({"status": "error", "reason": "余额不足"}), 200
+    # 检查参数
+    if not all([from_account, to_account, password, amount]):
+        return jsonify({
+            "status": "error",
+            "reason": "缺少必要参数",
+            "debug_info": {
+                "from_account": bool(from_account),
+                "to_account": bool(to_account),
+                "password": bool(password),
+                "amount": bool(amount)
+            }
+        }), 200
 
-    # ✅ 查找目标账户
-    receiver_config = BankConfig.query.filter_by(bank_account=to_account.strip()).first()
+    # 查找发送方账户
+    sender_config = BankConfig.query.filter_by(bank_account=str(from_account).strip()).first()
+    if not sender_config:
+        return jsonify({
+            "status": "error",
+            "reason": f"发送方账号不存在: {from_account}",
+            "debug_info": {"accounts": list(accounts.keys())}
+        }), 200
+
+    if str(sender_config.bank_password).strip() != str(password).strip():
+        return jsonify({"status": "error", "reason": "密码错误"}), 200
+
+    if not sender_config.balance or sender_config.balance < amount:
+        return jsonify({
+            "status": "error", 
+            "reason": f"余额不足 (当前余额: {sender_config.balance}, 需要: {amount})"
+        }), 200
+
+    # 查找接收方账户
+    receiver_config = BankConfig.query.filter_by(bank_account=str(to_account).strip()).first()
     if not receiver_config:
-        return jsonify({"status": "error", "reason": "目标账户不存在"}), 200
+        return jsonify({
+            "status": "error",
+            "reason": f"接收方账号不存在: {to_account}",
+            "debug_info": {"accounts": list(accounts.keys())}
+        }), 200
 
     print(f"[DEBUG] 接收方账户已找到: {receiver_config.bank_account}")
 
     # 执行转账
     try:
+        print(f"[DEBUG] 转账前余额 - 发送方: {sender_config.balance}, 接收方: {receiver_config.balance}")
         sender_config.balance -= amount
         receiver_config.balance += amount
         db.session.commit()
+        print(f"[DEBUG] 转账后余额 - 发送方: {sender_config.balance}, 接收方: {receiver_config.balance}")
+
+        # 更新内存中的账户信息
+        if from_account in accounts:
+            accounts[from_account]['balance'] = sender_config.balance
+        if to_account in accounts:
+            accounts[to_account]['balance'] = receiver_config.balance
+
+        return jsonify({
+            "status": "success",
+            "message": "转账成功",
+            "from_balance": sender_config.balance,
+            "to_balance": receiver_config.balance
+        })
     except Exception as e:
         db.session.rollback()
         return jsonify({"status": "error", "reason": f"数据库错误: {str(e)}"}), 200
-
-    # ✅ 更新缓存
-    accounts[from_account]["balance"] = sender_config.balance
-    if receiver_config.bank_account not in accounts:
-        accounts[receiver_config.bank_account] = {
-            "bank": receiver_config.bank_name,
-            "account_name": receiver_config.account_name,
-            "password": receiver_config.bank_password,
-            "balance": receiver_config.balance
-        }
-    else:
-        accounts[receiver_config.bank_account]["balance"] = receiver_config.balance
-
-    print(f"[✅ SUCCESS] 已转账 {amount} from {from_account} to {to_account}")
-    return jsonify({
-        "status": "success",
-        "from_balance": sender_config.balance,
-        "amount": amount
-    }), 200
-
 
 @app.route('/hw/bank/balance/<account>', methods=['GET'])
 def get_balance(account):

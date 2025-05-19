@@ -610,12 +610,11 @@ def pay_fee():
                                         'bank_account': receiver_config.bank_account
                                     },
                                     organization=convener.org_shortname,
-                                    unpaid_users=unpaid_users)
-
-            # 6. Prepare and execute transfer
-            TO_BANK_ACCOUNT = "aaa"
-            TO_BANK_NAME = "sddddda"
-            TO_ACCOUNT_NAME = "ssss"
+                                    unpaid_users=unpaid_users)            # 6. Prepare and execute transfer
+            # 使用固定的 E-admin 账户信息，确保与外部 API 一致
+            TO_BANK_NAME = "E-DBA Bank"
+            TO_ACCOUNT_NAME = "E-DBA account"
+            TO_BANK_ACCOUNT = "596117071864958"
 
             transfer_data = {
                 "from_bank": sender_config.bank_name,
@@ -623,12 +622,9 @@ def pay_fee():
                 "from_account": sender_config.bank_account,
                 "account_number": sender_config.bank_account,
                 "password": sender_config.bank_password,
-                
-                # ✅ 兼容远程 mock server 写死逻辑
                 "to_bank": TO_BANK_NAME,
                 "to_name": TO_ACCOUNT_NAME,
                 "to_account": TO_BANK_ACCOUNT,
-
                 "amount": total_fee
             }
 
@@ -686,15 +682,11 @@ def pay_fee():
             db.session.rollback()
 
     # GET request handling
-    eadmin_info = {}
-    if receiver_config:
-        eadmin_info = {
-            'bank_name': receiver_config.bank_name,
-            'account_name': receiver_config.account_name,
-            'bank_account': receiver_config.bank_account
-        }
-    else:
-        flash('系统未配置E-admin收款账号信息，请联系管理员', 'error')
+    eadmin_info = {
+        'bank_name': "E-DBA Bank",
+        'account_name': "E-DBA account",
+        'bank_account': "596117071864958"
+    }
 
     return render_template('pay_fee.html',
                          config=sender_config,
