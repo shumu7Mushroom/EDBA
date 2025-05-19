@@ -32,6 +32,9 @@ def login():
         return render_template('login.html', title='Login', header='User Login', error='Please select a valid role')
 
     if valid:
+        # 检查缴费状态
+        if role in ['student', 'teacher'] and not getattr(user, 'is_pay', 0):
+            return render_template('login.html', title='Login', header='User Login', error='请先缴纳费用')
         session['user_id'] = user.id
         session['user_role'] = role
         session['user_name'] = user.name
