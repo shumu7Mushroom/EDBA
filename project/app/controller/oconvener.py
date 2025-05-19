@@ -12,10 +12,10 @@ from app.models.thesis import Thesis
 from flask import send_from_directory
 from flask import flash, abort,current_app
 import requests
-from app.controller.log import log_access  # ✅ 添加日志记录函数
+from app.controller.log import log_access  # Add log recording function
 import pandas as pd
-from app.models.bank_config import BankConfig  # 添加这行
-from app.models.E_admin import EAdmin  # 添加E-Admin模型
+from app.models.bank_config import BankConfig  # Add this line
+from app.models.E_admin import EAdmin  # Add E-Admin model
 
 oconvenerBP = Blueprint('oconvener', __name__)
 
@@ -86,7 +86,7 @@ def login():
         log_access(f"O-Convener login failed: Not approved ({email})")  # Log action
         return render_template('oconvener_login.html', error='Not approved by admin, unable to login')
 
-    # 登录成功
+    # Login successful
     session['user_id'] = convener.id
     session['user_role'] = 'convener'
     session['user_name'] = convener.org_shortname
@@ -126,7 +126,7 @@ def dashboard():
     if 'user_id' not in session or session.get('user_role') != 'convener':
         return redirect(url_for('oconvener.login'))
     convener = OConvener.query.get(session['user_id'])
-    org = session.get('user_name')  # 当前 O-Convener 的组织简称
+    org = session.get('user_name')  # Current O-Convener's organization abbreviation
     students = Student.query.filter_by(organization=org).all()
     teachers = Teacher.query.filter_by(organization=org).all()
     log_access(f"O-Convener viewed dashboard: {org}")  # Log action
@@ -145,11 +145,11 @@ def update_user(user_type, user_id):
     else:
         return "Invalid user type", 400
 
-    # 获取表单内容
+    # Get form content
     user.organization = request.form.get('organization')
     user.access_level = int(request.form.get('access_level', 2))
     user.thesis_quota = int(request.form.get('thesis_quota', 0))
-    # 新增功能权限字段
+    # Add new feature permission fields
     user.thesis_enabled = bool(request.form.get('thesis_enabled'))
     user.course_enabled = bool(request.form.get('course_enabled'))
 
@@ -221,7 +221,7 @@ def list_thesis():
 def uploaded_file(filename):
     import os
     upload_folder = current_app.config.get('UPLOAD_FOLDER', 'uploads')
-    print("Attempting to access file path:", os.path.join(upload_folder, filename))  # ✅ Print real path
+    print("Attempting to access file path:", os.path.join(upload_folder, filename))  # Print real path
     return send_from_directory(upload_folder, filename)
 
 @oconvenerBP.route('/thesis/update/<int:thesis_id>', methods=['POST'])
@@ -233,13 +233,15 @@ def update_thesis(thesis_id):
     is_free = request.form.get('is_free') == 'true'
     price = int(request.form.get('price', 0))
 
-    # 自动同步逻辑
+    # Automatically synchronize logic
+    # If the original price is 0 and now set to >0, automatically cancel free
     if thesis.price == 0 and price > 0:
-        is_free = False  # 如果原价为0，现在设为>0，自动取消免费
+        is_free = False
+    # If the original price >0 but set to free, automatically set the price to 0
     if thesis.price > 0 and is_free:
-        price = 0  # 如果原价>0，但设为免费，自动将价格设为0
+        price = 0
 
-    # 更新字段
+    # Update fields
     thesis.access_scope = access_scope
     thesis.access_type = access_type
     thesis.is_free = is_free
@@ -268,7 +270,7 @@ def review_thesis():
             flash("No theses selected")
         return redirect(url_for('oconvener.review_thesis'))
 
-    # GET：获取所有未审核论文
+    # GET: Get all unchecked theses
     theses = Thesis.query.filter_by(is_check=False).all()
     return render_template('oconvener_review_thesis.html', theses=theses)
 
@@ -277,11 +279,11 @@ def upload_members():
     if 'user_id' not in session or session.get('user_role') != 'convener':
         return redirect(url_for('oconvener.login'))
 
-    org = session.get('user_name')  # 当前 O-Convener 的组织名
+    org = session.get('user_name')  # Current O-Convener's organization name
     results = {'success': [], 'fail': []}
 
     if request.method == 'POST':
-        # === 单个成员添加逻辑 ===
+        # === Single member addition logic ===
 
         if 'single_submit' in request.form:
             try:
@@ -295,14 +297,14 @@ def upload_members():
                 if user_type == 'student':
                     user = Student.query.filter_by(email=email).first()
                     if not user:
-                        # 如果填写了密码则用填写的，否则用默认123456
+                        # If a password is provided, use it, otherwise use the default 123456
                         user_password = password if password else "123456"
                         user = Student(name, 0, "", email, user_password, org, access_level, quota)
                     else:
                         user.access_level = access_level
                         user.thesis_quota = quota
                         user.organization = org
-                        # 如果填写了密码则更新
+                        # If a password is provided, update it
                         if password:
                             user.password = password
                     db.session.add(user)
@@ -330,7 +332,7 @@ def upload_members():
 
             return redirect(url_for('oconvener.upload_members'))
 
-        # === 批量 Excel 上传逻辑 ===
+        # === Batch Excel upload logic ===
         file = request.files.get('excel_file')
         if not file or not file.filename.endswith('.xlsx'):
             flash("Please upload a valid Excel (.xlsx) file")
@@ -455,7 +457,7 @@ def batch_update_students():
                     student.thesis_quota = int(quota)
                 if org:
                     student.organization = org
-                # 支持批量勾选/取消勾选
+                # Support batch check/uncheck
                 if thesis_enabled is not None:
                     student.thesis_enabled = True
                 else:
@@ -508,7 +510,7 @@ def pay_fee():
         sender_config.auth_path,
         sender_config.transfer_path
     ]):
-        flash('未配置完整的银行API信息，请先配置银行API', 'error')
+        flash('Incomplete bank API configuration, please configure the bank API first', 'error')
         return redirect(url_for('bank_config.bank_api_config'))
 
     # Get unpaid students and teachers
@@ -561,7 +563,7 @@ def pay_fee():
             # 1. Validate form data
             selected_users = request.form.getlist('selected_users')
             if not selected_users:
-                flash('未选择任何用户，返回主界面', 'info')
+                flash('No users selected, returning to main interface', 'info')
                 return redirect(url_for('oconvener.dashboard'))
 
             total_fee = int(request.form.get('total_amount', 0))
@@ -574,7 +576,7 @@ def pay_fee():
 
             # 3. Check receiver config
             if not receiver_config:
-                flash('系统未配置E-admin收款账号信息，请联系管理员', 'error')
+                flash('System has not configured E-admin receiving account information, please contact the administrator', 'error')
                 return render_template('pay_fee.html',
                                     config=sender_config,
                                     organization=convener.org_shortname,
@@ -589,19 +591,19 @@ def pay_fee():
                 "password": sender_config.bank_password
             }
 
-            # 调试日志：打印传递给外部 API 的数据
+            # Debug log: Print the data passed to the external API
             print("Auth Data:", auth_data)
-            # 调试日志：打印传递给外部 API 的数据（在 transfer_data 定义后）
+            # Debug log: Print the data passed to the external API (after defining transfer_data)
             
 
             # 5. Authenticate
             auth_response = requests.post(auth_url, json=auth_data, timeout=5)
             if auth_response.status_code != 200:
-                raise requests.exceptions.RequestException("认证服务返回非200状态码")
+                raise requests.exceptions.RequestException("Authentication service returned non-200 status code")
             
             auth_result = auth_response.json()
             if auth_result['status'] != 'success':
-                flash(f'账户验证失败：{auth_result.get("reason", "未知错误")}', 'error')
+                flash(f'Account verification failed: {auth_result.get("reason", "Unknown error")}', 'error')
                 return render_template('pay_fee.html',
                                     config=sender_config,
                                     eadmin_info={
@@ -611,7 +613,7 @@ def pay_fee():
                                     },
                                     organization=convener.org_shortname,
                                     unpaid_users=unpaid_users)            # 6. Prepare and execute transfer
-            # 使用固定的 E-admin 账户信息，确保与外部 API 一致
+            # Use fixed E-admin account information to ensure consistency with the external API
             TO_BANK_NAME = "E-DBA Bank"
             TO_ACCOUNT_NAME = "E-DBA account"
             TO_BANK_ACCOUNT = "596117071864958"
@@ -634,16 +636,16 @@ def pay_fee():
             transfer_response = requests.post(transfer_url, json=transfer_data, timeout=5)
             print("📦 transfer_response.status_code =", transfer_response.status_code)
             print("📦 transfer_response.text =", transfer_response.text)
-            print("🔍 实际请求 transfer_url =", transfer_url)
-            print("💡 正在使用 base_url =", sender_config.base_url)
-            print("💡 请求转账路径 =", transfer_url)
+            print("🔍 Actual request transfer_url =", transfer_url)
+            print("💡 Using base_url =", sender_config.base_url)
+            print("💡 Request transfer path =", transfer_url)
 
             if transfer_response.status_code != 200:
-                raise requests.exceptions.RequestException(f"转账服务返回非200状态码: {transfer_response.status_code}")
+                raise requests.exceptions.RequestException(f"Transfer service returned non-200 status code: {transfer_response.status_code}")
 
             transfer_result = transfer_response.json()
             if transfer_result['status'] != 'success':
-                raise Exception(transfer_result.get("reason", "转账失败：未知错误"))
+                raise Exception(transfer_result.get("reason", "Transfer failed: Unknown error"))
 
             # Debug log to verify receiver_config values
             print(f"Debug: receiver_config.bank_account={receiver_config.bank_account}")
@@ -671,14 +673,14 @@ def pay_fee():
 
             receiver_config.balance = (receiver_config.balance or 0) + total_fee#e admin收款
             db.session.commit()
-            flash('支付成功！', 'success')
-            log_access(f"O-Convener {convener.org_shortname} 为 {len(selected_users)} 个用户完成支付")
+            flash('Payment successful!', 'success')
+            log_access(f"O-Convener {convener.org_shortname} completed payment for {len(selected_users)} users")
             return redirect(url_for('oconvener.dashboard'))
 
         except requests.exceptions.RequestException as e:
-            flash(f'API请求失败: {str(e)}', 'error')
+            flash(f'API request failed: {str(e)}', 'error')
         except Exception as e:
-            flash(f'支付过程发生错误：{str(e)}', 'error')
+            flash(f'Error occurred during payment process: {str(e)}', 'error')
             db.session.rollback()
 
     # GET request handling
@@ -709,7 +711,7 @@ def save_bank_config():
     }
 
     if not all(form_data.values()):
-        flash('请填写所有必填字段', 'error')
+        flash('Please fill in all required fields', 'error')
         return redirect(url_for('bank_config.bank_api_config'))
 
     try:
@@ -724,10 +726,10 @@ def save_bank_config():
                 setattr(config, key, value)
 
         db.session.commit()
-        flash('银行API配置已成功保存', 'success')
+        flash('Bank API configuration has been successfully saved', 'success')
     except Exception as e:
         db.session.rollback()
-        flash(f'保存配置时出错: {str(e)}', 'error')
+        flash(f'Error occurred while saving configuration: {str(e)}', 'error')
 
     return redirect(url_for('bank_config.bank_api_config'))
 

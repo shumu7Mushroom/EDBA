@@ -7,23 +7,23 @@ from sqlalchemy.orm import Session
 class BankConfig(Base):
     __tablename__ = 'bank_config'
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, nullable=True)  # 关联到convener的id
+    user_id = Column(Integer, nullable=True)  # Associate with the convener's ID
     bank_account = Column(String(64), nullable=False)
     bank_name = Column(String(64), default="EDBA Bank")
     account_name = Column(String(64), default="EDBA System")
     bank_password = Column(String(64), nullable=True)
-    balance = Column(Integer, default=0)  # 账户余额
+    balance = Column(Integer, default=0)  # Account balance
     
-    # 不同访问级别的费用设置
-    level1_fee = Column(Integer, default=1)  # Level 1费用
-    level2_fee = Column(Integer, default=2)  # Level 2费用
-    level3_fee = Column(Integer, default=3)  # Level 3费用
+    # Different access level fee settings
+    level1_fee = Column(Integer, default=1)  # Level 1 fee
+    level2_fee = Column(Integer, default=2)  # Level 2 fee
+    level3_fee = Column(Integer, default=3)  # Level 3 fee
     
-    # API配置字段
+    # API configuration fields
     base_url = Column(String(255), nullable=True)
     auth_path = Column(String(255), nullable=True)
     transfer_path = Column(String(255), nullable=True)
-    api_config = Column(JSON, nullable=True)  # 存储银行API配置
+    api_config = Column(JSON, nullable=True)  # Store bank API configuration
 
     def transfer_to_admin(self, session: Session, admin_account: str, amount: int, use_external_api=True):
         """
@@ -39,23 +39,23 @@ class BankConfig(Base):
             raise ValueError("Transfer amount must be greater than zero.")
 
         if use_external_api:
-            # 根据 base_url 判断是本地模拟服务器还是外部 API
+            # Determine if it's a local mock server or an external API based on base_url
             is_local_server = "localhost" in self.base_url or "127.0.0.1" in self.base_url
             transfer_url = f"{self.base_url}{self.transfer_path}"
             
-            # 设置目标账户信息
+            # Set target account information
             if is_local_server:
-                # 使用本地模拟服务器的账户信息
+                # Use the local mock server's account information
                 to_bank = "sdddddа"
                 to_name = "ssss"
                 to_account = "aaa"
             else:
-                # 使用外部 API 的账户信息
+                # Use the external API's account information
                 to_bank = "E-DBA Bank"
                 to_name = "E-DBA account"
                 to_account = "596117071864958"
             
-            # 构建请求数据
+            # Construct request data
             payload = {
                 "from_account": self.bank_account,
                 "password": self.bank_password,
@@ -86,7 +86,7 @@ class BankConfig(Base):
                 logging.error(f"[API] Request Exception: {e}")
                 raise ValueError("[API] Request Exception.")
 
-        # 如果未使用API或API调用失败，使用本地逻辑
+        # If not using API or API call fails, use local logic
         admin_config = session.query(BankConfig).filter_by(id=1).first()
         if not admin_config:
             raise ValueError("E-admin account not found")

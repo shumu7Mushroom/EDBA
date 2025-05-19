@@ -5,16 +5,16 @@ from app.models.Senior_E_Admin import SeniorEAdmin
 from app.models.o_convener import OConvener
 from app.models.rule import Rule
 from app.models.base import db
-from app.controller.log import log_access  # ✅ 添加日志记录函数
+from app.controller.log import log_access  # Add log recording function
 import os
 from werkzeug.utils import secure_filename
 from app.models.T_admin import TAdmin
 
 adminBP = Blueprint('admin', __name__)
-print("adminBP 路由已加载")
+print("adminBP routes loaded")
 
 
-# E-Admin 设置银行账户和会费
+# E-Admin set bank account and membership fee
 @adminBP.route('/bank_config', methods=['GET', 'POST'])
 def bank_config():
     if session.get('admin_role') != 'eadmin':
@@ -28,7 +28,7 @@ def bank_config():
         bank_account = request.form['bank_account']
         bank_password = request.form['bank_password']
         
-        # 获取各级别费用设置
+        # Get fee settings for each level
         level1_fee = request.form.get('level1_fee', 20)
         level2_fee = request.form.get('level2_fee', 50)
         level3_fee = request.form.get('level3_fee', 100)
@@ -55,14 +55,14 @@ def bank_config():
             config.level3_fee = level3_fee
             
         db.session.commit()
-        msg = "银行账户和会费配置已更新。"
+        msg = "Bank account and membership fee configuration updated."
         
     return render_template('bank_config.html', config=config, msg=msg)
 
-# 登录界面
+# Login page
 @adminBP.route('/login', methods=['GET', 'POST'])
 def admin_login():
-    session.clear()  # ✅ 清除之前的 session
+    session.clear()  # Clear previous session
     if request.method == 'GET':
         return render_template('admin_login.html')
     
@@ -90,7 +90,7 @@ def admin_login():
         
         
 
-        log_access(f"{role} 登录成功（ID: {admin.id}）")
+        log_access(f"{role} login successful (ID: {admin.id})")
 
         # 👇 分开跳转
         if role == 'eadmin':
@@ -100,11 +100,11 @@ def admin_login():
         elif role == 'tadmin':
             return redirect(url_for('tadmin.dashboard'))
     else:
-        log_access(f"{role} 登录失败（email: {email}）")  # ✅ 记录登录失败
+        log_access(f"{role} login failed (email: {email})")  # Record login failure
         return render_template('admin_login.html', error='Invalid credentials')
 
 
-# 管理后台界面
+# Admin dashboard
 @adminBP.route('/dashboard')
 def dashboard():
     if 'admin_id' not in session:
@@ -112,7 +112,7 @@ def dashboard():
 
     role = session.get('admin_role')
     conv_list = []
-    rules = []  # ✅ 防止未定义
+    rules = []  # Prevent undefined
 
     if role == 'eadmin':
         conv_list = OConvener.query.filter_by(status_text='pending').all()
@@ -120,7 +120,7 @@ def dashboard():
     elif role == 'senior':
         conv_list = OConvener.query.filter_by(status_text='reviewed').all()
 
-    log_access(f"访问管理员后台（角色: {role}）")
+    log_access(f"Accessed admin dashboard (role: {role})")
     return render_template('admin_dashboard.html', conv_list=conv_list, role=role, rules=rules)
 
 @adminBP.route('/approve/<int:id>', methods=['POST'])
@@ -132,10 +132,10 @@ def approve(id):
 
     if role == 'eadmin':
         convener.status_text = 'reviewed'
-        log_access(f"E-Admin 审核通过注册申请（O-Convener ID: {id}）")
+        log_access(f"E-Admin approved registration application (O-Convener ID: {id})")
     elif role == 'senior':
         convener.status_text = 'approved'
-        log_access(f"Senior E-Admin 审核通过注册申请（O-Convener ID: {id}）")
+        log_access(f"Senior E-Admin approved registration application (O-Convener ID: {id})")
 
     db.session.commit()
     return redirect(url_for('admin.dashboard'))
@@ -150,16 +150,16 @@ def reject(id):
 
     if role in ['eadmin', 'senior']:
         convener.status_text = 'rejected'
-        log_access(f"{role} 拒绝了 O-Convener 的申请（ID: {id}）")
+        log_access(f"{role} rejected O-Convener application (ID: {id})")
 
     db.session.commit()
     return redirect(url_for('admin.dashboard'))
 
 
-# 退出
+# Logout
 @adminBP.route('/logout')
 def logout():
-    log_access("管理员退出登录")  # ✅ 记录登出
+    log_access("Admin logged out")  # Record logout
     session.clear()
     return redirect(url_for('admin.admin_login'))
 
@@ -187,7 +187,7 @@ def download_rule(filename):
 #     file = request.files.get('rule_file')
 
 #     if not file or not file.filename.endswith('.pdf'):
-#         flash("请上传 PDF 文件")
+#         flash("Please upload a PDF file")
 #         return redirect(url_for('admin.dashboard'))
 
 #     filename = secure_filename(file.filename)
@@ -198,7 +198,7 @@ def download_rule(filename):
 #     with db.auto_commit():
 #         db.session.add(new_rule)
 
-#     flash("规则上传成功")
+#     flash("Rule uploaded successfully")
 #     return redirect(url_for('admin.dashboard'))
 
 
@@ -211,11 +211,11 @@ def download_rule(filename):
 # def delete_rule(rule_id):
 #     rule = Rule.query.get(rule_id)
 #     if rule:
-#         # 删除文件
+#         # Delete file
 #         filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], rule.filename)
 #         if os.path.exists(filepath):
 #             os.remove(filepath)
 #         with db.auto_commit():
 #             db.session.delete(rule)
-#         flash("规则已删除")
+#         flash("Rule deleted")
 #     return redirect(url_for('admin.dashboard'))

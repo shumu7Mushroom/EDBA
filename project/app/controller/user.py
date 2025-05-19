@@ -11,7 +11,7 @@ def login():
     if request.method == 'GET':
         return render_template('login.html', title='Login', header='User Login')
 
-    session.clear()  # ✅ 清除之前登录的 session 信息，防止身份冲突
+    session.clear()  # Clear previous session info to prevent identity conflicts
 
     email = request.form.get('email', '').strip()
     password = request.form.get('password', '').strip()
@@ -32,9 +32,9 @@ def login():
         return render_template('login.html', title='Login', header='User Login', error='Please select a valid role')
 
     if valid:
-        # 检查缴费状态
+        # Check payment status
         if role in ['student', 'teacher'] and not getattr(user, 'is_pay', 0):
-            return render_template('login.html', title='Login', header='User Login', error='请先缴纳费用')
+            return render_template('login.html', title='Login', header='User Login', error='Please make the payment first.')
         session['user_id'] = user.id
         session['user_role'] = role
         session['user_name'] = user.name
