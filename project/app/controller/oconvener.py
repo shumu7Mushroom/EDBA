@@ -483,9 +483,15 @@ from flask import flash
 def pay_fee():
     if 'user_id' not in session or session.get('user_role') != 'convener':
         return redirect(url_for('oconvener.login'))
+      convener = OConvener.query.get(session['user_id'])
     
-    convener = OConvener.query.get(session['user_id'])
-    config = BankConfig.query.first()
+    # 获取当前用户的银行配置
+    user_id = session.get('user_id')
+    config = BankConfig.query.filter_by(user_id=user_id).first()
+    
+    # 如果没有特定用户的配置，则回退到默认配置
+    if not config:
+        config = BankConfig.query.first()
     
     # 更全面的配置检查
     if not config or not all([
@@ -727,16 +733,19 @@ def save_bank_config():
     # Validate required fields
     if not all([bank_name, account_name, account_number, password, auth_path, transfer_path]):
         flash('请填写所有必填字段', 'error')
-        return redirect(url_for('bank_config.bank_api_config'))
-
-    # Save to database
+        return redirect(url_for('bank_config.bank_api_config'))    # Save to database
     try:
-        config = BankConfig.query.first()
+        # 获取当前用户ID
+        user_id = session.get('user_id')
+        
+        # 按用户ID查找现有配置
+        config = BankConfig.query.filter_by(user_id=user_id).first()
         # Debugging: Log initial database state
         print(f"Initial Database State: {config}")
 
         if not config:
             config = BankConfig(
+                user_id=user_id,  # 设置关联的用户ID
                 bank_name=bank_name,
                 account_name=account_name,
                 bank_account=account_number,
