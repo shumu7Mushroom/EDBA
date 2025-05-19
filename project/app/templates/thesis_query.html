@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Thesis Search</title>
+  <style>
+    body {font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f8; margin: 0; padding: 0;}
+    .main-container {background: #fff; max-width: 36vw; margin: 48px auto 0 auto; border-radius: 14px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 36px 40px 32px 40px;}
+    h1 {color: #2d3a4b; margin-bottom: 28px; text-align: center; font-size: 1.6em; letter-spacing: 1px;}
+    .form-row {display: flex; align-items: center; margin-bottom: 18px;}
+    label {flex: 0 0 110px; color: #444; font-weight: 500; margin-bottom: 0; text-align: right; margin-right: 12px;}
+    .form-input {flex: 1; min-width: 0;}
+    input[type="text"] {width: 100%; padding: 8px 10px; border: 1px solid #cfd8dc; border-radius: 6px; font-size: 15px; background: #f8fafb; transition: border 0.2s; margin-bottom: 0;}
+    input[type="text"]:focus {border: 1.5px solid #007bff; outline: none; background: #fff;}
+    button[type="submit"] {background: linear-gradient(90deg, #007bff 60%, #0056b3 100%); color: #fff; border: none; border-radius: 8px; padding: 12px 0; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 10px; margin-bottom: 6px; transition: background 0.2s, box-shadow 0.2s; box-shadow: 0 2px 12px rgba(0,123,255,0.10); width: 100%; letter-spacing: 1px;}
+    button[type="submit"]:hover {background: linear-gradient(90deg, #0056b3 60%, #007bff 100%); box-shadow: 0 4px 18px rgba(0,123,255,0.13);}
+    .back-btn {display: block; width: 100%; background: #f3f7fa; color: #007bff; border: 1px solid #cfd8dc; border-radius: 8px; padding: 11px 0; font-size: 15px; font-weight: 500; text-align: center; text-decoration: none; margin-top: 22px; transition: background 0.18s, color 0.18s;}
+    .back-btn:hover {background: #e3eaf6; color: #0056b3;}
+    .result-block {background: #f5f8ff; border: 1.5px solid #b3c6e0; border-radius: 8px; padding: 18px 16px 14px 16px; margin-top: 32px; font-size: 15px; box-shadow: 0 2px 8px rgba(0,123,255,0.06);}
+    .result-block h2 {font-size: 1.18em; color: #2d3a4b; margin-bottom: 10px; margin-top: 0; border-bottom: 1px solid #e3eaf6; padding-bottom: 6px;}
+    .thesis-list {margin-top: 18px;}
+    .thesis-item {background: #fff; border: 1px solid #e3eaf6; border-radius: 8px; padding: 16px 14px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,123,255,0.04);}
+    .thesis-title {font-weight: bold; color: #007bff; font-size: 1.1em;}
+    .thesis-meta {color: #666; font-size: 13px; margin-bottom: 6px;}
+    .thesis-abstract {margin: 8px 0 0 0; color: #333;}
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h1>Search Thesis</h1>
+    <form method="post" action="{{ url_for('verify.thesis_query') }}">
+      <div class="form-row">
+        <label for="keywords">Keywords:</label>
+        <div class="form-input">
+          <input type="text" id="keywords" name="title" value="{{ title|default('') }}" placeholder="Enter thesis title, author or keyword">
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="api_choice">API:</label>
+        <div class="form-input">
+          <select id="api_choice" name="api_choice">
+            <option value="auto" {% if api_choice=='auto' %}selected{% endif %}>Auto Select</option>
+            {% for cfg in configs %}
+              <option value="{{ cfg.id }}" {% if api_choice==cfg.id|string %}selected{% endif %}>{{ cfg.base_url }}{{ cfg.path }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <button type="submit">Search</button>
+    </form>
+    {% if result %}
+      <div class="result-block">
+        <h2>Search Result</h2>
+        {% if result.status in ['y', 'success'] and result.theses %}
+          <div class="thesis-list">
+            {% for t in result.theses %}
+              <div class="thesis-item">
+                <div class="thesis-title">{{ t.title }}</div>
+                {% if t.author or t.year %}
+                  <div class="thesis-meta">
+                    {% if t.author %}Author: {{ t.author }}{% endif %}
+                    {% if t.author and t.year %} | {% endif %}
+                    {% if t.year %}Year: {{ t.year }}{% endif %}
+                  </div>
+                {% endif %}
+                <div class="thesis-abstract">{{ t.abstract }}</div>
+              </div>
+            {% endfor %}
+          </div>
+        {% elif result.status in ['y', 'success'] and result.title and result.abstract %}
+          <div class="thesis-list">
+            <div class="thesis-item">
+              <div class="thesis-title">{{ result.title }}</div>
+              <div class="thesis-abstract">{{ result.abstract }}</div>
+            </div>
+          </div>
+        {% elif result.status == 'not_found' or not result.theses %}
+          <div style="color:#dc3545;">No thesis found.</div>
+        {% elif result.status == 'error' %}
+          <div style="color:#dc3545;">Error: {{ result.message }}</div>
+        {% else %}
+          <pre>{{ result | tojson | safe }}</pre>
+        {% endif %}
+      </div>
+    {% endif %}
+    <a href="{{ url_for('oconvener.dashboard') }}" class="back-btn">← Back to Dashboard</a>
+  </div>
+</body>
+</html>

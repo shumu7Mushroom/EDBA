@@ -159,7 +159,6 @@
     <a href="{{ url_for('oconvener.upload_members') }}"><button>Upload Members</button></a>
     <a href="{{ url_for('oconvener.pay_fee') }}"><button style="background-color:#ffc107;color:#333;">💰 Pay Fees</button></a>
     <a href="{{ url_for('log.view_logs') }}"><button>View Logs</button></a>
-    <!-- <a href="{{ url_for('verify.score_query') }}"><button>Query GPA</button></a> -->
 </div>
 
 <h3>Service Interface Configuration</h3>
@@ -168,6 +167,8 @@
     <a href="{{ url_for('verify.student_query') }}" class="api-link">🔍 Student Verification</a>
     <a href="{{ url_for('verify.api_config_form', service_type='score') }}" class="api-link">📊 GPA Query API</a>
     <a href="{{ url_for('verify.score_query') }}" class="api-link">🔎 GPA Query</a>
+    <a href="{{ url_for('verify.api_config_form', service_type='thesis') }}" class="api-link">📄 Thesis Query API</a>
+    <a href="{{ url_for('verify.thesis_query') }}" class="api-link">🔎 Thesis Query</a>
 </div>
 
 <h3>Manage Students</h3>

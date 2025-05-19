@@ -31,8 +31,9 @@ def _call_api(cfg, payload, files=None):
     """
     url = cfg.base_url.rstrip('/') + cfg.path
     try:
-        # 检查是否为特定路径，使用不同的方式发送请求
-        use_json = '/student/record' in cfg.path
+        # 强制thesis类型API用application/json
+        is_thesis = getattr(cfg, 'service_type', None) == 'thesis'
+        use_json = '/student/record' in cfg.path or is_thesis
         headers = {"Content-Type": "application/json"} if use_json else None
         
         if cfg.method.lower() == 'post':
@@ -523,3 +524,98 @@ def score_batch_export():
     
     return send_file(buf, download_name='GPA_Query_Result.xlsx',
                     as_attachment=True)
+
+# ------------------------------------------------------------
+# 6. 论文外部API查询 /verify/thesis_query
+# ------------------------------------------------------------
+@verifyBP.route('/thesis_query', methods=['GET', 'POST'])
+def thesis_query():
+    configs = _configs('thesis')  # 获取thesis类型API配置
+
+    # 首次进入页面
+    if request.method == 'GET':
+        return render_template('thesis_query.html',
+                               configs=configs,
+                               api_choice='auto',
+                               title='')
+
+    # 表单取值
+    keywords = (request.form.get('title') or '').strip()
+    api_choice = request.form.get('api_choice', 'auto')
+    print(f"[DEBUG] thesis_query: keywords={keywords}, api_choice={api_choice}")
+    log_access("DEBUG", f"thesis_query: keywords={keywords}, api_choice={api_choice}")
+
+    if not keywords:
+        flash('Please enter keywords')
+        print("[DEBUG] thesis_query: keywords is empty")
+        log_access("DEBUG", "thesis_query: keywords is empty")
+        return render_template('thesis_query.html',
+                               configs=configs,
+                               api_choice=api_choice,
+                               title=keywords)
+
+    # 构造payload，严格只用keywords字段
+    cfg_list = configs if api_choice == 'auto' else [APIConfig.query.get(int(api_choice))]
+    payload = {'keywords': keywords}
+    print(f"[DEBUG] thesis_query: payload={payload}, cfg_list={[f'{c.base_url}{c.path}' for c in cfg_list]}")
+    log_access("DEBUG", f"thesis_query: payload={payload}, cfg_list={[f'{c.base_url}{c.path}' for c in cfg_list]}")
+
+    last_resp, last_cfg = None, None
+
+    # 逐个接口尝试
+    for cfg in cfg_list:
+        try:
+            print(f"[DEBUG] thesis_query: calling API {cfg.base_url}{cfg.path}")
+            log_access("DEBUG", f"thesis_query: calling API {cfg.base_url}{cfg.path}")
+            data = _call_api(cfg, payload)
+            print(f"[DEBUG] thesis_query: API response: {data}")
+            log_access("DEBUG", f"thesis_query: API response: {data}")
+            last_resp, last_cfg = data, cfg
+            # 新增：兼容API直接返回论文列表的情况
+            if isinstance(data, list) and data and all(isinstance(x, dict) and 'title' in x and 'abstract' in x for x in data):
+                data = {'status': 'success', 'theses': data}
+                log_access(f"Thesis external API query", f"Keywords: {keywords}")
+                print(f"[DEBUG] thesis_query: success (list), rendering result page")
+                return render_template(
+                    'thesis_query.html',
+                    configs=configs,
+                    api_choice=api_choice,
+                    title=keywords,
+                    source=f'{cfg.service_type} ({cfg.method} {cfg.path})',
+                    result=data
+                )
+            # 兼容output为{"title":..., "abstract":...}的情况
+            if (isinstance(data, dict) and data.get('status') in ('y', 'success') and data.get('theses')) or \
+               (isinstance(data, dict) and 'title' in data and 'abstract' in data):
+                # 如果是单条论文，转为theses列表
+                if 'title' in data and 'abstract' in data and 'theses' not in data:
+                    data = {'status': 'success', 'theses': [data]}
+                log_access(f"Thesis external API query", f"Keywords: {keywords}")
+                print(f"[DEBUG] thesis_query: success (dict), rendering result page")
+                return render_template(
+                    'thesis_query.html',
+                    configs=configs,
+                    api_choice=api_choice,
+                    title=keywords,
+                    source=f'{cfg.service_type} ({cfg.method} {cfg.path})',
+                    result=data
+                )
+        except Exception as e:
+            print(f"[DEBUG] thesis_query: Exception: {e}")
+            log_access("DEBUG", f"thesis_query: Exception: {e}")
+            last_resp, last_cfg = {'status': 'error', 'message': str(e)}, cfg
+            continue
+
+    # 全部接口均未命中或失败
+    print(f"[DEBUG] thesis_query: all API failed, last_resp={last_resp}")
+    log_access("DEBUG", f"thesis_query: all API failed, last_resp={last_resp}")
+    result = last_resp or {'status': 'not_found'}
+    src = f'{last_cfg.service_type} ({last_cfg.method} {last_cfg.path})' if last_cfg else '—'
+
+    return render_template('thesis_query.html',
+                           configs=configs,
+                           api_choice=api_choice,
+                           title=keywords,
+                           source=src,
+                           result=result)
+
