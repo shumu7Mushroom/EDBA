@@ -183,6 +183,10 @@
 {% if is_tadmin %}
 <h2>📋 All Help Requests</h2>
 
+<div style="margin-bottom: 20px;">
+  <a href="{{ url_for('tadmin.dashboard') }}" class="btn-back" style="display: inline-block;">← Back to T-Admin Dashboard</a>
+</div>
+
 <div class="previous-requests">
   <table class="admin-table">
     <thead>
