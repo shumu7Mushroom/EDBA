@@ -55,7 +55,7 @@ class BankConfig(Base):
                 to_name = "E-DBA account"
                 to_account = "596117071864958"
             
-            # Construct request data
+            # Construct request data            
             payload = {
                 "from_account": self.bank_account,
                 "password": self.bank_password,
@@ -64,16 +64,20 @@ class BankConfig(Base):
                 "to_name": to_name,
                 "to_account": to_account
             }
-
+            
             logging.debug(f"[API] Using {'local' if is_local_server else 'external'} server")
             logging.debug(f"[API] Payload: {payload}")
-
+            
             try:
                 response = requests.post(transfer_url, json=payload, timeout=10)
                 if response.status_code == 200:
                     response_data = response.json()
                     if response_data.get("status") == "success":
                         logging.info("[API] Transfer successful.")
+                        # Store balance information if available in the response
+                        if 'from_balance' in response_data:
+                            self.balance = response_data.get('from_balance')
+                            logging.info(f"[API] Updated sender balance: {self.balance}")
                         return response_data
                     else:
                         reason = response_data.get("reason", "Unknown error")

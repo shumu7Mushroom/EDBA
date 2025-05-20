@@ -489,6 +489,13 @@ def pay_fee():
     
     convener = OConvener.query.get(session['user_id'])
     
+    # Common data for both GET and POST requests
+    eadmin_info = {
+        'bank_name': "E-DBA Bank",
+        'account_name': "E-DBA account",
+        'bank_account': "596117071864958"
+    }
+    
     # Get sender's bank config (o-convener)
     user_id = session.get('user_id')
     sender_config = BankConfig.query.filter_by(user_id=user_id).first()
@@ -624,12 +631,11 @@ def pay_fee():
                 "from_account": sender_config.bank_account,
                 "account_number": sender_config.bank_account,
                 "password": sender_config.bank_password,
-                "to_bank": TO_BANK_NAME,
-                "to_name": TO_ACCOUNT_NAME,
+                "to_bank": TO_BANK_NAME,                "to_name": TO_ACCOUNT_NAME,
                 "to_account": TO_BANK_ACCOUNT,
                 "amount": total_fee
             }
-
+            
             print("Transfer Data:", transfer_data)
             # Debug log to verify the to_account value
             print(f"Debug: Sending to_account={transfer_data['to_account']} to external API")
@@ -639,18 +645,24 @@ def pay_fee():
             print("🔍 Actual request transfer_url =", transfer_url)
             print("💡 Using base_url =", sender_config.base_url)
             print("💡 Request transfer path =", transfer_url)
-
+            
             if transfer_response.status_code != 200:
                 raise requests.exceptions.RequestException(f"Transfer service returned non-200 status code: {transfer_response.status_code}")
-
+                
             transfer_result = transfer_response.json()
             if transfer_result['status'] != 'success':
                 raise Exception(transfer_result.get("reason", "Transfer failed: Unknown error"))
 
-            # Debug log to verify receiver_config values
+            # Debug log to verify receiver_config values and API response
             print(f"Debug: receiver_config.bank_account={receiver_config.bank_account}")
             print(f"Debug: receiver_config.account_name={receiver_config.account_name}")
             print(f"Debug: receiver_config.bank_name={receiver_config.bank_name}")
+            print(f"Debug: API Response={transfer_result}")
+            
+            # Update sender balance if it's returned by the API
+            if 'from_balance' in transfer_result:
+                sender_config.balance = transfer_result['from_balance']
+                print(f"Debug: Updated sender balance from API: {sender_config.balance}")
 
             # 7. Update user payment status
             for user_id in selected_users:
@@ -663,38 +675,83 @@ def pay_fee():
                 else:
                     teacher = Teacher.query.get(id_num)
                     if teacher:
-                        teacher.is_pay = 1
-
-            # 8. Update balance
+                        teacher.is_pay = 1            # 8. Update balance
+            # Get the balance from API response if available
             if 'from_balance' in transfer_result:
+                print(f"DEBUG: API returned balance: {transfer_result['from_balance']}")
                 sender_config.balance = transfer_result['from_balance']
             else:
+                # Calculate locally if API doesn't return balance
+                print(f"DEBUG: Calculating balance locally. Current: {sender_config.balance}, Fee: {total_fee}")
                 sender_config.balance = (sender_config.balance or 0) - total_fee
+                print(f"DEBUG: New calculated balance: {sender_config.balance}")
 
-            receiver_config.balance = (receiver_config.balance or 0) + total_fee#e admin收款
+            # Update receiver's balance (E-admin)
+            receiver_config.balance = (receiver_config.balance or 0) + total_fee
             db.session.commit()
+              # Store payment details for display
+            initial_balance = session.get('initial_balance', 0)  # Get the stored initial balance
+            final_balance = sender_config.balance
+            
             flash('Payment successful!', 'success')
             log_access(f"O-Convener {convener.org_shortname} completed payment for {len(selected_users)} users")
-            return redirect(url_for('oconvener.dashboard'))
-
+            
+            # Log balance changes for debugging
+            print(f"DEBUG: Initial balance: {initial_balance}, Final balance: {final_balance}, Payment amount: {total_fee}")
+            
+            # Render the payment page with balance information instead of redirecting
+            return render_template('pay_fee.html',
+                                config=sender_config,
+                                eadmin_info=eadmin_info,
+                                organization=convener.org_shortname,
+                                unpaid_users=[],  # Empty list since users are now paid
+                                payment_made=True,
+                                initial_balance=initial_balance,
+                                final_balance=final_balance,
+                                payment_amount=total_fee)
         except requests.exceptions.RequestException as e:
             flash(f'API request failed: {str(e)}', 'error')
         except Exception as e:
             flash(f'Error occurred during payment process: {str(e)}', 'error')
             db.session.rollback()
-
-    # GET request handling
-    eadmin_info = {
-        'bank_name': "E-DBA Bank",
-        'account_name': "E-DBA account",
-        'bank_account': "596117071864958"
-    }
-
+          # Attempt to get fresh balance from API if possible
+    if sender_config and sender_config.base_url and sender_config.auth_path:
+        try:
+            # Format auth URL
+            auth_url = f"{sender_config.base_url.rstrip('/')}/{sender_config.auth_path.strip('/')}"
+            
+            # Auth data
+            auth_data = {
+                "bank": sender_config.bank_name,
+                "account_name": sender_config.account_name,
+                "account_number": sender_config.bank_account,
+                "bank_account": sender_config.bank_account,
+                "password": sender_config.bank_password
+            }
+            
+            # Try to get current balance from API
+            auth_response = requests.post(auth_url, json=auth_data, timeout=5)
+            if auth_response.status_code == 200:
+                auth_result = auth_response.json()
+                if auth_result['status'] == 'success' and 'balance' in auth_result:
+                    # Update balance from the API response
+                    sender_config.balance = auth_result['balance']
+                    db.session.commit()
+                    print(f"DEBUG: Updated balance from API: {sender_config.balance}")
+        except Exception as e:
+            # If API call fails, continue with existing balance
+            print(f"DEBUG: Failed to fetch balance from API: {str(e)}")
+    
+    # Store the current balance in session for comparison after payment
+    if sender_config:
+        session['initial_balance'] = sender_config.balance
+    
     return render_template('pay_fee.html',
                          config=sender_config,
                          eadmin_info=eadmin_info,
                          organization=convener.org_shortname,
-                         unpaid_users=unpaid_users)
+                         unpaid_users=unpaid_users,
+                         payment_made=False)
     
 @oconvenerBP.route('/save_bank_config', methods=['POST'])
 def save_bank_config():

@@ -98,7 +98,41 @@
         });
         updateTotal();
     }
-    </script>    <!-- Display Receiving Bank Information -->
+    </script>    <!-- Display Account Balance Information -->    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Account Balance Information</span>
+            <div class="d-flex align-items-center">
+                {% if payment_made %}
+                <span class="badge bg-success me-2">Payment Complete</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                {% if not payment_made %}
+                <tr>
+                    <th style="width: 30%;">Current Account Balance:</th>
+                    <td><strong>{{ config.balance if config.balance is not none else 'Not Available' }} CNY</strong></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <th style="width: 30%;">Balance Before Payment:</th>
+                    <td><strong>{{ initial_balance }} CNY</strong></td>
+                </tr>
+                <tr class="table-success">
+                    <th>Balance After Payment:</th>
+                    <td><strong>{{ final_balance }} CNY</strong></td>
+                </tr>
+                <tr>
+                    <th>Payment Amount:</th>
+                    <td><strong class="text-danger">-{{ payment_amount }} CNY</strong></td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+
+    <!-- Display Receiving Bank Information -->
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <span>Receiving Bank Information</span>
