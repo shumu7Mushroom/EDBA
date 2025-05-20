@@ -13,7 +13,8 @@ Create environment using
 ```bash
 conda create env --name edba python==3.12
 conda activate edba
-``
+```
+
 Pip install the requirements library
 
 ```bash
