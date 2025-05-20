@@ -11,7 +11,7 @@ git clone https://github.com/shumu7Mushroom/EDBA.git
 Create environment using
 
 ```bash
-conda create env --name edba python==3.12
+conda create --name edba python==3.12
 conda activate edba
 ```
 
