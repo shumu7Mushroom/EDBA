@@ -2,6 +2,26 @@
 
 # Requirements
 
+Clone the project
+
+```bash
+git clone https://github.com/shumu7Mushroom/EDBA.git
+```
+
+Create environment using
+
+```bash
+conda create env --name edba python==3.12
+conda activate edba
+``
+Pip install the requirements library
+
+```bash
+cd EDBA
+pip install -r requirements.txt
+```
+
+
 # How to use
 
 You need to add a secure.py file in project/app/config before starts, below is a sample
@@ -29,6 +49,8 @@ MAIL_USERNAME = ''
 MAIL_PASSWORD = ''
 MAIL_DEFAULT_SENDER = ''
 ```
+
+After that, you need to start your localdatabase (here we use xampp) and create a database name "edba_db"
 
 Then run
 
