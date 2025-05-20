@@ -143,24 +143,59 @@
             min-height: 85vh;
             margin: 0 auto 3vw auto;
         }
+
+        .thesis-warning {
+            display: none;
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .checkbox-disabled {
+            cursor: not-allowed;
+            opacity: 0.6;        }
     </style>
+    <script>
+        
+        const validateThesisCheckbox = (checkbox) => {
+            if (!thesisApiConfigured && checkbox.checked) {
+                checkbox.checked = false;
+                const warning = checkbox.parentElement.querySelector('.thesis-warning');
+                if (warning) {
+                    warning.style.display = 'block';
+                    setTimeout(() => {
+                        warning.style.display = 'none';
+                    }, 3000);
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!thesisApiConfigured) {
+                document.querySelectorAll('input[name="thesis_enabled"]').forEach(checkbox => {
+                    checkbox.classList.add('checkbox-disabled');
+                    checkbox.checked = false;
+                });
+            }
+        });
+    </script>
 </head>
 <body>
 <div class="main-container">
-<div class="top-bar">
-    <h2>Welcome, {{ name }} (O-Convener)</h2>
-    <a class="logout-link" href="{{ url_for('oconvener.login') }}">Logout</a>
-</div>
+    <div class="top-bar">
+        <h2>Welcome, {{ name }} (O-Convener)</h2>
+        <a class="logout-link" href="{{ url_for('oconvener.login') }}">Logout</a>
+    </div>
 
-<div class="action-buttons">
-    <a href="{{ url_for('oconvener.create_thesis') }}"><button>Upload New Thesis</button></a>
-    <a href="{{ url_for('oconvener.list_thesis') }}"><button>My Theses</button></a>
-    <a href="{{ url_for('oconvener.review_thesis') }}"><button>Review Pending Theses</button></a>
-    <a href="{{ url_for('oconvener.upload_members') }}"><button>Upload Members</button></a>
-    <a href="{{ url_for('oconvener.pay_fee') }}"><button style="background-color:#ffc107;color:#333;">💰 Pay Fees</button></a>
-    <a href="{{ url_for('log.view_logs') }}"><button>View Logs</button></a>
-    <a href="{{ url_for('help.submit_help_request') }}"><button>🆘 Help</button></a>
-</div>
+    <div class="action-buttons">
+        <a href="{{ url_for('oconvener.create_thesis') }}"><button>Upload New Thesis</button></a>
+        <a href="{{ url_for('oconvener.list_thesis') }}"><button>My Theses</button></a>
+        <a href="{{ url_for('oconvener.review_thesis') }}"><button>Review Pending Theses</button></a>
+        <a href="{{ url_for('oconvener.upload_members') }}"><button>Upload Members</button></a>
+        <a href="{{ url_for('oconvener.pay_fee') }}"><button style="background-color:#ffc107;color:#333;">💰 Pay Fees</button></a>
+        <a href="{{ url_for('log.view_logs') }}"><button>View Logs</button></a>
+        <a href="{{ url_for('help.submit_help_request') }}"><button>🆘 Help</button></a>
+    </div>
 
 <h3>Service Interface Configuration</h3>
 <div class="api-links">
@@ -199,9 +234,14 @@
         </td>
         <td>
                 <input type="text" name="organization" value="{{ s.organization }}" readonly style="background:#f5f5f5;cursor:not-allowed;">
-        </td>
-        <td style="text-align:center;">
-            <input type="checkbox" name="thesis_enabled" value="1" {% if s.thesis_enabled %}checked{% endif %}>
+        </td>        <td style="text-align:center;">
+            <div style="position:relative;">
+                <input type="checkbox" name="thesis_enabled" value="1" 
+                       {% if s.thesis_enabled %}checked{% endif %}
+                       onclick="validateThesisCheckbox(this)"
+                       {% if not thesis_api_configured %}class="checkbox-disabled"{% endif %}>
+                <div class="thesis-warning">Please configure the Thesis API first</div>
+            </div>
         </td>
         <td style="text-align:center;">
             <input type="checkbox" name="course_enabled" value="1" {% if s.course_enabled %}checked{% endif %}>
@@ -245,10 +285,18 @@
                                     <td colspan="2"><strong>Batch Edit:</strong></td>
                                     <td></td>
                                     <td><input type="number" name="batch_thesis_quota" placeholder="Quota" style="width: 80px;"></td>
-                                    <td><input type="text" name="batch_organization" placeholder="Organization" style="width: 140px;" readonly style="background:#f5f5f5;cursor:not-allowed;"></td>
-                                    <td colspan="2" style="text-align: center;">
-                                        <label><input type="checkbox" name="batch_thesis_enabled" value="1"> Thesis</label>
-                                        <label style="margin-left: 10px;"><input type="checkbox" name="batch_course_enabled" value="1"> Course</label>
+                                    <td><input type="text" name="batch_organization" placeholder="Organization" style="width: 140px;" readonly style="background:#f5f5f5;cursor:not-allowed;"></td>                                    <td colspan="2" style="text-align: center;">
+                                        <label>
+                                            <div style="position:relative; display:inline-block;">
+                                                <input type="checkbox" name="batch_thesis_enabled" value="1" 
+                                                       onclick="validateThesisCheckbox(this)"
+                                                       {% if not thesis_api_configured %}class="checkbox-disabled"{% endif %}> Thesis
+                                                <div class="thesis-warning">Please configure the Thesis API first</div>
+                                            </div>
+                                        </label>
+                                        <label style="margin-left: 10px;">
+                                            <input type="checkbox" name="batch_course_enabled" value="1"> Course
+                                        </label>
                                     </td>
                                     <td>
                                         <button type="button" onclick="batchUpdateLevel1()" class="update-btn">✔️ Update</button>
@@ -363,9 +411,14 @@ function batchDeleteLevel1() {
         </td>
         <td>
                 <input type="text" name="organization" value="{{ t.organization }}" readonly style="background:#f5f5f5;cursor:not-allowed;">
-        </td>
-        <td style="text-align:center;">
-            <input type="checkbox" name="thesis_enabled" value="1" {% if t.thesis_enabled %}checked{% endif %}>
+        </td>        <td style="text-align:center;">
+            <div style="position:relative;">
+                <input type="checkbox" name="thesis_enabled" value="1" 
+                       {% if t.thesis_enabled %}checked{% endif %}
+                       onclick="validateThesisCheckbox(this)"
+                       {% if not thesis_api_configured %}class="checkbox-disabled"{% endif %}>
+                <div class="thesis-warning">Please configure the Thesis API first</div>
+            </div>
         </td>
         <td style="text-align:center;">
             <input type="checkbox" name="course_enabled" value="1" {% if t.course_enabled %}checked{% endif %}>

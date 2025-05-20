@@ -16,6 +16,7 @@ from app.controller.log import log_access  # Add log recording function
 import pandas as pd
 from app.models.bank_config import BankConfig  # Add this line
 from app.models.E_admin import EAdmin  # Add E-Admin model
+from app.models.api_config import APIConfig  # Add API Config model
 
 oconvenerBP = Blueprint('oconvener', __name__)
 
@@ -129,11 +130,17 @@ def dashboard():
     org = session.get('user_name')  # Current O-Convener's organization abbreviation
     students = Student.query.filter_by(organization=org).all()
     teachers = Teacher.query.filter_by(organization=org).all()
+
+    # Check if thesis API is configured
+    thesis_config = APIConfig.query.filter_by(service_type='thesis').first()
+    thesis_api_configured = bool(thesis_config and thesis_config.base_url and thesis_config.path)
+
     log_access(f"O-Convener viewed dashboard: {org}")  # Log action
     return render_template('oconvener_dashboard.html',
-                           name=org,
-                           students=students,
-                           teachers=teachers)
+                         name=org,
+                         students=students,
+                         teachers=teachers,
+                         thesis_api_configured=thesis_api_configured)
 
 
 @oconvenerBP.route('/update_user/<user_type>/<int:user_id>', methods=['POST'])
@@ -149,8 +156,18 @@ def update_user(user_type, user_id):
     user.organization = request.form.get('organization')
     user.access_level = int(request.form.get('access_level', 2))
     user.thesis_quota = int(request.form.get('thesis_quota', 0))
-    # Add new feature permission fields
-    user.thesis_enabled = bool(request.form.get('thesis_enabled'))
+    
+    # Check if trying to enable thesis feature
+    thesis_enabled = bool(request.form.get('thesis_enabled'))
+    if thesis_enabled:
+        # Check if thesis API is configured
+        thesis_config = APIConfig.query.filter_by(service_type='thesis').first()
+        if not thesis_config or not thesis_config.base_url or not thesis_config.path:
+            flash('Cannot enable thesis feature - API configuration is missing. Please configure the thesis query API first.', 'error')
+            return redirect(url_for('oconvener.dashboard'))
+    
+    # Set permissions
+    user.thesis_enabled = thesis_enabled 
     user.course_enabled = bool(request.form.get('course_enabled'))
 
     db.session.commit()
@@ -443,6 +460,7 @@ def batch_update_students():
     quota = request.form.get('batch_quota', '')
     org = request.form.get('batch_org', '')
     id_list = [int(i) for i in ids.split(',') if i.strip().isdigit()]
+
     if not id_list:
         flash("No students selected for batch operation")
         return redirect(url_for('oconvener.dashboard'))
