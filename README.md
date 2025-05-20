@@ -22,6 +22,7 @@ cd EDBA
 pip install -r requirements.txt
 ```
 
+It's pity that the requirements.txt maybe not cover all libraries we used after iterations, so if meet some lack of libraries, please pip the lack ones.
 
 # How to use
 
