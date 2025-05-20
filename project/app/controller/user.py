@@ -55,4 +55,4 @@ def login():
 def logout():
     session.clear()
     flash("You have successfully logged out")
-    return redirect(url_for('user.login'))
+    return redirect(url_for('main.index'))

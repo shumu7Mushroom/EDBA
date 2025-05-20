@@ -61,7 +61,7 @@ bankConfigBP = Blueprint('bank_config', __name__)
 @bankConfigBP.route('/api', methods=['GET', 'POST'])
 def bank_api_config():
     if session.get('user_role') != 'convener':
-        return redirect(url_for('oconvener.login'))
+        return redirect(url_for('main.index'))
         
     # Get the current user ID
     user_id = session.get('user_id')

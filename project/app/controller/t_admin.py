@@ -12,7 +12,7 @@ tadminBP = Blueprint('tadmin', __name__)
 @tadminBP.route('/dashboard')
 def dashboard():
     if 'admin_id' not in session or session.get('admin_role') != 'tadmin':
-        return redirect(url_for('admin.admin_login'))
+        return redirect(url_for('main.index'))
 
     rules = Rule.query.all()
     return render_template('tadmin_dashboard.html', rules=rules)
@@ -20,7 +20,7 @@ def dashboard():
 @tadminBP.route('/rule/upload', methods=['POST'])
 def upload_rule():
     if 'admin_id' not in session or session.get('admin_role') != 'tadmin':
-        return redirect(url_for('admin.admin_login'))
+        return redirect(url_for('main.index'))
 
     title = request.form.get('title')
     description = request.form.get('description', '')
@@ -49,7 +49,7 @@ def download_rule(filename):
 @tadminBP.route('/rule/delete/<int:rule_id>', methods=['POST'])
 def delete_rule(rule_id):
     if 'admin_id' not in session or session.get('admin_role') != 'tadmin':
-        return redirect(url_for('admin.admin_login'))
+        return redirect(url_for('main.index'))
 
     rule = Rule.query.get(rule_id)
     if rule:
@@ -72,7 +72,8 @@ def create_admin():
     role = data.get('role')
 
     if not all([name, email, password, role]):
-        return jsonify({"error": "Missing required fields"}), 400
+        flash("Missing required fields", "error")
+        return redirect(url_for('tadmin.dashboard'))
 
     result = create_admin_account(name, email, password, role)
     if "success" in result:
@@ -83,9 +84,12 @@ def create_admin():
         else:
             msg = "Admin created successfully"
 
-        return jsonify({"message": msg, "id": result['admin_id']}), 201
+        log_access(f"T-Admin created new {role} account: {name} ({email})")
+        flash(msg, "success")
+        return redirect(url_for('tadmin.dashboard'))
     else:
-        return jsonify({"error": result['error']}), 400
+        flash(f"Error: {result['error']}", "error")
+        return redirect(url_for('tadmin.dashboard'))
 
 @tadminBP.route('/rule/preview/<filename>')
 def preview_rule(filename):

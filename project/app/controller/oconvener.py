@@ -122,9 +122,9 @@ def send_code():
         return jsonify({"status": "fail", "message": "Failed to send email"}), 500
 
 @oconvenerBP.route('/dashboard', methods=['GET', 'POST'])
-def dashboard():
+def dashboard():    
     if 'user_id' not in session or session.get('user_role') != 'convener':
-        return redirect(url_for('oconvener.login'))
+        return redirect(url_for('main.index'))
     convener = OConvener.query.get(session['user_id'])
     org = session.get('user_name')  # Current O-Convener's organization abbreviation
     students = Student.query.filter_by(organization=org).all()
@@ -160,7 +160,7 @@ def update_user(user_type, user_id):
 @oconvenerBP.route('/thesis/create', methods=['GET', 'POST'])
 def create_thesis():
     if 'user_id' not in session or session.get('user_role') != 'convener':
-        return redirect(url_for('oconvener.login'))
+        return redirect(url_for('main.index'))
 
     if request.method == 'POST':
         title = request.form.get('title')
@@ -208,7 +208,7 @@ def create_thesis():
 @oconvenerBP.route('/thesis/list')
 def list_thesis():
     if 'user_id' not in session or session.get('user_role') != 'convener':
-        return redirect(url_for('oconvener.login'))
+        return redirect(url_for('main.index'))
 
     convener_org = session.get('user_name')
     theses = Thesis.query.filter_by(organization=convener_org, is_check=True).all()
@@ -255,7 +255,7 @@ def update_thesis(thesis_id):
 @oconvenerBP.route('/thesis/review', methods=['GET', 'POST'])
 def review_thesis():
     if 'user_id' not in session or session.get('user_role') != 'convener':
-        return redirect(url_for('oconvener.login'))
+        return redirect(url_for('main.index'))
 
     if request.method == 'POST':
         selected_ids = request.form.getlist('thesis_id')
@@ -277,7 +277,7 @@ def review_thesis():
 @oconvenerBP.route('/members/upload', methods=['GET', 'POST'])
 def upload_members():
     if 'user_id' not in session or session.get('user_role') != 'convener':
-        return redirect(url_for('oconvener.login'))
+        return redirect(url_for('main.index'))
 
     org = session.get('user_name')  # Current O-Convener's organization name
     results = {'success': [], 'fail': []}
@@ -395,7 +395,7 @@ def upload_members():
 @oconvenerBP.route('/delete_user/<user_type>/<int:user_id>', methods=['POST'])
 def delete_user(user_type, user_id):
     if 'user_id' not in session or session.get('user_role') != 'convener':
-        return redirect(url_for('oconvener.login'))
+        return redirect(url_for('main.index'))
 
     if user_type == 'student':
         user = Student.query.get(user_id)
@@ -485,7 +485,7 @@ from flask import flash
 @oconvenerBP.route('/pay_fee', methods=['GET', 'POST'])
 def pay_fee():
     if 'user_id' not in session or session.get('user_role') != 'convener':
-        return redirect(url_for('oconvener.login'))
+        return redirect(url_for('main.index'))
     
     convener = OConvener.query.get(session['user_id'])
     
@@ -699,7 +699,7 @@ def pay_fee():
 @oconvenerBP.route('/save_bank_config', methods=['POST'])
 def save_bank_config():
     if 'user_id' not in session or session.get('user_role') != 'convener':
-        return redirect(url_for('oconvener.login'))
+        return redirect(url_for('main.index'))
 
     form_data = {
         'bank_name': request.form.get('bank'),
@@ -736,7 +736,7 @@ def save_bank_config():
 @oconvenerBP.route('/set_service_fee', methods=['GET', 'POST'])
 def set_service_fee():
     if 'user_id' not in session or session.get('user_role') != 'convener':
-        return redirect(url_for('oconvener.login'))
+        return redirect(url_for('main.index'))
     convener = OConvener.query.get(session['user_id'])
     msg = None
     if request.method == 'POST':

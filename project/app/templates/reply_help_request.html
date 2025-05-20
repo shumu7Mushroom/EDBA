@@ -75,22 +75,35 @@
   .reply-form textarea:focus {
     border: 1.5px solid #007bff;
     outline: none;
-  }
-  .reply-form button {
-    background: linear-gradient(135deg, #4facfe, #00f2fe);
+  }  .reply-form button {
+    background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 6px;
-    padding: 10px 24px;
-    font-size: 1.08em;
+    border-radius: 5px;
+    padding: 12px 20px;
+    font-size: 16px;
     cursor: pointer;
-    transition: background 0.2s, transform 0.2s;
+    transition: background-color 0.3s ease;
     font-weight: bold;
-    letter-spacing: 1px;
   }
   .reply-form button:hover {
-    background: linear-gradient(135deg, #3a8edb, #00c5dc);
-    transform: translateY(-2px);
+    background-color: #0056b3;
+  }
+  
+  .btn-back {
+    background-color: #6c757d !important;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .btn-back:hover {
+    background-color: #5a6268 !important;
   }
   .flash-messages {
     margin-top: 18px;
@@ -108,25 +121,19 @@
 <div class="help-reply-container">
   <h2>📩 Reply to Help Request #{{ question.id }}</h2>
   <div class="help-info"><strong>User Type:</strong> {{ question.user_type }}</div>
-  <div class="help-info"><strong>User ID:</strong> {{ question.user_id }}</div>
-  <div class="help-content"><strong>Request Content:</strong><br>{{ question.content }}</div>
-  <div class="help-status"><strong>Status:</strong> {{ question.status }}</div>
+  <div class="help-info"><strong>User ID:</strong> {{ question.user_id }}</div>  <div class="help-content"><strong>Request Content:</strong><br>{{ question.content }}</div>
+  <div class="help-status"><strong>Status:</strong> {{ question.status }} {% if question.status == 'Resolved' %}<span style="color: gold; margin-left: 4px;">⭐</span>{% endif %}</div>
   <div class="admin-reply-block{% if not question.admin_reply %} empty{% endif %}">
     <strong>Admin Reply:</strong> {{ question.admin_reply or 'No reply yet' }}
-  </div>
-  <form class="reply-form" method="post" action="{{ url_for('help.reply_help_request', id=question.id) }}">
+  </div>  <form class="reply-form" method="post" action="{{ url_for('help.reply_help_request', id=question.id) }}">
     <label for="reply">Your Reply:</label>
     <textarea id="reply" name="reply" required placeholder="Please enter your reply..."></textarea>
-    <div style="display:flex;justify-content:flex-end;gap:16px;margin-top:4px;">
-      <div style="display: flex; align-items: center; gap: 8px; margin-top: 16px;">
-        <button type="submit" style="display: flex; align-items: center; gap: 4px;">
-          ✔️ Submit Reply
-          <span style="color: gold; font-size: 1.2em;">⭐</span>
-        </button>
-        <span id="reply-content" style="font-size: 0.9em; color: #6c757d;">Your reply will appear here.</span>
-      </div>
+    <div style="display:flex;justify-content:flex-end;gap:16px;margin-top:16px;">
+      <button type="submit">
+        Submit Reply ⭐
+      </button>
       <a href="{{ url_for('help.view_help_requests') }}" style="text-decoration:none;">
-        <button type="button" class="reply-form-btn" style="background:linear-gradient(135deg,#6c757d,#adb5bd);color:white;border:none;border-radius:6px;padding:8px 22px;font-size:1em;cursor:pointer;font-weight:bold;letter-spacing:1px;">↩️ Back to Help Requests</button>
+        <button type="button" class="btn-back">← Return to Help Requests</button>
       </a>
     </div>
   </form>
@@ -139,12 +146,5 @@
   {% endif %}
 </div>
 
-<script>
-  const replyTextarea = document.getElementById('reply');
-  const replyContent = document.getElementById('reply-content');
 
-  replyTextarea.addEventListener('input', () => {
-    replyContent.textContent = replyTextarea.value || 'Your reply will appear here.';
-  });
-</script>
 {% endblock %}

@@ -1,61 +1,187 @@
 {% extends 'base.html' %}
 {% block content %}
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f4f6f8;
+    padding: 40px;
+  }
+
+  h2 {
+    color: #333;
+    margin-bottom: 30px;
+    font-size: 28px;
+  }
+
+  .balance-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+    border-left: 4px solid #28a745;
+  }
+
+  .balance-amount {
+    font-size: 24px;
+    font-weight: 600;
+    color: #28a745;
+  }
+
+  .section-card {
+    background: white;
+    padding: 0;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    background-color: #007bff;
+    color: white;
+    padding: 15px 20px;
+    font-weight: 500;
+  }
+  
+  .card-header h4 {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .card-body {
+    padding: 20px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+
+  button[type="submit"] {
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  button[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+  
+  .alert {
+    padding: 12px 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+  }
+  
+  .alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  
+  .action-btns {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .return-btn {
+    padding: 12px 20px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+  }
+  
+  .return-btn:hover {
+    background-color: #5a6268;
+  }
+</style>
+
 <h2>Set Membership Fees and Bank Account</h2>
+
 {% if msg %}
 <div class="alert alert-success">{{ msg }}</div>
 {% endif %}
 
-<div class="card mb-4">
-    <div class="card-body">
-        <h4>Current Account Balance: {{ config.balance if config else 0 }} CNY</h4>
-    </div>
+<div class="balance-card">
+  <h4>Current Account Balance: <span class="balance-amount">{{ config.balance if config else 0 }} CNY</span></h4>
 </div>
 
 <form method="POST">
-    <div class="card mb-4">
-        <div class="card-header">
-            <h4>Bank Account Information</h4>
-        </div>
-        <div class="card-body">
-            <div class="form-group">
-                <label>Bank Name</label>
-                <input type="text" name="bank_name" value="{{ config.bank_name if config else 'FutureLearn Federal Bank' }}" class="form-control">
-            </div>
-            <div class="form-group">
-                <label>Account Name</label>
-                <input type="text" name="account_name" value="{{ config.account_name if config else 'Utopia Credit Union' }}" class="form-control">
-            </div>
-            <div class="form-group">
-                <label>Bank Account</label>
-                <input type="text" name="bank_account" value="{{ config.bank_account if config }}" required class="form-control">
-            </div>
-            <div class="form-group">
-                <label>Bank Password</label>
-                <input type="password" name="bank_password" value="{{ config.bank_password if config }}" required class="form-control">
-            </div>
-        </div>
+  <div class="section-card">
+    <div class="card-header">
+      <h4>Bank Account Information</h4>
     </div>
+    <div class="card-body">
+      <div class="form-group">
+        <label>Bank Name</label>
+        <input type="text" name="bank_name" value="{{ config.bank_name if config else 'FutureLearn Federal Bank' }}">
+      </div>
+      <div class="form-group">
+        <label>Account Name</label>
+        <input type="text" name="account_name" value="{{ config.account_name if config else 'Utopia Credit Union' }}">
+      </div>
+      <div class="form-group">
+        <label>Bank Account</label>
+        <input type="text" name="bank_account" value="{{ config.bank_account if config }}" required>
+      </div>
+      <div class="form-group">
+        <label>Bank Password</label>
+        <input type="password" name="bank_password" value="{{ config.bank_password if config }}" required>
+      </div>
+    </div>
+  </div>
 
-    <div class="card mb-4">
-        <div class="card-header">
-            <h4>Fee Settings</h4>
-        </div>
-        <div class="card-body">
-            <div class="form-group">
-                <label>Level 1 Access Fee</label>
-                <input type="number" name="level1_fee" value="{{ config.level1_fee if config else 20 }}" required class="form-control">
-            </div>
-            <div class="form-group">
-                <label>Level 2 Access Fee</label>
-                <input type="number" name="level2_fee" value="{{ config.level2_fee if config else 50 }}" required class="form-control">
-            </div>
-            <div class="form-group">
-                <label>Level 3 Access Fee</label>
-                <input type="number" name="level3_fee" value="{{ config.level3_fee if config else 100 }}" required class="form-control">
-            </div>
-        </div>
+  <div class="section-card">
+    <div class="card-header">
+      <h4>Fee Settings</h4>
     </div>
-    
-    <button type="submit" class="btn btn-primary">Save Configuration</button>
+    <div class="card-body">
+      <div class="form-group">
+        <label>Level 1 Access Fee</label>
+        <input type="number" name="level1_fee" value="{{ config.level1_fee if config else 20 }}" required>
+      </div>
+      <div class="form-group">
+        <label>Level 2 Access Fee</label>
+        <input type="number" name="level2_fee" value="{{ config.level2_fee if config else 50 }}" required>
+      </div>
+      <div class="form-group">
+        <label>Level 3 Access Fee</label>
+        <input type="number" name="level3_fee" value="{{ config.level3_fee if config else 100 }}" required>
+      </div>
+    </div>
+  </div>
+  
+  <div class="action-btns">
+    <button type="submit">Save Configuration</button>
+    <a href="{{ url_for('admin.dashboard') }}" class="return-btn">Return to Dashboard</a>
+  </div>
 </form>
 {% endblock %}

@@ -11,43 +11,42 @@
     h2, h3 {
       color: #333;
       margin-bottom: 20px;
-    }
-
-    .logout-link {
-      display: inline-block;
-      position: absolute;
-      top: 24px;
-      right: 40px;
-      margin: 0;
+    }    .logout-link {
+      display: inline-flex;
+      align-items: center;
       color: #fff;
       background-color: #dc3545;
-      padding: 8px 16px;
+      padding: 12px 20px;
       border-radius: 5px;
       text-decoration: none;
-      font-size: 14px;
-      z-index: 100;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.3s ease;
     }
 
     .logout-link:hover {
       background-color: #c82333;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
     .action-buttons {
       margin-bottom: 30px;
-    }
-
-    .action-buttons button {
+    }    .action-buttons button {
       background-color: #007bff;
       color: white;
-      padding: 8px 16px;
-      font-size: 14px;
+      padding: 12px 20px;
+      font-size: 16px;
       border: none;
-      border-radius: 6px;
+      border-radius: 5px;
       cursor: pointer;
+      transition: all 0.3s ease;
+      margin-right: 10px;
+      font-weight: 500;
     }
 
     .action-buttons button:hover {
       background-color: #0056b3;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
     table {
@@ -174,24 +173,79 @@
     position: relative;
     min-height: 200px;
   }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    body {
+      padding: 20px;
+    }
+    
+    .header-actions {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .action-buttons {
+      margin-top: 15px;
+      flex-wrap: wrap;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+    }
+    
+    .action-buttons a {
+      margin-bottom: 10px;
+      width: 100%;
+    }
+    
+    .action-buttons button {
+      width: 100%;
+    }
+    
+    .logout-link {
+      margin-top: 15px;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .main-container {
+      width: 95vw;
+      padding: 20px;
+    }
+    
+    table {
+      font-size: 14px;
+    }
+    
+    th, td {
+      padding: 8px;
+    }
+  }
   </style>
 </head>
 <body>
 <div class="main-container">
 <div class="header-bar">
-  <a class="logout-link" href="{{ url_for('admin.logout') }}">Logout</a>
   <h2 style="margin-bottom: 0;">Welcome, {{ session.admin_name }} ({{ session.admin_role|capitalize }})</h2>
 </div>
 
-<div class="action-buttons">
-  <a href="{{ url_for('log.view_logs') }}">
-    <button>View Logs</button>
-  </a>
-  {% if role == 'eadmin' %}
-  <a href="{{ url_for('admin.bank_config') }}">
-    <button>Set fees and receiving account</button>
-  </a>
-  {% endif %}
+<div class="header-actions" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; margin-bottom: 30px; border-bottom: 1px solid #eee;">
+  <div class="action-buttons">
+    <a href="{{ url_for('log.view_logs') }}">
+      <button>📊 View Logs</button>
+    </a>
+    {% if role == 'eadmin' %}
+    <a href="{{ url_for('admin.bank_config') }}">
+      <button>💰 Set fees and receiving account</button>
+    </a>
+    <a href="{{ url_for('help.create_help_request') }}">
+      <button>🆘 Request Help</button>
+    </a>
+    {% endif %}
+  </div>
+  <div>
+    <a class="logout-link" href="{{ url_for('admin.logout') }}"><span style="margin-right: 5px;">🚪</span>Logout</a>
+  </div>
 </div>
 
 <h3>O-Convener Applications</h3>

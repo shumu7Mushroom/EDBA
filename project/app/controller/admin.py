@@ -108,7 +108,7 @@ def admin_login():
 @adminBP.route('/dashboard')
 def dashboard():
     if 'admin_id' not in session:
-        return redirect(url_for('admin.admin_login'))
+        return redirect(url_for('main.index'))
 
     role = session.get('admin_role')
     conv_list = []
@@ -161,7 +161,7 @@ def reject(id):
 def logout():
     log_access("Admin logged out")  # Record logout
     session.clear()
-    return redirect(url_for('admin.admin_login'))
+    return redirect(url_for('main.index'))
 
 @adminBP.route('/download_proof/<filename>')
 def download_proof(filename):

@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f4f6f8;
+    padding: 40px;
+  }
+
+  h2 {
+    color: #333;
+    margin-bottom: 30px;
+    font-size: 28px;
+  }
+  
+  h3 {
+    color: #555;
+    margin-top: 30px;
+    margin-bottom: 20px;
+  }
+
+  .help-form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    min-height: 150px;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  .btn-primary {
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    background-color: #0056b3;
+  }
+  
+  .btn-back {
+    padding: 12px 20px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    margin-right: 10px;
+  }
+  
+  .btn-back:hover {
+    background-color: #5a6268;
+  }
+  
+  .action-btns {
+    display: flex;
+    margin-top: 20px;
+  }
+  
+  .previous-requests {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  }
+  
+  .request-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    position: relative;
+  }
+  
+  .request-item:last-child {
+    border-bottom: none;
+  }
+  
+  .request-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .status-new {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+    .status-resolved {
+    background-color: #d4edda;
+    color: #155724;
+  }
+  
+  .status-star {
+    color: gold;
+    margin-left: 4px;
+    font-size: 14px;
+    vertical-align: middle;
+  }
+  
+  .request-content {
+    margin-bottom: 15px;
+    white-space: pre-wrap;
+  }
+  
+  .request-reply {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 3px solid #28a745;
+    white-space: pre-wrap;
+  }
+  
+  .request-date {
+    font-size: 12px;
+    color: #6c757d;
+    margin-top: 5px;
+  }
+</style>
+
+<h2>Submit Help Request</h2>
+
+<div class="help-form">
+  <form method="POST" action="{{ url_for('help.create_help_request') }}">
+    <div class="form-group">
+      <label for="content">Please describe your issue or question:</label>
+      <textarea id="content" name="content" required></textarea>
+    </div>
+    
+    <div class="action-btns">
+      {% if user_role == 'senior' %}
+      <a href="{{ url_for('senioradmin.dashboard') }}" class="btn-back">Return to Dashboard</a>
+      {% elif user_role == 'eadmin' %}
+      <a href="{{ url_for('admin.dashboard') }}" class="btn-back">Return to Dashboard</a>
+      {% elif user_role == 'convener' %}
+      <a href="{{ url_for('oconvener.dashboard') }}" class="btn-back">Return to Dashboard</a>
+      {% elif user_role == 'student' %}
+      <a href="{{ url_for('student.dashboard') }}" class="btn-back">Return to Dashboard</a>
+      {% elif user_role == 'teacher' %}
+      <a href="{{ url_for('teacher.dashboard') }}" class="btn-back">Return to Dashboard</a>
+      {% endif %}
+      <button type="submit" class="btn-primary">Submit Request</button>
+    </div>
+  </form>
+</div>
+
+{% if requests %}
+<h3>Your Previous Requests</h3>
+<div class="previous-requests">
+  {% for request in requests %}
+  <div class="request-item">    <div class="request-status {% if request.status == 'New' %}status-new{% else %}status-resolved{% endif %}">
+      {{ request.status }} {% if request.status == 'Resolved' %}<span class="status-star">⭐</span>{% endif %}
+    </div>
+    <div class="request-content">{{ request.content }}</div>
+    {% if request.admin_reply %}
+    <div class="request-reply">
+      <strong>T-Admin Reply:</strong><br>
+      {{ request.admin_reply }}
+    </div>
+    {% endif %}
+    <div class="request-date">
+      Submitted: {{ request.created_at.strftime('%Y-%m-%d %H:%M') }}
+      {% if request.replied_at %}
+      <br>Replied: {{ request.replied_at.strftime('%Y-%m-%d %H:%M') }}
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
