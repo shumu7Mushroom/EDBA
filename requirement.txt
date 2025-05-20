@@ -7,3 +7,5 @@ Flask-Migrate
 flask-login
 pandas
 requests
+openpyxl
+xlsxwriter
