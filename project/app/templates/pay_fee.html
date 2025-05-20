@@ -18,9 +18,16 @@
     .bg-success { background-color: #28a745; color: white; }
     .me-2 { margin-right: 0.5rem; }
     code { background: #f8f9fa; padding: 4px 8px; border-radius: 4px; color: #e83e8c; }
+    .back-button {
+      margin-bottom: 20px;
+      display: inline-block;
+    }
   </style>
 
 <div class="main-container">
+    <a href="{{ url_for('oconvener.dashboard') }}" class="btn btn-secondary back-button">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
     <h2>Organization Fee Payment</h2>
     
     {% with messages = get_flashed_messages(with_categories=true) %}

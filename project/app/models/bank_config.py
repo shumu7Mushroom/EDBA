@@ -1,8 +1,9 @@
 import requests
 import logging
 from app.models.base import Base
-from sqlalchemy import Column, String, Integer, JSON
+from sqlalchemy import Column, String, Integer, JSON, DECIMAL
 from sqlalchemy.orm import Session
+from app.utils.balance_utils import get_balance
 
 class BankConfig(Base):
     __tablename__ = 'bank_config'
@@ -12,7 +13,7 @@ class BankConfig(Base):
     bank_name = Column(String(64), default="EDBA Bank")
     account_name = Column(String(64), default="EDBA System")
     bank_password = Column(String(64), nullable=True)
-    balance = Column(Integer, default=0)  # Account balance
+    balance = Column(DECIMAL(10,2), default=get_balance)
     
     # Different access level fee settings
     level1_fee = Column(Integer, default=1)  # Level 1 fee
