@@ -179,6 +179,8 @@ test.py
 
 uploads/
 
+test_data/
+
 project/app/config/secure.py
 
 project/tests
