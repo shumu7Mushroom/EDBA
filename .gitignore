@@ -187,6 +187,10 @@ project/tests
 
 E-DBA External Database Interface-updated-marked yellow.pdf
 E-DBA_External_Database_Interface.md
+checklist_forStudent4.1.xlsx
+
+test_data/
+migrations/
 
 project/migrations/
 ~$*
