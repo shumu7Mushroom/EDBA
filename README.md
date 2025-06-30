@@ -4,7 +4,7 @@
 
 This repository is just a course project. **NO VALUE AT ALL !!!**
 
-<small>Unless you are a UIC(BNBU) CS student (maybe work?)</small>
+<span style="font-size: 12px; color: #888;">Unless you are a UIC(BNBU) CS student (maybe work?)</span>
 
 # Requirements
 
