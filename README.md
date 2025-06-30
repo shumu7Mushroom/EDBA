@@ -1,5 +1,11 @@
 # EDBA
 
+# Introduction
+
+This repository is just a course project. ** NO VALUE AT ALL !!! **
+
+<font size=3>Unless you are a UIC(BNBU) CS student (maybe work?)</font>
+
 # Requirements
 
 Clone the project
