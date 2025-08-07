@@ -4,8 +4,6 @@
 
 This repository is just a course project. **NO VALUE AT ALL !!!**
 
-<span style="font-size: 12px; color: #888;">Unless you are a UIC(BNBU) CS student (maybe work?)</span>
-
 # Requirements
 
 Clone the project
