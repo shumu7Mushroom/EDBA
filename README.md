@@ -2,6 +2,8 @@
 
 # Introduction
 
+The Lightweight Education Data Bay Area (E-DBA) is a secure platform for higher education institutions to share data, including student identities, theses, and course information. It supports role-based access, online payments, and optional data storage, ensuring compliance with policies and interoperability standards. Inspired by the IDS model, E-DBA simplifies academic collaboration while maintaining security and transparency.
+
 This repository is just a course project. **NO VALUE AT ALL !!!**
 
 # Requirements
